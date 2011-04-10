@@ -26,8 +26,8 @@ class DiscountCouponOption extends DataObject {
 	);
 
 	public static $field_labels = array(
-		"DiscountAbsolute" => "Discount as absolute reduction for code - if any (e.g. $10.00)",
-		"DiscountPercentage" => "Discount as percentage of total - if any (e.g. 10%)",
+		"DiscountAbsolute" => "Discount as absolute reduction of total - if any (e.g. 10 = -$10.00)",
+		"DiscountPercentage" => "Discount as percentage of total - if any (e.g. 10 = -10%)",
 		"UseCount" => "number of times the code has been used"
 	);
 
