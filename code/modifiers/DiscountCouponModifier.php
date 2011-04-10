@@ -8,13 +8,15 @@
  * It lets you set fixed shipping costs, or a fixed
  * cost for each region you're delivering to.
  */
+
 class DiscountCouponModifier extends OrderModifier {
 
 // ######################################## *** model defining static variables (e.g. $db, $has_one)
 
 	public static $db = array(
 		'DebugString' => 'HTMLText',
-		'SubTotalAmount' => 'Currency'
+		'SubTotalAmount' => 'Currency',
+		'CouponCodeEntered' => 'Varchar(100)'
 	);
 
 	public static $has_one = array(
@@ -40,24 +42,15 @@ class DiscountCouponModifier extends OrderModifier {
 
 	protected $debugMessage = "";
 
+	protected static $code_entered = '';
+		static function set_code_entered($s) {self::$code_entered = $s;}
+		static function get_code_entered() {return self::$code_entered;}
+
 // ######################################## *** CRUD functions (e.g. canEdit)
 // ######################################## *** init and update functions
-
-
-
-	public  function setCoupon($discountCoupon) {
-		$this->DiscountCouponOptionID = $discountCoupon->ID;
-		$this->write();
-	}
-
-
-	public  function setCouponByID($discountCouponID) {
-		$this->DiscountCouponOptionID = $discountCouponID;
-		$this->write();
-	}
-
 	public function runUpdate() {
 		$this->checkField("SubTotalAmount");
+		$this->checkField("CouponCodeEntered");
 		$this->checkField("DiscountCouponOptionID");
 		parent::runUpdate();
 	}
@@ -85,17 +78,75 @@ class DiscountCouponModifier extends OrderModifier {
 	}
 
 
+	public function updateCouponCodeEntered($code) {
+		self::set_code_entered($code);
+		if($this->CouponCodeEntered != $code) {
+			$this->CouponCodeEntered = $code;
+			$discountCoupon = DataObject::get_one("DiscountCouponOption", "\"Code\" = '".Convert::raw2sql($code)."'");
+			if($discountCoupon && $discountCoupon->IsValid()) {
+				$this->DiscountCouponOptionID = $discountCoupon->ID;
+			}
+			else {
+				$this->DiscountCouponOptionID = 0;
+			}
+			$this->write();
+		}
+		return $this->CouponCodeEntered;
+	}
+
+	public function setCoupon($discountCoupon) {
+		$this->DiscountCouponOptionID = $discountCoupon->ID;
+		$this->write();
+	}
+
+
+	public function setCouponByID($discountCouponID) {
+		$this->DiscountCouponOptionID = $discountCouponID;
+		$this->write();
+	}
+
+
+
 // ######################################## *** template functions (e.g. ShowInTable, TableTitle, etc...) ... USES DB VALUES
 
+	/**
+	*@return boolean
+	**/
 	public function ShowInTable() {
 		return true;
 	}
+
+	/**
+	*@return boolean
+	**/
+	function CanBeHiddenAfterAjaxUpdate() {
+		return !$this->CouponCodeEntered;
+	}
+
+	/**
+	*@return boolean
+	**/
 	public function CanRemove() {
 		return false;
 	}
+
+	/**
+	*@return float
+	**/
 	public function TableValue() {
-		return $this->Amount;
+		return $this->Amount * -1;
 	}
+
+	/**
+	*@return float
+	**/
+	public function CartValue() {
+		return $this->Amount * -1;
+	}
+
+	/**
+	*@return string
+	**/
 	public function TableTitle() {
 		return $this->Name;
 	}
@@ -104,16 +155,26 @@ class DiscountCouponModifier extends OrderModifier {
 
 // ######################################## *** calculate database fields: protected function Live[field name]  ... USES CALCULATED VALUES
 
+	function LiveCouponCodeEntered (){
+		if($newCode = trim(self::get_code_entered())) {
+			return $newCode;
+		}
+		return $this->CouponCodeEntered;
+	}
 
 	/**
 	*@return int
 	**/
 	protected function LiveName() {
+		$code = $this->LiveCouponCodeEntered();
 		$coupon = $this->LiveDiscountCouponOption();
 		if($coupon) {
-			return _t("DiscountCouponModifier.COUPON", "Coupon: ").$coupon->Code;
+			return _t("DiscountCouponModifier.COUPONAPPLIED", "Coupon applied: ").$code;
 		}
-		return "";
+		elseif($code) {
+			return _t("DiscountCouponModifier.COUPONCOULDNOTBEAPPLIED", "Coupon could not be applied: ").$code;
+		}
+		return _t("DiscountCouponModifier.NOCOUPONENTERED", "No Coupon Entered").$code;
 	}
 
 	/**
@@ -194,6 +255,7 @@ class DiscountCouponModifier extends OrderModifier {
 	}
 
 // ######################################## *** AJAX related functions
+
 // ######################################## *** debug functions
 
 }
@@ -203,22 +265,19 @@ class DiscountCouponModifier_Form extends OrderModifierForm {
 	public function processOrderModifier_discountcoupon($data, $form) {
 		if(isset($data['DiscountCouponCode'])) {
 			$newOption = Convert::raw2sql($request['DiscountCouponCode']);
-			$discountCoupon = DataObject::get_one("DiscountCouponOption", "\"Code\" = '".($newOption)."'");
-			if($discountCoupon && $discountCoupon->IsValid()) {
-				$order = ShoppingCart::current_order();
-				$modifiers = $order->Modifiers();
-				if($modifiers) {
-					foreach($modifiers as $modifier) {
-						if ($modifier InstanceOf DiscountCouponModifier) {
-							$modifier->setCoupon($discountCoupon);
-						}
+			$order = ShoppingCart::current_order();
+			$modifiers = $order->Modifiers();
+			if($modifiers) {
+				foreach($modifiers as $modifier) {
+					if ($modifier InstanceOf DiscountCouponModifier) {
+						$modifier->updateCouponCodeEntered($newOption);
 					}
 				}
 			}
 		}
 		Order::save_current_order();
 		if(Director::is_ajax()) {
-			return ShoppingCart_Controller::json_code();
+			return ShoppingCart::return_message("success", _t("DiscountCouponModifier.APPLIED", "Coupon applied"));
 		}
 		else {
 			Director::redirect(CheckoutPage::find_link());
@@ -236,23 +295,19 @@ class DiscountCouponModifier_AjaxController extends Controller {
 	function ModifierForm($request) {
 		if(isset($request['DiscountCouponCode'])) {
 			$newOption = Convert::raw2sql($request['DiscountCouponCode']);
-			$discountCoupon = DataObject::get_one("DiscountCouponOption", "\"Code\" = '".($newOption)."'");
-			if($discountCoupon && $discountCoupon->IsValid()) {
-				$order = ShoppingCart::current_order();
-				$modifiers = $order->Modifiers();
-				if($modifiers) {
-					foreach($modifiers as $modifier) {
-						if ($modifier InstanceOf DiscountCouponModifier) {
-							$modifier->setCoupon($discountCoupon);
-							$modifier->runUpdate();
-							return ShoppingCart::return_message("success", _t("DiscountCouponModifier.UPDATED", "Coupon Code updated"));
-						}
+			$order = ShoppingCart::current_order();
+			$modifiers = $order->Modifiers();
+			if($modifiers) {
+				foreach($modifiers as $modifier) {
+					if ($modifier InstanceOf DiscountCouponModifier) {
+						$modifier->updateCouponCodeEntered($newOption);
+						$modifier->runUpdate();
+						return ShoppingCart::return_message("success", _t("DiscountCouponModifier.UPDATED", "Coupon updated."));
 					}
 				}
 			}
 		}
-		$modifier->runUpdate();
-		return ShoppingCart::return_message("failure", _t("DiscountCouponModifier.UPDATED", "Coupon Code could NOT be updated"));
+		return ShoppingCart::return_message("failure", _t("DiscountCouponModifier.ERROR", "Coupon Code could NOT be updated."));
 	}
 
 	function Link() {

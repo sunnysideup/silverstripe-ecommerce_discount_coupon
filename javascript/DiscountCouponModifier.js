@@ -17,6 +17,12 @@ var DiscountCoupon = {
 
 	actionsClass: ".Actions",
 
+	tableRow: ".discountcouponmodifier",
+
+	totalCell: ".discountcouponmodifier .total",
+
+	label: ".discountcouponmodifier label",
+
 	availableCountries: new Array(),
 
 	init: function() {
@@ -47,6 +53,8 @@ var DiscountCoupon = {
 		jQuery(DiscountCoupon.formID).removeClass(DiscountCoupon.loadingClass);
 		Cart.setChanges(responseText);
 	}
+
+
 
 }
 
