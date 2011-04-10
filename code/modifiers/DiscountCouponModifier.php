@@ -169,10 +169,10 @@ class DiscountCouponModifier extends OrderModifier {
 		$code = $this->LiveCouponCodeEntered();
 		$coupon = $this->LiveDiscountCouponOption();
 		if($coupon) {
-			return _t("DiscountCouponModifier.COUPONAPPLIED", "Coupon applied: ").$code;
+			return _t("DiscountCouponModifier.COUPON", "Coupon '").$code._t("DiscountCouponModifier.APPLIED", "' applied.");
 		}
 		elseif($code) {
-			return _t("DiscountCouponModifier.COUPONCOULDNOTBEAPPLIED", "Coupon could not be applied: ").$code;
+			return  _t("DiscountCouponModifier.COUPON", "Coupon '").$code._t("DiscountCouponModifier.COULDNOTBEAPPLIED", "' could not be applied.");
 		}
 		return _t("DiscountCouponModifier.NOCOUPONENTERED", "No Coupon Entered").$code;
 	}
