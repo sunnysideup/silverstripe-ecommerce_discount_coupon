@@ -41,9 +41,9 @@ class DiscountCouponOption extends DataObject {
 		static function set_coupons_can_only_be_used_once($b) {self::$coupons_can_only_be_used_once = $b;}
 		static function get_coupons_can_only_be_used_once() {return self::$coupons_can_only_be_used_once;}
 
-	public static $singular_name = "Discount Coupon Option";
+	public static $singular_name = "Discount Coupon";
 
-	public static $plural_name = "Discount Coupon Options";
+	public static $plural_name = "Discount Coupon";
 
 	public static $default_sort = "EndDate DESC, StartDate DESC";
 
