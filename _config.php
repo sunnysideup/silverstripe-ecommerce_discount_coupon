@@ -16,3 +16,7 @@ Director::addRules(50, array(
 //DiscountCoupon::set_form_header("Delivery Option (REQUIRED)");
 //ProductsAndGroupsModelAdmin::add_managed_model("DiscountCouponOptions");
 //===================---------------- END ecommerce_discount_coupon MODULE ----------------===================
+
+
+//TO DO:
+// make countdown (number of times used, and number of times it is allowed to be used)
