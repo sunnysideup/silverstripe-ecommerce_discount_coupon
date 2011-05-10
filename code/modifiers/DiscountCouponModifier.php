@@ -240,7 +240,7 @@ class DiscountCouponModifier extends OrderModifier {
 
 // ######################################## *** Type Functions (IsChargeable, IsDeductable, IsNoChange, IsRemoved)
 
-	protected function IsDeductable() {
+	public function IsDeductable() {
 		return true;
 	}
 
