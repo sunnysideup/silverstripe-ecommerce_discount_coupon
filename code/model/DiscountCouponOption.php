@@ -22,7 +22,7 @@ class DiscountCouponOption extends DataObject {
 	);
 
 	public static $searchable_fields = array(
-		"Code"
+		"Code" => "PartialMatchFilter",
 	);
 
 	public static $field_labels = array(
@@ -47,7 +47,8 @@ class DiscountCouponOption extends DataObject {
 
 	public static $default_sort = "EndDate DESC, StartDate DESC";
 
-	function UseCount() {
+	function UseCount() {return $this->getUseCount();}
+	function getUseCount() {
 		$objects = DataObject::get("DiscountCouponModifier", "\"DiscountCouponOptionID\" = ".$this->ID);
 		if($objects) {
 			return $objects->count();
@@ -55,7 +56,8 @@ class DiscountCouponOption extends DataObject {
 		return 0;
 	}
 
-	function IsValid() {
+	function IsValid() {return $this->getIsValid();}
+	function getIsValid() {
 		if($this->UseCount() > 0 && $this->CanOnlyBeUsedOnce) {
 			return false;
 		}

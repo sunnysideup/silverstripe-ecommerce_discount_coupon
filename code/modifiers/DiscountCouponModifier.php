@@ -140,15 +140,9 @@ class DiscountCouponModifier extends OrderModifier {
 	/**
 	*@return float
 	**/
-	public function CartValue() {
+	public function CartValue() {return $this->getCartValue();}
+	public function getCartValue() {
 		return $this->Amount * -1;
-	}
-
-	/**
-	*@return string
-	**/
-	public function TableTitle() {
-		return $this->Name;
 	}
 
 // ######################################## ***  inner calculations.... USES CALCULATED VALUES
