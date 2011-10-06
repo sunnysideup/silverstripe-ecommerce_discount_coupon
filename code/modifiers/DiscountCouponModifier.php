@@ -27,8 +27,14 @@ class DiscountCouponModifier extends OrderModifier {
 
 // ######################################## *** cms variables + functions (e.g. getCMSFields, $searchableFields)
 
+
 	function getCMSFields() {
 		$fields = parent::getCMSFields();
+		$fields->removeByName("DebugString");
+		$fields->removeByName("SubTotalAmount");
+		$fields->removeByName("OrderCoupon");
+		$fields->addFieldToTab("Root.Debug", new ReadonlyField("SubTotalAmountShown", "sub-total amount", $this->SubTotalAmount));
+		$fields->addFieldToTab("Root.Debug", new ReadonlyField("DebugStringShown", "debug string", $this->DebugString));
 		return $fields;
 	}
 
