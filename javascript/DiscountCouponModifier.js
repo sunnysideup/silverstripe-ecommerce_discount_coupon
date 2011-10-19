@@ -9,7 +9,7 @@
 
 var DiscountCoupon = {
 
-	formID: "#DiscountCouponModifier_Form_ModifierForm",
+	formID: "#DiscountCouponModifier_Form_DiscountCouponModifier",
 
 	fieldID: "#DiscountCouponCode input",
 
@@ -17,11 +17,6 @@ var DiscountCoupon = {
 
 	actionsClass: ".Actions",
 
-	tableRow: ".discountcouponmodifier",
-
-	totalCell: ".discountcouponmodifier .total",
-
-	label: ".discountcouponmodifier label",
 
 	availableCountries: new Array(),
 
@@ -51,7 +46,7 @@ var DiscountCoupon = {
 		//redo quantity boxes
 		//jQuery(DiscountCoupon.updatedDivID).css("height", "auto");
 		jQuery(DiscountCoupon.formID).removeClass(DiscountCoupon.loadingClass);
-		Cart.setChanges(responseText);
+		EcomCart.setChanges(responseText);
 	}
 
 
