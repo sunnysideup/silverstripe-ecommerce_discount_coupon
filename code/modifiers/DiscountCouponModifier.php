@@ -52,11 +52,18 @@ class DiscountCouponModifier extends OrderModifier {
 
 // ######################################## *** CRUD functions (e.g. canEdit)
 // ######################################## *** init and update functions
-	public function runUpdate() {
-		$this->checkField("SubTotalAmount");
-		$this->checkField("CouponCodeEntered");
-		$this->checkField("DiscountCouponOptionID");
-		parent::runUpdate();
+	/**
+	 * updates all database fields
+	 *
+	 * @param Bool $force - run it, even if it has run already
+	 */
+	public function runUpdate($force = false) {
+		if(!$this->IsRemoved()) {
+			$this->checkField("SubTotalAmount");
+			$this->checkField("CouponCodeEntered");
+			$this->checkField("DiscountCouponOptionID");
+		}
+		parent::runUpdate($force);
 	}
 
 
@@ -183,7 +190,7 @@ class DiscountCouponModifier extends OrderModifier {
 	*@return float
 	**/
 
-	protected function LiveCalculationValue() {
+	protected function LiveCalculatedTotal() {
 		if(self::$actual_deductions === null) {
 			self::$actual_deductions = 0;
 			$this->DebugString = "";
@@ -220,7 +227,7 @@ class DiscountCouponModifier extends OrderModifier {
 	*@return float
 	**/
 	public function LiveTableValue() {
-		return $this->LiveCalculationValue() * -1;
+		return $this->LiveCalculatedTotal() * -1;
 	}
 
 
