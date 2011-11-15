@@ -185,10 +185,10 @@ class DiscountCouponOption extends DataObject {
 		if(isset($_REQUST["EndDate"])) {
 			$this->EndDate == date("Y-m-d", strtotime($_REQUST["EndDate"]));
 		}
-		if(strtotime($this->StartDate) < strtotime("1971") ) {
+		if(strtotime($this->StartDate) < strtotime("1 jan 1971") ) {
 			$validator->error(_t('DiscountCouponOption.NOSTARTDATE', "COULD NOT SAVE: Please enter a start date."));
 		}
-		if(strtotime($this->EndDate) < strtotime("1971") ) {
+		if(strtotime($this->EndDate) < strtotime("1 jan 1971") ) {
 			$validator->error(_t('DiscountCouponOption.NOENDDATE', "COULD NOT SAVE: Please enter an end date."));
 		}
 		if(strtotime($this->EndDate) < strtotime($this->StartDate)) {
