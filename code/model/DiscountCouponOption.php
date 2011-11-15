@@ -178,8 +178,8 @@ class DiscountCouponOption extends DataObject {
 	 *
 	 */
 	function validate(){
-		return true;
 		$validator = new ValidationResult();
+		return $validator;
 		if(isset($_REQUST["StartDate"])) {
 			$this->StartDate == date("Y-m-d", strtotime($_REQUST["StartDate"]));
 		}
