@@ -45,7 +45,7 @@ class DiscountCouponModifier extends OrderModifier {
 
 // ######################################## *** other (non) static variables (e.g. protected static $special_name_for_something, protected $order)
 
-	protected static $actual_deductions = null;
+	protected $actualDeductions = null;
 
 	protected $debugMessage = "";
 
@@ -77,7 +77,7 @@ class DiscountCouponModifier extends OrderModifier {
 
 	function getModifierForm($controller) {
 		$fields = new FieldSet(
-			new TextField('DiscountCouponCode',_t("DiscountCouponModifier.COUPON", 'Coupon'))
+			new TextField('DiscountCouponCode',_t("DiscountCouponModifier.COUPON", 'Coupon', $this->CouponCodeEntered))
 		);
 		$actions = new FieldSet(
 			new FormAction('submit', _t("DiscountCouponModifier.APPLY", 'Apply Coupon'))
@@ -191,43 +191,47 @@ class DiscountCouponModifier extends OrderModifier {
 	**/
 
 	protected function LiveCalculatedTotal() {
-		if(self::$actual_deductions === null) {
-			self::$actual_deductions = 0;
-			$this->DebugString = "";
-			$subTotal = $this->LiveSubTotalAmount();
-			if($coupon = $this->myDiscountCouponOption()) {
-				if($coupon->MinimumOrderSubTotalValue > 0 && $subTotal < $coupon->MinimumOrderSubTotalValue) {
-					self::$actual_deductions = 0;
-					$this->DebugString .= "<hr />sub-total is too low to offer any discount: ".self::$actual_deductions;
+		$this->actualDeductions = 0;
+		$this->DebugString = "";
+		$subTotal = $this->LiveSubTotalAmount();
+		if($coupon = $this->myDiscountCouponOption()) {
+			if($coupon->MinimumOrderSubTotalValue > 0 && $subTotal < $coupon->MinimumOrderSubTotalValue) {
+				$this->actualDeductions = 0;
+				$this->DebugString .= "<hr />sub-total is too low to offer any discount: ".$this->actualDeductions;
+			}
+			else {
+				if($coupon->DiscountAbsolute) {
+					$this->actualDeductions += $coupon->DiscountAbsolute;
+					$this->DebugString .= "<hr />using absolutes for coupon discount: ".$this->actualDeductions;
 				}
-				else {
-					if($obj->DiscountAbsolute) {
-						self::$actual_deductions += $obj->DiscountAbsolute;
-						$this->DebugString .= "<hr />using absolutes for coupon discount: ".self::$actual_deductions;
-					}
-					if($obj->DiscountPercentage) {
-						self::$actual_deductions += ($coupon->DiscountPercentage / 100) * $subTotal;
-						$this->DebugString .= "<hr />using percentages for coupon discount: ".self::$actual_deductions;
-					}
+				if($coupon->DiscountPercentage) {
+					$this->actualDeductions += ($coupon->DiscountPercentage / 100) * $subTotal;
+					$this->DebugString .= "<hr />using percentages for coupon discount: ".$this->actualDeductions;
 				}
 			}
-			if($subTotal < self::$actual_deductions) {
-				self::$actual_deductions = $subTotal;
+			if($coupon->MaximumDiscount) {
+				if($this->actualDeductions > $coupon->MaximumDiscount) {
+					$this->DebugString .= "<hr />actual deductions (".$this->actualDeductions.") are greater than maximum discount (".$coupon->MaximumDiscount."): ";
+					$this->actualDeductions = $coupon->MaximumDiscount;
+				}
 			}
-			$this->DebugString .= "<hr />final score: ".self::$actual_deductions;
-			if(isset($_GET["debug"])) {
-				print_r($this->DebugString);
-			}
-			self::$actual_deductions = -1 * self::$actual_deductions;
 		}
-		return self::$actual_deductions;
+		if($subTotal < $this->actualDeductions) {
+			$this->actualDeductions = $subTotal;
+		}
+		$this->DebugString .= "<hr />final score: ".$this->actualDeductions;
+		if(isset($_GET["debug"])) {
+			print_r($this->DebugString);
+		}
+		$this->actualDeductions = -1 * $this->actualDeductions;
+		return $this->actualDeductions;
 	}
 
 	/**
 	*@return float
 	**/
 	public function LiveTableValue() {
-		return $this->LiveCalculatedTotal() * -1;
+		return $this->LiveCalculatedTotal();
 	}
 
 
@@ -268,13 +272,14 @@ class DiscountCouponModifier extends OrderModifier {
 			return true;
 		}
 		// we do NOT hide it if values have been entered
-		if($this->DiscountCouponOptionID) {
+		if($this->CouponCodeEntered) {
 			return false;
 		}
 		return true;
 	}
 
 // ######################################## *** debug functions
+
 
 }
 

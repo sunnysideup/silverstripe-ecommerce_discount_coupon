@@ -9,7 +9,7 @@
 //copy the lines between the START AND END line to your /mysite/_config.php file and choose the right settings
 //===================---------------- START ecommerce_discount_coupon MODULE ----------------===================
 //StoreAdmin::add_managed_model("DiscountCouponOption");
-//Order::add_modifiers("DiscountCouponModifier");
+//Order::add_modifier("DiscountCouponModifier");
 //===================---------------- END ecommerce_discount_coupon MODULE ----------------===================
 
 
