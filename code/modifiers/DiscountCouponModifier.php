@@ -140,7 +140,7 @@ class DiscountCouponModifier extends OrderModifier {
 	**/
 	public function CartValue() {return $this->getCartValue();}
 	public function getCartValue() {
-		return $this->TableValue();
+		return $this->TableValue;
 	}
 
 
