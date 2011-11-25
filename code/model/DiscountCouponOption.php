@@ -49,7 +49,8 @@ class DiscountCouponOption extends DataObject {
 		"MaximumDiscount" => "Maximum deduction (set to zero to ignore)",
 		"DiscountAbsolute" => "Discount as absolute reduction of total - if any (e.g. 10 = -$10.00)",
 		"DiscountPercentage" => "Discount as percentage of total - if any (e.g. 10 = -10%)",
-		"UseCount" => "number of times this coupon has been used",
+		"NumberOfTimesCouponCanBeUsed" => "Number of times the coupon can be used, set to zero to disallow usage",
+		"UseCount" => "Number of times this coupon has been used",
 		"IsValidNice" => "coupon is currently valid"
 	);
 
@@ -87,16 +88,18 @@ class DiscountCouponOption extends DataObject {
 	 */
 	public static $default_sort = "EndDate DESC, StartDate DESC";
 
+	protected $isNew = false;
 
 	/**
 	 * standard SS method
 	 *
 	 */
+
 	function populateDefaults() {
 		parent::populateDefaults();
 		$this->Code = $this->createRandomCode();
+		$this->isNew = true;
 	}
-
 	/**
 	 * casted variable
 	 * returns the number of times this coupon has been used.
@@ -148,14 +151,6 @@ class DiscountCouponOption extends DataObject {
 	 *
 	 */
 	function canDelete($member = null) {
-		return $this->canEdit($member);
-	}
-
-	/**
-	 * standard SS method
-	 *
-	 */
-	function canEdit($member = null) {
 		if($this->UseCount()) {
 			return false;
 		}
@@ -175,27 +170,32 @@ class DiscountCouponOption extends DataObject {
 
 	/**
 	 * standard SS method
-	 *
+	 * THIS ONLY WORKS FOR CREATED OBJECTS
 	 */
-	function validate(){
-		$validator = new ValidationResult();
-		return $validator;
-		if(isset($_REQUST["StartDate"])) {
-			$this->StartDate == date("Y-m-d", strtotime($_REQUST["StartDate"]));
+
+	protected function validate(){
+		if(!$this->isNew) {
+			$validator = new ValidationResult();
+			if(isset($_REQUEST["StartDate"])) {
+				$this->StartDate = date("Y-m-d", strtotime($_REQUEST["StartDate"]));
+			}
+			if(isset($_REQUEST["EndDate"])) {
+				$this->EndDate = date("Y-m-d", strtotime($_REQUEST["EndDate"]));
+			}
+			if(strtotime($this->StartDate) < strtotime("-7 years") ) {
+				$validator->error(_t('DiscountCouponOption.NOSTARTDATE', "Please enter a start date"));
+			}
+			if(strtotime($this->EndDate) < strtotime("-7 years") ) {
+				$validator->error(_t('DiscountCouponOption.NOENDDATE', "Please enter an end date"));
+			}
+			if(strtotime($this->EndDate) < strtotime($this->StartDate)) {
+				$validator->error(_t('DiscountCouponOption.ENDDATETOOEARLY', "The end date should be after the start date"));
+			}
+			return $validator;
 		}
-		if(isset($_REQUST["EndDate"])) {
-			$this->EndDate == date("Y-m-d", strtotime($_REQUST["EndDate"]));
+		else {
+			return parent::validate();
 		}
-		if(strtotime($this->StartDate) < strtotime("1 jan 1971") ) {
-			$validator->error(_t('DiscountCouponOption.NOSTARTDATE', "COULD NOT SAVE: Please enter a start date."));
-		}
-		if(strtotime($this->EndDate) < strtotime("1 jan 1971") ) {
-			$validator->error(_t('DiscountCouponOption.NOENDDATE', "COULD NOT SAVE: Please enter an end date."));
-		}
-		if(strtotime($this->EndDate) < strtotime($this->StartDate)) {
-			$validator->error(_t('DiscountCouponOption.ENDDATETOOEARLY', "COULD NOT SAVE: The end date should be after the start date."));
-		}
-		return $validator;
 	}
 
 

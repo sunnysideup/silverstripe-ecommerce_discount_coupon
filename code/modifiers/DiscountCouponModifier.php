@@ -83,7 +83,9 @@ class DiscountCouponModifier extends OrderModifier {
 			new FormAction('submit', _t("DiscountCouponModifier.APPLY", 'Apply Coupon'))
 		);
 		$validator = null;
-		return new DiscountCouponModifier_Form($controller, 'DiscountCouponModifier', $fields, $actions, $validator);
+		$form = new DiscountCouponModifier_Form($controller, 'DiscountCouponModifier', $fields, $actions, $validator);
+		$fields->fieldByName("DiscountCouponCode")->setValue($this->CouponCodeEntered);
+		return $form;
 	}
 
 	/**
