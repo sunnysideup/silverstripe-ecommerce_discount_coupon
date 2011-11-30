@@ -202,16 +202,16 @@ class DiscountCouponModifier extends OrderModifier {
 				$this->DebugString .= "<hr />sub-total is too low to offer any discount: ".$this->actualDeductions;
 			}
 			else {
-				if($coupon->DiscountAbsolute) {
+				if($coupon->DiscountAbsolute > 0) {
 					$this->actualDeductions += $coupon->DiscountAbsolute;
 					$this->DebugString .= "<hr />using absolutes for coupon discount: ".$this->actualDeductions;
 				}
-				if($coupon->DiscountPercentage) {
+				if($coupon->DiscountPercentage > 0) {
 					$this->actualDeductions += ($coupon->DiscountPercentage / 100) * $subTotal;
 					$this->DebugString .= "<hr />using percentages for coupon discount: ".$this->actualDeductions;
 				}
 			}
-			if($coupon->MaximumDiscount) {
+			if($coupon->MaximumDiscount > 0) {
 				if($this->actualDeductions > $coupon->MaximumDiscount) {
 					$this->DebugString .= "<hr />actual deductions (".$this->actualDeductions.") are greater than maximum discount (".$coupon->MaximumDiscount."): ";
 					$this->actualDeductions = $coupon->MaximumDiscount;
