@@ -19,8 +19,6 @@ class DiscountCouponOption extends DataObject {
 		"NumberOfTimesCouponCanBeUsed" => "Int"
 	);
 
-
-
 	/**
 	 * standard SS variable
 	 *
