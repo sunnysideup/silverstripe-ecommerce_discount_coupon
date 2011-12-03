@@ -311,7 +311,7 @@ class DiscountCouponModifier_Form extends OrderModifierForm {
 				}
 			}
 		}
-		return ShoppingCart::singleton()->setMessageAndReturn(_t("DiscountCouponModifier.NOTAPPLIED", "Coupon could not be applied.", "bad"));
+		return ShoppingCart::singleton()->setMessageAndReturn(_t("DiscountCouponModifier.NOTAPPLIED", "Coupon could not be found.", "bad"));
 	}
 }
 
