@@ -182,7 +182,6 @@ class DiscountCouponModifier extends OrderModifier {
 	/**
 	*@return float
 	**/
-
 	protected function LiveSubTotalAmount() {
 		$order = $this->Order();
 		return $order->SubTotal();
