@@ -236,13 +236,20 @@ class DiscountCouponModifier extends OrderModifier {
 	}
 
 
+	/**
+	*@return String
+	**/
 	protected function LiveDebugString() {
 		return $this->DebugString;
 	}
 
+	/**
+	*@return String
+	**/
 	protected function LiveCouponCodeEntered() {
 		return $this->CouponCodeEntered;
 	}
+
 	/**
 	*@return int
 	**/
@@ -253,6 +260,9 @@ class DiscountCouponModifier extends OrderModifier {
 
 // ######################################## *** Type Functions (IsChargeable, IsDeductable, IsNoChange, IsRemoved)
 
+	/**
+	*@return Boolean
+	**/
 	public function IsDeductable() {
 		return true;
 	}
