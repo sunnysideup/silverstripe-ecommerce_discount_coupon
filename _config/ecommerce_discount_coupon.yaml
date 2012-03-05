@@ -1,0 +1,2 @@
+DiscountCouponOption:
+	exlude_buyable_method: IncludeInDiscountCalculation

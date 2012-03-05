@@ -80,7 +80,7 @@ class DiscountCouponOption extends DataObject {
 	 *
 	 */
 	public static $singular_name = "Discount Coupon";
-		function i18n_single_name() { return _t("DiscountCouponOption.DISCOUNTCOUPON", "Discount Coupon");}
+		function i18n_singular_name() { return _t("DiscountCouponOption.DISCOUNTCOUPON", "Discount Coupon");}
 
 
 	/**
