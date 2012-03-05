@@ -37,7 +37,7 @@ class DiscountCouponModifier extends OrderModifier {
 	}
 
 	public static $singular_name = "Discount Coupon Entry";
-		function i18n_single_name() { return _t("ModifierExample.MODIFIEREXAMPLE", "Discount Coupon Entry");}
+		function i18n_singular_name() { return _t("ModifierExample.MODIFIEREXAMPLE", "Discount Coupon Entry");}
 
 	public static $plural_name = "Discount Coupon Entries";
 		function i18n_plural_name() { return _t("ModifierExample.MODIFIEREXAMPLES", "Discount Coupon Entries");}
@@ -75,15 +75,16 @@ class DiscountCouponModifier extends OrderModifier {
 		return $this->Order()->Items();
 	}
 
-	function getModifierForm($controller) {
+	function getModifierForm($optionalController = null, $optionalValidator = null) {
 		$fields = new FieldSet(
+			$this->headingField(),
+			$this->descriptionField(),
 			new TextField('DiscountCouponCode',_t("DiscountCouponModifier.COUPON", 'Coupon', $this->CouponCodeEntered))
 		);
 		$actions = new FieldSet(
 			new FormAction('submit', _t("DiscountCouponModifier.APPLY", 'Apply Coupon'))
 		);
-		$validator = null;
-		$form = new DiscountCouponModifier_Form($controller, 'DiscountCouponModifier', $fields, $actions, $validator);
+		$form = new DiscountCouponModifier_Form($optionalController, 'DiscountCouponModifier', $fields, $actions, $optionalValidator);
 		$fields->fieldByName("DiscountCouponCode")->setValue($this->CouponCodeEntered);
 		return $form;
 	}
@@ -296,8 +297,8 @@ class DiscountCouponModifier extends OrderModifier {
 
 class DiscountCouponModifier_Form extends OrderModifierForm {
 
-	function __construct($optionalController = null, $name,FieldSet $fields, FieldSet $actions,$validator = null) {
-		parent::__construct($optionalController, $name,$fields,$actions,$validator);
+	function __construct($optionalController = null, $name,FieldSet $fields, FieldSet $actions,$optionalValidator = null) {
+		parent::__construct($optionalController, $name, $fields, $actions, $optionalValidator);
 		Requirements::themedCSS("DiscountCouponModifier");
 		Requirements::javascript(THIRDPARTY_DIR."/jquery/jquery.js");
 		Requirements::javascript(THIRDPARTY_DIR."/jquery-form/jquery.form.js");
