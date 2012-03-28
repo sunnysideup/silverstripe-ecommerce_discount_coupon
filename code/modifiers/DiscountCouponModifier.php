@@ -23,6 +23,8 @@ class DiscountCouponModifier extends OrderModifier {
 		"DiscountCouponOption" => "DiscountCouponOption"
 	);
 
+	static $include_modifiers_in_subtotal = false;
+	
 // ######################################## *** cms variables + functions (e.g. getCMSFields, $searchableFields)
 
 
@@ -185,7 +187,11 @@ class DiscountCouponModifier extends OrderModifier {
 	**/
 	protected function LiveSubTotalAmount() {
 		$order = $this->Order();
-		return $order->SubTotal();
+		$subTotal = $order->SubTotal();
+		if(self::$include_modifiers_in_subtotal) {
+			$subTotal += $order->ModifiersSubTotal(array(get_class($this)));
+		}
+		return $subTotal;
 	}
 
 	/**
