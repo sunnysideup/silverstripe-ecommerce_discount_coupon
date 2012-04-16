@@ -23,8 +23,11 @@ class DiscountCouponModifier extends OrderModifier {
 		"DiscountCouponOption" => "DiscountCouponOption"
 	);
 
-	static $include_modifiers_in_subtotal = false;
-	
+	//TODO: use running total as point where you add the discount
+	protected static $include_modifiers_in_subtotal = false;
+		public static function set_include_modifiers_in_subtotal($b) {self::$include_modifiers_in_subtotal = $b;}
+		public static function get_include_modifiers_in_subtotal() {return self::$include_modifiers_in_subtotal;}
+
 // ######################################## *** cms variables + functions (e.g. getCMSFields, $searchableFields)
 
 
@@ -180,8 +183,6 @@ class DiscountCouponModifier extends OrderModifier {
 		return _t("DiscountCouponModifier.NOCOUPONENTERED", "No Coupon Entered").$code;
 	}
 
-
-
 	/**
 	*@return float
 	**/
@@ -197,7 +198,6 @@ class DiscountCouponModifier extends OrderModifier {
 	/**
 	*@return float
 	**/
-
 	protected function LiveCalculatedTotal() {
 		$this->actualDeductions = 0;
 		$this->DebugString = "";

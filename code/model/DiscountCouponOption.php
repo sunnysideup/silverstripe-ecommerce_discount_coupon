@@ -183,6 +183,9 @@ class DiscountCouponOption extends DataObject {
 	 */
 
 	protected function validate(){
+		if(DataObject::get_one($this->ClassName, "\"".$this->ClassName."\".\"ID\" <> ".$this->ID." AND \"Code\" = '".$this->Code."'")) {
+			$validator->error(_t('DiscountCouponOption.CODEALREADYEXISTS', "This code already exists - please use another code."));
+		}
 		if(!$this->isNew) {
 			$validator = new ValidationResult();
 			if(isset($_REQUEST["StartDate"])) {
@@ -218,6 +221,11 @@ class DiscountCouponOption extends DataObject {
 		}
 		$this->Code = eregi_replace("[^[:alnum:]]", " ", $this->Code );
 		$this->Code = trim(eregi_replace(" +", "", $this->Code));
+		$i = 0;
+		while(DataObject::get_one($this->ClassName, "\"".$this->ClassName."\".\"ID\" <> ".$this->ID." AND \"Code\" = '".$this->Code."'")) {
+			$i++;
+			$this->Code = $this->Code."".$i;
+		}
 		parent::onBeforeWrite();
 	}
 
