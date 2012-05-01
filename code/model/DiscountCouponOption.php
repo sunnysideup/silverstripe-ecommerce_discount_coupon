@@ -37,7 +37,7 @@ class DiscountCouponOption extends DataObject {
 	public static $casting = array(
 		"UseCount" => "Int",
 		"IsValid" => "Boolean",
-		"IsValidNice" => "Boolean"
+		"IsValidNice" => "Text"
 	);
 
 
