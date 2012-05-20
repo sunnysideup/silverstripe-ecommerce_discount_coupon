@@ -106,13 +106,6 @@ class DiscountCouponOption extends DataObject {
 
 	function populateDefaults() {
 		parent::populateDefaults();
-		if(isset(self::$defaults)) {
-			foreach(self::$defaults as $fieldName => $fieldValue) {
-				if(!isset($this->$fieldName) || $this->$fieldName === null) {
-					$this->$fieldName = $fieldValue;
-				}
-			}
-		}
 		$this->Code = $this->createRandomCode();
 		$this->isNew = true;
 	}
