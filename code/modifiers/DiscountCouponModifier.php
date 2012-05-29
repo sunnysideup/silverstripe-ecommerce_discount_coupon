@@ -314,12 +314,13 @@ class DiscountCouponModifier_Form extends OrderModifierForm {
 	}
 
 	public function submit($data, $form) {
-		$order = ShoppingCart::current_order();
-		$modifiers = $order->Modifiers();
-		foreach($modifiers as $modifier) {
-			if (get_class($modifier) == 'DiscountCouponModifier') {
-				if(isset($data['DiscountCouponCode'])) {
-					$outcome = $modifier->updateCouponCodeEntered(Convert::raw2sql($data["DiscountCouponCode"]));
+		if(isset($data['DiscountCouponCode'])) {
+			$order = ShoppingCart::current_order();
+			if($order) {
+				if($modifiers = $order->Modifiers("DiscountCouponModifier")) {
+					foreach($modifiers as $modifier) {
+						$outcome = $modifier->updateCouponCodeEntered(Convert::raw2sql($data["DiscountCouponCode"]));
+					}
 					if($outcome) {
 						return ShoppingCart::singleton()->setMessageAndReturn(_t("DiscountCouponModifier.APPLIED", "Coupon applied"),"good");
 					}
