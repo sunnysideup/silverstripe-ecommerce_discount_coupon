@@ -28,6 +28,10 @@ class DiscountCouponModifier extends OrderModifier {
 		public static function set_include_modifiers_in_subtotal($b) {self::$include_modifiers_in_subtotal = $b;}
 		public static function get_include_modifiers_in_subtotal() {return self::$include_modifiers_in_subtotal;}
 
+	protected static $exclude_buyable_method = 'ExcludeInDiscountCalculation';
+		static function set_exclude_buyable_method($s) {self::$exclude_buyable_method = $s;}
+		static function get_exclude_buyable_method() {return self::$exclude_buyable_method;}
+
 // ######################################## *** cms variables + functions (e.g. getCMSFields, $searchableFields)
 
 
@@ -73,7 +77,7 @@ class DiscountCouponModifier extends OrderModifier {
 
 
 
-// ######################################## *** form functions (e. g. Showform and getform)
+// ######################################## *** form functions (e. g. showform and getform)
 
 
 	public function ShowForm() {
@@ -188,7 +192,17 @@ class DiscountCouponModifier extends OrderModifier {
 	**/
 	protected function LiveSubTotalAmount() {
 		$order = $this->Order();
+		$items = $order->Items();
 		$subTotal = $order->SubTotal();
+		$function = self::$exclude_buyable_method;
+		if($items) {
+			foreach($items as $item) {
+				$buyable = $item->Buyable();
+				if($buyable && $buyable->hasMethod($function) && $buyable->$function($this)) {
+					$subTotal -= $item->Total();
+				}
+			}
+		}
 		if(self::$include_modifiers_in_subtotal) {
 			$subTotal += $order->ModifiersSubTotal(array(get_class($this)));
 		}

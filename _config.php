@@ -21,7 +21,6 @@ StoreAdmin:
 		DiscountCouponOption
 	]
 */
-
 //===================---------------- END ecommerce_discount_coupon MODULE ----------------===================
 
 
