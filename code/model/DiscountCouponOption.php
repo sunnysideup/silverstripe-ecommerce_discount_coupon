@@ -6,28 +6,17 @@
  **/
 
 class DiscountCouponOption extends DataObject {
-
-	/**
-	 * Method in a buyable that determines if a
-	 * Buyable should be excluded from any discounting.
-	 * in discount.
-	 *
-	 * @var String
-	 */
-	protected static $exlude_buyable_method = "IncludeInDiscountCalculation";
-		static function set_exlude_buyable_method($s) {self::$exlude_buyable_method = $s;}
-		static function get_exlude_buyable_method() {return self::$exlude_buyable_method;}
-
+	
 	static $db = array(
-		"Title" => "Varchar(25)",
-		"Code" => "Varchar(25)",
-		"StartDate" => "Date",
-		"EndDate" => "Date",
-		"MaximumDiscount" => "Currency",
-		"DiscountAbsolute" => "Currency",
-		"DiscountPercentage" => "Decimal(4,2)",
-		"MinimumOrderSubTotalValue" => "Currency",
-		"NumberOfTimesCouponCanBeUsed" => "Int"
+		'Title' => 'Varchar(25)',
+		'Code' => 'Varchar(25)',
+		'StartDate' => 'Date',
+		'EndDate' => 'Date',
+		'MaximumDiscount' => 'Currency',
+		'DiscountAbsolute' => 'Currency',
+		'DiscountPercentage' => 'Decimal(4,2)',
+		'MinimumOrderSubTotalValue' => 'Currency',
+		'NumberOfTimesCouponCanBeUsed' => 'Int'
 	);
 
 	/**
@@ -37,7 +26,7 @@ class DiscountCouponOption extends DataObject {
 	public static $casting = array(
 		"UseCount" => "Int",
 		"IsValid" => "Boolean",
-		"IsValidNice" => "Text"
+		"IsValidNice" => "Varchar"
 	);
 
 
@@ -246,6 +235,5 @@ class DiscountCouponOption extends DataObject {
 		}
 		return $string;
 	}
-
 }
 
