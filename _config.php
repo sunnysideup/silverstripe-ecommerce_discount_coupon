@@ -21,6 +21,10 @@ StoreAdmin:
 		DiscountCouponOption
 	]
 */
+// OPTIONAL
+//Object::add_extension('DiscountCouponOption', 'DiscountCouponSiteTreeDOD');
+//Object::add_extension('Product', 'DiscountCouponSiteTreeDOD_Product');
+//Object::add_extension('ProductVariation', 'DiscountCouponSiteTreeDOD_ProductVariation');
 //===================---------------- END ecommerce_discount_coupon MODULE ----------------===================
 
 
