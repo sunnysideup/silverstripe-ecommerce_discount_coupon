@@ -105,16 +105,25 @@ class DiscountCouponModifier extends OrderModifier {
 
 
 	public function updateCouponCodeEntered($code) {
-		$this->CouponCodeEntered = $code;
-		$discountCoupon = DataObject::get_one("DiscountCouponOption", "\"Code\" = '".$code."'");
+		$discountCoupon = DataObject::get_one('DiscountCouponOption', "\"Code\" = '$code'");
 		if($discountCoupon && $discountCoupon->IsValid()) {
 			$this->DiscountCouponOptionID = $discountCoupon->ID;
+			$this->CouponCodeEntered = $code;
+			$result = array(_t('DiscountCouponModifier.APPLIED', 'Coupon applied'), 'good');
+		}
+		else if($code) {
+			$result = array(_t('DiscountCouponModifier.NOTFOUND', 'Coupon could not be found'), 'bad');
+		}
+		else if($this->CouponCodeEntered && $this->DiscountCouponOptionID) {
+			$this->DiscountCouponOptionID = 0;
+			$this->CouponCodeEntered = $code;
+			$result = array(_t('DiscountCouponModifier.REMOVED', 'Coupon removed'), 'good');
 		}
 		else {
-			$this->DiscountCouponOptionID = 0;
+			$result = array(_t('DiscountCouponModifier.NOTFOUND', 'Coupon could not be found'), 'bad');
 		}
 		$this->write();
-		return $this->DiscountCouponOptionID;
+		return $result;
 	}
 
 	public function setCoupon($discountCoupon) {
@@ -331,17 +340,10 @@ class DiscountCouponModifier_Form extends OrderModifierForm {
 		if(isset($data['DiscountCouponCode'])) {
 			$order = ShoppingCart::current_order();
 			if($order) {
-				if($modifiers = $order->Modifiers("DiscountCouponModifier")) {
-					foreach($modifiers as $modifier) {
-						$outcome = $modifier->updateCouponCodeEntered(Convert::raw2sql($data["DiscountCouponCode"]));
-					}
-					if($outcome) {
-						return ShoppingCart::singleton()->setMessageAndReturn(_t("DiscountCouponModifier.APPLIED", "Coupon applied"),"good");
-					}
-					else {
-						return ShoppingCart::singleton()->setMessageAndReturn(_t("DiscountCouponModifier.NOTFOUND", "Coupon could not be found"),"bad");
-					}
-				}
+				$modifier = $order->Modifiers('DiscountCouponModifier');
+				$modifier = $modifier->First();
+				list($message, $type) = $modifier->updateCouponCodeEntered(Convert::raw2sql($data['DiscountCouponCode']));
+				return ShoppingCart::singleton()->setMessageAndReturn($message, $type);
 			}
 		}
 		return ShoppingCart::singleton()->setMessageAndReturn(_t("DiscountCouponModifier.NOTAPPLIED", "Coupon could not be found.", "bad"));
