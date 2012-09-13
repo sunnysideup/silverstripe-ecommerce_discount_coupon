@@ -304,7 +304,7 @@ class DiscountCouponModifier extends OrderModifier {
 	/**
 	* some modifiers can be hidden after an ajax update (e.g. if someone enters a discount coupon and it does not exist).
 	* There might be instances where ShowInTable (the starting point) is TRUE and HideInAjaxUpdate return false.
-	*@return Boolean
+	* @return Boolean
 	**/
 	public function HideInAjaxUpdate() {
 		//we check if the parent wants to hide it...
