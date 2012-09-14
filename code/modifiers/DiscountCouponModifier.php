@@ -244,66 +244,74 @@ class DiscountCouponModifier extends OrderModifier {
 		return _t("DiscountCouponModifier.NOCOUPONENTERED", "No Coupon Entered").$code;
 	}
 
+	private static $subtotal = 0;
 	/**
 	*@return float
 	**/
 	protected function LiveSubTotalAmount() {
-		$order = $this->Order();
-		$items = $order->Items();
-		$subTotal = $order->SubTotal();
-		$function = self::$exclude_buyable_method;
-		if($items) {
-			foreach($items as $item) {
-				$buyable = $item->Buyable();
-				if($buyable && $buyable->hasMethod($function) && $buyable->$function($this)) {
-					$subTotal -= $item->Total();
+		if(!self::$subtotal) {
+			$order = $this->Order();
+			$items = $order->Items();
+			$subTotal = $order->SubTotal();
+			$function = self::$exclude_buyable_method;
+			if($items) {
+				foreach($items as $item) {
+					$buyable = $item->Buyable();
+					if($buyable && $buyable->hasMethod($function) && $buyable->$function($this)) {
+						$subTotal -= $item->Total();
+					}
 				}
 			}
+			if(self::$include_modifiers_in_subtotal) {
+				$subTotal += $order->ModifiersSubTotal(array(get_class($this)));
+			}
+			self::$subtotal = $subTotal;
 		}
-		if(self::$include_modifiers_in_subtotal) {
-			$subTotal += $order->ModifiersSubTotal(array(get_class($this)));
-		}
-		return $subTotal;
+		return self::$subtotal;
 	}
 
+	private static $calculated_total = 0;
 	/**
 	*@return float
 	**/
 	protected function LiveCalculatedTotal() {
-		$this->actualDeductions = 0;
-		$this->DebugString = "";
-		$subTotal = $this->LiveSubTotalAmount();
-		if($coupon = $this->myDiscountCouponOption()) {
-			if($coupon->MinimumOrderSubTotalValue > 0 && $subTotal < $coupon->MinimumOrderSubTotalValue) {
-				$this->actualDeductions = 0;
-				$this->DebugString .= "<hr />sub-total is too low to offer any discount: ".$this->actualDeductions;
-			}
-			else {
-				if($coupon->DiscountAbsolute > 0) {
-					$this->actualDeductions += $coupon->DiscountAbsolute;
-					$this->DebugString .= "<hr />using absolutes for coupon discount: ".$this->actualDeductions;
+		if(!self::$calculated_total) {
+			$this->actualDeductions = 0;
+			$this->DebugString = "";
+			$subTotal = $this->LiveSubTotalAmount();
+			if($coupon = $this->myDiscountCouponOption()) {
+				if($coupon->MinimumOrderSubTotalValue > 0 && $subTotal < $coupon->MinimumOrderSubTotalValue) {
+					$this->actualDeductions = 0;
+					$this->DebugString .= "<hr />sub-total is too low to offer any discount: ".$this->actualDeductions;
 				}
-				if($coupon->DiscountPercentage > 0) {
-					$this->actualDeductions += ($coupon->DiscountPercentage / 100) * $subTotal;
-					$this->DebugString .= "<hr />using percentages for coupon discount: ".$this->actualDeductions;
+				else {
+					if($coupon->DiscountAbsolute > 0) {
+						$this->actualDeductions += $coupon->DiscountAbsolute;
+						$this->DebugString .= "<hr />using absolutes for coupon discount: ".$this->actualDeductions;
+					}
+					if($coupon->DiscountPercentage > 0) {
+						$this->actualDeductions += ($coupon->DiscountPercentage / 100) * $subTotal;
+						$this->DebugString .= "<hr />using percentages for coupon discount: ".$this->actualDeductions;
+					}
+				}
+				if($coupon->MaximumDiscount > 0) {
+					if($this->actualDeductions > $coupon->MaximumDiscount) {
+						$this->DebugString .= "<hr />actual deductions (".$this->actualDeductions.") are greater than maximum discount (".$coupon->MaximumDiscount."): ";
+						$this->actualDeductions = $coupon->MaximumDiscount;
+					}
 				}
 			}
-			if($coupon->MaximumDiscount > 0) {
-				if($this->actualDeductions > $coupon->MaximumDiscount) {
-					$this->DebugString .= "<hr />actual deductions (".$this->actualDeductions.") are greater than maximum discount (".$coupon->MaximumDiscount."): ";
-					$this->actualDeductions = $coupon->MaximumDiscount;
-				}
+			if($subTotal < $this->actualDeductions) {
+				$this->actualDeductions = $subTotal;
 			}
+			$this->DebugString .= "<hr />final score: ".$this->actualDeductions;
+			if(isset($_GET["debug"])) {
+				print_r($this->DebugString);
+			}
+			$this->actualDeductions = -1 * $this->actualDeductions;
+			self::$calculated_total = $this->actualDeductions;
 		}
-		if($subTotal < $this->actualDeductions) {
-			$this->actualDeductions = $subTotal;
-		}
-		$this->DebugString .= "<hr />final score: ".$this->actualDeductions;
-		if(isset($_GET["debug"])) {
-			print_r($this->DebugString);
-		}
-		$this->actualDeductions = -1 * $this->actualDeductions;
-		return $this->actualDeductions;
+		return self::$calculated_total;
 	}
 
 	/**
