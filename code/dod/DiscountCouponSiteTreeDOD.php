@@ -1,5 +1,8 @@
 <?php
-
+/**
+ * @author Romain@sunnysideup .co dot nz
+ *
+ */
 
 class DiscountCouponSiteTreeDOD extends DataObjectDecorator {
 
@@ -7,12 +10,28 @@ class DiscountCouponSiteTreeDOD extends DataObjectDecorator {
 		return array(
 			'db' => array(
 				'PageIDs' => 'Text'
+			),
+			'indexes' => array(
+				'PageIDs' => true
 			)
 		);
 	}
 
 	function updateCMSFields(FieldSet &$fields) {
-		$fields->addFieldToTab('Root.Permissions', new DiscountCouponSiteTreeDOD_Field('PageIDs', 'Product Groups, Products (If nothing is selected, the discount will apply to the all site. The discount will also apply to all variations of a product.)', 'SiteTree'));
+		$label = _t(
+			"SELECTPRODUCTSANDCATEGORIES",
+			"Select Product Categories and/or Products (if nothing is selected, the discount coupon will apply to all buyables)."
+		);
+		$field = new DiscountCouponSiteTreeDOD_Field(
+			$name = "PageIDs",
+			$title = $label,
+			$sourceObject = "SiteTree",
+			$keyField = "ID",
+			$labelField = "MenuTitle"
+		);
+		$filter = create_function('$obj', 'return ( ( $obj InstanceOf ProductGroup || $obj InstanceOf Product) && ($obj->ParentID != '.$this->owner->ID.'));');
+		$field->setFilterFunction($filter);
+		$fields->addFieldToTab('Root.AppliesTo', $field);
 	}
 
 	function canBeDiscounted(SiteTree $page) {
@@ -22,7 +41,9 @@ class DiscountCouponSiteTreeDOD extends DataObjectDecorator {
 				if(array_search($page->ID, $pageIDs) !== false) {
 					return true;
 				}
-				$page = $page->Parent();
+				if($page->ParentID) {
+					$page = DataObject::get_by_id("SiteTree", $page->ParentID);
+				}
 			}
 			return false;
 		}
@@ -48,16 +69,20 @@ class DiscountCouponSiteTreeDOD_ProductVariation extends DataObjectDecorator {
 
 class DiscountCouponSiteTreeDOD_Field extends TreeMultiselectField {
 
+	/**
+	 *
+	 * TO DO: explain how this works or what it does.
+	 */
 	function saveInto(DataObject $record) {
 		if($this->value !== 'unchanged') {
 			$items = array();
-			
+
 			$fieldName = $this->name;
-			
+
 			if($this->value) {
 				$items = preg_split("/ *, */", trim($this->value));
 			}
-			
+
 			// Allows you to modify the items on your object before save
 			$funcName = "onChange$fieldName";
 			if($record->hasMethod($funcName)){
@@ -66,11 +91,11 @@ class DiscountCouponSiteTreeDOD_Field extends TreeMultiselectField {
 					return;
 				}
 			}
-
 			if ($fieldName && ($record->has_many($fieldName) || $record->many_many($fieldName))) {
 				// Set related records
 				$record->$fieldName()->setByIDList($items);
-			} else {
+			}
+			else {
 				$record->$fieldName = implode(',', $items);
 			}
 		}

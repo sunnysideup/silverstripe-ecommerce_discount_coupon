@@ -2,11 +2,12 @@
 
 /**
  *@author nicolaas [at] sunnysideup.co.nz
+ *@author romain [at] sunnysideup.co.nz
  *
  **/
 
 class DiscountCouponOption extends DataObject {
-	
+
 	static $db = array(
 		'Title' => 'Varchar(25)',
 		'Code' => 'Varchar(25)',
@@ -92,7 +93,6 @@ class DiscountCouponOption extends DataObject {
 	 * standard SS method
 	 *
 	 */
-
 	function populateDefaults() {
 		parent::populateDefaults();
 		$this->Code = $this->createRandomCode();

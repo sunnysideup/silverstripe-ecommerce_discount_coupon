@@ -2,6 +2,7 @@
 
 /**
  * @author Nicolaas [at] sunnysideup.co.nz
+ * @author Romain [at] sunnysideup.co.nz
  * @package: ecommerce
  * @sub-package: ecommerce_delivery
  * @description: Shipping calculation scheme based on SimpleShippingModifier.
@@ -13,28 +14,65 @@ class DiscountCouponModifier extends OrderModifier {
 
 // ######################################## *** model defining static variables (e.g. $db, $has_one)
 
+	/**
+	 * standard SS Variable
+	 * @var Array
+	 */
 	public static $db = array(
 		'DebugString' => 'HTMLText',
 		'SubTotalAmount' => 'Currency',
 		'CouponCodeEntered' => 'Varchar(25)'
 	);
 
+
+	/**
+	 * standard SS Variable
+	 * @var Array
+	 */
 	public static $has_one = array(
 		"DiscountCouponOption" => "DiscountCouponOption"
 	);
 
-	//TODO: use running total as point where you add the discount
+	/**
+	 * Should the discount be worked out over the the sub-total or
+	 * the Total Total?
+	 * @var Boolean
+	 */
 	protected static $include_modifiers_in_subtotal = false;
 		public static function set_include_modifiers_in_subtotal($b) {self::$include_modifiers_in_subtotal = $b;}
 		public static function get_include_modifiers_in_subtotal() {return self::$include_modifiers_in_subtotal;}
 
+	/**
+	 * If this method is present in the Buyable, the related order item will be excluded
+	 * @var Boolean
+	 */
 	protected static $exclude_buyable_method = 'ExcludeInDiscountCalculation';
 		static function set_exclude_buyable_method($s) {self::$exclude_buyable_method = $s;}
 		static function get_exclude_buyable_method() {return self::$exclude_buyable_method;}
 
+	/**
+	 * Standard SS Variable
+	 * @var String
+	 */
+	public static $singular_name = "Discount Coupon Entry";
+		function i18n_singular_name() { return _t("ModifierExample.MODIFIEREXAMPLE", "Discount Coupon Entry");}
+
+	/**
+	 * Standard SS Variable
+	 * @var String
+	 */
+	public static $plural_name = "Discount Coupon Entries";
+		function i18n_plural_name() { return _t("ModifierExample.MODIFIEREXAMPLES", "Discount Coupon Entries");}
+
+
+
 // ######################################## *** cms variables + functions (e.g. getCMSFields, $searchableFields)
 
 
+	/**
+	 * Standard SS Method
+	 * @return FieldSet
+	 */
 	function getCMSFields() {
 		$fields = parent::getCMSFields();
 		$fields->removeByName("DebugString");
@@ -45,17 +83,18 @@ class DiscountCouponModifier extends OrderModifier {
 		return $fields;
 	}
 
-	public static $singular_name = "Discount Coupon Entry";
-		function i18n_singular_name() { return _t("ModifierExample.MODIFIEREXAMPLE", "Discount Coupon Entry");}
-
-	public static $plural_name = "Discount Coupon Entries";
-		function i18n_plural_name() { return _t("ModifierExample.MODIFIEREXAMPLES", "Discount Coupon Entries");}
-
-
 // ######################################## *** other (non) static variables (e.g. protected static $special_name_for_something, protected $order)
 
+	/**
+	 * Used in calculations to work out how much we need.
+	 * @var Double | Null
+	 */
 	protected $actualDeductions = null;
 
+	/**
+	 * Used for debugging
+	 * @var String
+	 */
 	protected $debugMessage = "";
 
 
@@ -79,11 +118,21 @@ class DiscountCouponModifier extends OrderModifier {
 
 // ######################################## *** form functions (e. g. showform and getform)
 
-
+	/**
+	 * Show the form?
+	 * We always show it when there are items in the cart.
+	 * @return Boolean
+	 */
 	public function ShowForm() {
 		return $this->Order()->Items();
 	}
 
+
+	/**
+	 * @param Controller $optionalController
+	 * @param Validator $optionalValidator
+	 * @return DiscountCouponModifier_Form
+	 */
 	function getModifierForm($optionalController = null, $optionalValidator = null) {
 		$fields = new FieldSet(
 			$this->headingField(),
@@ -102,8 +151,6 @@ class DiscountCouponModifier extends OrderModifier {
 	 *@param String $code - code that has been entered
 	 *@return Int - only returns a positive value (ID of Discount Coupom) if the coupon entered is valid
 	 **/
-
-
 	public function updateCouponCodeEntered($code) {
 		$discountCoupon = DataObject::get_one('DiscountCouponOption', "\"Code\" = '$code'");
 		if($discountCoupon && $discountCoupon->IsValid()) {
@@ -120,6 +167,7 @@ class DiscountCouponModifier extends OrderModifier {
 			$result = array(_t('DiscountCouponModifier.REMOVED', 'Coupon removed'), 'good');
 		}
 		else {
+			//to do: do we need to remove it again?
 			$result = array(_t('DiscountCouponModifier.NOTFOUND', 'Coupon could not be found'), 'bad');
 		}
 		$this->write();
@@ -340,10 +388,12 @@ class DiscountCouponModifier_Form extends OrderModifierForm {
 		if(isset($data['DiscountCouponCode'])) {
 			$order = ShoppingCart::current_order();
 			if($order) {
-				$modifier = $order->Modifiers('DiscountCouponModifier');
-				$modifier = $modifier->First();
-				list($message, $type) = $modifier->updateCouponCodeEntered(Convert::raw2sql($data['DiscountCouponCode']));
-				return ShoppingCart::singleton()->setMessageAndReturn($message, $type);
+				$modifiers = $order->Modifiers('DiscountCouponModifier');
+				$modifier = $modifiers->First();
+				if($modifier) {
+					list($message, $type) = $modifier->updateCouponCodeEntered(Convert::raw2sql($data['DiscountCouponCode']));
+					return ShoppingCart::singleton()->setMessageAndReturn($message, $type);
+				}
 			}
 		}
 		return ShoppingCart::singleton()->setMessageAndReturn(_t("DiscountCouponModifier.NOTAPPLIED", "Coupon could not be found.", "bad"));
