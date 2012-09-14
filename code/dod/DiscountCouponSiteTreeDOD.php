@@ -33,15 +33,45 @@ class DiscountCouponSiteTreeDOD extends DataObjectDecorator {
 
 	function canBeDiscounted(SiteTree $page) {
 		if($this->owner->PageIDs) {
-			$pageIDs = explode(',', $this->owner->PageIDs);
+			$allowedPageIDs = explode(',', $this->owner->PageIDs);
+			$checkPages = new DataObjectSet(array($page));
+			$alreadyCheckedPageIDs = array();
+			while($checkPages->Count()) {
+				$page = $checkPages->First();
+				if(array_search($page->ID, $allowedPageIDs) !== false) {
+					return true;
+				}
+				$alreadyCheckedPageIDs[] = $page->ID;
+				$checkPages = $checkPages->toArray('ID');
+				unset($checkPages[$page->ID]);
+				$checkPages = new DataObjectSet($checkPages);
+
+				// Parents list update
+
+				$parents = new DataObjectSet();
+				if($page->hasMethod('AllParentGroups')) {
+					$parents = $page->AllParentGroups();
+				}
+				$parent = $page->Parent();
+				if($parent && $parent->exists()) {
+					$parents->insertFirst($parent);
+				}
+				
+				foreach($parents as $parent) {
+					if(array_search($parent->ID, $alreadyCheckedPageIDs) !== false) {
+						$checkPages->push($parent);
+					}
+				}
+				$checkPages->removeDuplicates();
+			}
+			/*
 			while($page && $page->exists()) {
 				if(array_search($page->ID, $pageIDs) !== false) {
 					return true;
 				}
-				if($page->ParentID) {
-					$page = DataObject::get_by_id("SiteTree", $page->ParentID);
-				}
+				$page = $page->Parent();
 			}
+			*/
 			return false;
 		}
 		return true;
