@@ -9,10 +9,7 @@ class DiscountCouponSiteTreeDOD extends DataObjectDecorator {
 	function extraStatics() {
 		return array(
 			'db' => array(
-				'PageIDs' => 'Text'
-			),
-			'indexes' => array(
-				'PageIDs' => true
+				'PageIDs' => 'Text(700)'
 			)
 		);
 	}
