@@ -249,7 +249,7 @@ class DiscountCouponModifier extends OrderModifier {
 	*@return float
 	**/
 	protected function LiveSubTotalAmount() {
-		//if(!self::$subtotal) {
+		if(!self::$subtotal) {
 			$order = $this->Order();
 			$items = $order->Items();
 			$subTotal = $order->SubTotal();
@@ -266,7 +266,7 @@ class DiscountCouponModifier extends OrderModifier {
 				$subTotal += $order->ModifiersSubTotal(array(get_class($this)));
 			}
 			self::$subtotal = $subTotal;
-		//}
+		}
 		return self::$subtotal;
 	}
 
@@ -275,7 +275,7 @@ class DiscountCouponModifier extends OrderModifier {
 	*@return float
 	**/
 	protected function LiveCalculatedTotal() {
-		//if(!self::$calculated_total) {
+		if(!self::$calculated_total) {
 			$this->actualDeductions = 0;
 			$this->DebugString = "";
 			$subTotal = $this->LiveSubTotalAmount();
@@ -310,7 +310,7 @@ class DiscountCouponModifier extends OrderModifier {
 			}
 			$this->actualDeductions = -1 * $this->actualDeductions;
 			self::$calculated_total = $this->actualDeductions;
-		//}
+		}
 		return self::$calculated_total;
 	}
 
