@@ -69,14 +69,6 @@ class DiscountCouponSiteTreeDOD extends DataObjectDecorator {
 				}
 				$checkPages->removeDuplicates();
 			}
-			/*
-			while($page && $page->exists()) {
-				if(array_search($page->ID, $pageIDs) !== false) {
-					return true;
-				}
-				$page = $page->Parent();
-			}
-			*/
 			return false;
 		}
 		return true;
