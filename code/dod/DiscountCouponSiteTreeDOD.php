@@ -63,7 +63,7 @@ class DiscountCouponSiteTreeDOD extends DataObjectDecorator {
 				}
 
 				foreach($parents as $parent) {
-					if(array_search($parent->ID, $alreadyCheckedPageIDs) !== false) {
+					if(array_search($parent->ID, $alreadyCheckedPageIDs) === false) {
 						$checkPages->push($parent);
 					}
 				}
