@@ -31,6 +31,11 @@ class DiscountCouponSiteTreeDOD extends DataObjectDecorator {
 		$fields->addFieldToTab('Root.AppliesTo', $field);
 	}
 
+	/**
+	 * normally returns TRUE, but returns FALSE when it, or its parent is in the list.
+	 * todo: add products in other product categories
+	 * @return Boolean
+	 */
 	function canBeDiscounted(SiteTree $page) {
 		if($this->owner->PageIDs) {
 			$allowedPageIDs = explode(',', $this->owner->PageIDs);
@@ -56,7 +61,7 @@ class DiscountCouponSiteTreeDOD extends DataObjectDecorator {
 				if($parent && $parent->exists()) {
 					$parents->insertFirst($parent);
 				}
-				
+
 				foreach($parents as $parent) {
 					if(array_search($parent->ID, $alreadyCheckedPageIDs) !== false) {
 						$checkPages->push($parent);
