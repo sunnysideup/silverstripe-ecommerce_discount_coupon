@@ -241,7 +241,7 @@ class DiscountCouponModifier extends OrderModifier {
 		elseif($code) {
 			return  _t("DiscountCouponModifier.COUPON", "Coupon '").$code._t("DiscountCouponModifier.COULDNOTBEAPPLIED", "' could not be applied.");
 		}
-		return _t("DiscountCouponModifier.NOCOUPONENTERED", "No Coupon Entered").$code;
+		return _t("DiscountCouponModifier.NOCOUPONENTERED", "No (valid) coupon entered").$code;
 	}
 
 	private static $subtotal = 0;
