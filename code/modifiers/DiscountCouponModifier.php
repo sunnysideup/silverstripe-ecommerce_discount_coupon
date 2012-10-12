@@ -193,7 +193,16 @@ class DiscountCouponModifier extends OrderModifier {
 	*@return boolean
 	**/
 	public function ShowInTable() {
-		return true;
+		if($this->DiscountCouponOptionID) {
+			return true;
+		}
+		elseif($this->Order()->IsSubmitted()) {
+			return false;
+		}
+		elseif($this->CouponCodeEntered) {
+			return true;
+		}
+		return false;
 	}
 
 	/**
