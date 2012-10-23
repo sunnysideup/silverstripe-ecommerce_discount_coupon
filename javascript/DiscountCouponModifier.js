@@ -17,6 +17,8 @@ var DiscountCoupon = {
 
 	actionsClass: ".Actions",
 
+	generalActionsClass: ".checkoutStepPrevNextHolder",
+
 
 	availableCountries: new Array(),
 
@@ -37,6 +39,7 @@ var DiscountCoupon = {
 
 	// pre-submit callback
 	showRequest: function (formData, jqForm, options) {
+		jQuery(DiscountCoupon.generalActionsClass).hide();
 		jQuery(DiscountCoupon.formID).addClass(DiscountCoupon.loadingClass);
 		return true;
 	},
@@ -46,6 +49,7 @@ var DiscountCoupon = {
 		//redo quantity boxes
 		//jQuery(DiscountCoupon.updatedDivID).css("height", "auto");
 		jQuery(DiscountCoupon.formID).removeClass(DiscountCoupon.loadingClass);
+		jQuery(DiscountCoupon.generalActionsClass).show();
 		EcomCart.setChanges(responseText);
 	}
 
