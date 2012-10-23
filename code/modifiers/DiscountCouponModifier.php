@@ -199,10 +199,10 @@ class DiscountCouponModifier extends OrderModifier {
 		elseif($this->Order()->IsSubmitted()) {
 			return false;
 		}
-		elseif($this->CouponCodeEntered) {
+		else {
+			//we hide it with ajax if needed
 			return true;
 		}
-		return false;
 	}
 
 	/**
