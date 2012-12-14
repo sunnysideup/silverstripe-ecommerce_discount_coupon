@@ -106,11 +106,13 @@ class DiscountCouponModifier extends OrderModifier {
 	 * @param Bool $force - run it, even if it has run already
 	 */
 	public function runUpdate($force = false) {
+		if (isset($_GET['debug_profile'])) Profiler::mark('DiscountCouponModifier::runUpdate');
 		if(!$this->IsRemoved()) {
 			$this->checkField("SubTotalAmount");
 			$this->checkField("CouponCodeEntered");
 			$this->checkField("DiscountCouponOptionID");
 		}
+		if (isset($_GET['debug_profile'])) Profiler::unmark('DiscountCouponModifier::runUpdate');
 		parent::runUpdate($force);
 	}
 
