@@ -1,0 +1,20 @@
+{
+	"name": "silverstripe/ecommerce_discount_coupon",
+	"type": "silverstripe-module",
+	"description": "adds a discount coupon functionality to your Silverstripe e-commerce application ",
+	"homepage": "http://www.silverstripe-ecommerce.com",
+	"keywords": ["ecommerce", "e-commerce", "shop", "discount coupon", "discount", "coupon","silverstripe"],
+	"license": "Sunny Side Up (BSD-3-Clause and CUSTOM)",
+	"authors":[
+		{
+			"name": "Nicolaas Francken",
+			"homepage": "https://github.com/sunnysideup",
+			"email" : "modules@sunnysideup.co.nz",
+			"role" : "lead developer"
+		}
+	],
+	"require":{
+		"php": ">=5.3.2",
+		"silverstripe/framework": ">=2.4.0"
+	}
+}
