@@ -163,6 +163,8 @@ class DiscountCouponOption extends DataObject {
 		$fields = parent::getCMSFields();
 		$fields->addFieldToTab("Root.Main", new ReadonlyField("IsValidNice", self::$field_labels["IsValidNice"]));
 		$fields->addFieldToTab("Root.Main", new ReadonlyField("UseCount", self::$field_labels["UseCount"]));
+		$fields->replaceField("StartDate", new TextField("StartDate"));
+		$fields->replaceField("EndDate", new TextField("EndDate"));
 		return $fields;
 	}
 
