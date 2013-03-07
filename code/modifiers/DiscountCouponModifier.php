@@ -126,6 +126,7 @@ class DiscountCouponModifier extends OrderModifier {
 	 * @return Boolean
 	 */
 	public function ShowForm() {
+		return true;
 		return $this->Order()->Items();
 	}
 
@@ -139,7 +140,7 @@ class DiscountCouponModifier extends OrderModifier {
 		$fields = new FieldSet(
 			$this->headingField(),
 			$this->descriptionField(),
-			new TextField('DiscountCouponCode',_t("DiscountCouponModifier.COUPON", 'Coupon', $this->CouponCodeEntered))
+			new TextField('DiscountCouponCode',_t("DiscountCouponModifier.COUPON", 'Coupon', $this->LiveCouponCodeEntered()))
 		);
 		$actions = new FieldSet(
 			new FormAction('submit', _t("DiscountCouponModifier.APPLY", 'Apply Coupon'))

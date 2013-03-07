@@ -44,6 +44,8 @@ class DiscountCouponOption extends DataObject {
 	 *
 	 */
 	public static $field_labels = array(
+		'StartDate' => 'First date the coupon can be used',
+		'EndDate' => 'Last day the coupon can be used',
 		"Title" => "Name (for internal use only)",
 		"MaximumDiscount" => "Maximum deduction (set to zero to ignore)",
 		"DiscountAbsolute" => "Discount as absolute reduction of total - if any (e.g. 10 = -$10.00)",
@@ -127,7 +129,7 @@ class DiscountCouponOption extends DataObject {
 			$endDate = strtotime($this->EndDate);
 			$today = strtotime("today");
 			$yesterday = strtotime("yesterday");
-			if($startDate < $today && $endDate > $yesterday) {
+			if($startDate <= $today && $endDate > $yesterday) {
 				return true;
 			}
 		}
@@ -207,17 +209,20 @@ class DiscountCouponOption extends DataObject {
 	 *
 	 */
 	function onBeforeWrite() {
+		parent::onBeforeWrite();
 		if(!$this->Code) {
 			$this->Code = $this->createRandomCode();
 		}
 		$this->Code = eregi_replace("[^[:alnum:]]", " ", $this->Code );
 		$this->Code = trim(eregi_replace(" +", "", $this->Code));
 		$i = 0;
-		while(DataObject::get_one($this->ClassName, "\"".$this->ClassName."\".\"ID\" <> ".$this->ID." AND \"Code\" = '".$this->Code."'")) {
+		while(DataObject::get_one($this->ClassName, "\"".$this->ClassName."\".\"ID\" <> ".$this->ID." AND \"Code\" = '".$this->Code."'") && $i < 100) {
 			$i++;
 			$this->Code = $this->Code."".$i;
 		}
-		parent::onBeforeWrite();
+		if(!$this->Name) {
+			$this->Name = $this->Code;
+		}
 	}
 
 	/**
