@@ -34,6 +34,7 @@ class DiscountCouponSiteTreeDOD extends DataObjectDecorator {
 	/**
 	 * normally returns TRUE, but returns FALSE when it, or its parent is in the list.
 	 * todo: add products in other product categories
+	 * @param SiteTree $page
 	 * @return Boolean
 	 */
 	function canBeDiscounted(SiteTree $page) {
