@@ -399,7 +399,6 @@ class DiscountCouponModifier_Form extends OrderModifierForm {
 	 *
 	 */
 	protected static $custom_javascript_files = array(
-		THIRDPARTY_DIR."/jquery-form/jquery.form.js",
 		"ecommerce_discount_coupon/javascript/DiscountCouponModifier.js"
 	);
 
@@ -416,6 +415,7 @@ class DiscountCouponModifier_Form extends OrderModifierForm {
 		parent::__construct($optionalController, $name, $fields, $actions, $optionalValidator);
 		Requirements::themedCSS("DiscountCouponModifier");
 		Requirements::javascript(THIRDPARTY_DIR."/jquery/jquery.js");
+		Requirements::javascript(THIRDPARTY_DIR."/jquery-form/jquery.form.js");
 		//Requirements::block(THIRDPARTY_DIR."/jquery/jquery.js");
 		//Requirements::javascript(Director::protocol()."ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js");
 		if($jsRequirements = self::get_custom_javascript_files())
