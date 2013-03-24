@@ -394,14 +394,35 @@ class DiscountCouponModifier extends OrderModifier {
 
 class DiscountCouponModifier_Form extends OrderModifierForm {
 
+	/**
+	 * @var Array
+	 *
+	 */
+	protected static $custom_javascript_files = array(
+		THIRDPARTY_DIR."/jquery-form/jquery.form.js",
+		"ecommerce_discount_coupon/javascript/DiscountCouponModifier.js"
+	);
+
+	static function set_custom_javascript_files($a) {self::$custom_javascript_files = $a;}
+
+	static function get_custom_javascript_files() {
+		if(is_array(self::$custom_javascript_files) && count(self::$custom_javascript_files)) {
+			return self::$custom_javascript_files;
+		}
+		return null;
+	}
+
 	function __construct($optionalController = null, $name,FieldSet $fields, FieldSet $actions,$optionalValidator = null) {
 		parent::__construct($optionalController, $name, $fields, $actions, $optionalValidator);
 		Requirements::themedCSS("DiscountCouponModifier");
 		Requirements::javascript(THIRDPARTY_DIR."/jquery/jquery.js");
 		//Requirements::block(THIRDPARTY_DIR."/jquery/jquery.js");
 		//Requirements::javascript(Director::protocol()."ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js");
-		Requirements::javascript(THIRDPARTY_DIR."/jquery-form/jquery.form.js");
-		Requirements::javascript("ecommerce_discount_coupon/javascript/DiscountCouponModifier.js");
+		if($jsRequirements = self::get_custom_javascript_files())
+			foreach($jsRequirements as $js) {
+				Requirements::javascript($js);
+			}
+		}
 	}
 
 	public function submit($data, $form) {
