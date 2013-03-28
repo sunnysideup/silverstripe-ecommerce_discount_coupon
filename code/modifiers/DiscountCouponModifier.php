@@ -433,6 +433,7 @@ class DiscountCouponModifier_Form extends OrderModifierForm {
 				$modifier = $modifiers->First();
 				if($modifier) {
 					list($message, $type) = $modifier->updateCouponCodeEntered(Convert::raw2sql($data['DiscountCouponCode']));
+					$form->addErrorMessage("DiscountCouponCode", $message, $type);
 					return ShoppingCart::singleton()->setMessageAndReturn($message, $type);
 				}
 			}
