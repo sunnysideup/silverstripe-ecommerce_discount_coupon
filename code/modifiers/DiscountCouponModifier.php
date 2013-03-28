@@ -126,8 +126,26 @@ class DiscountCouponModifier extends OrderModifier {
 	 * @return Boolean
 	 */
 	public function ShowForm() {
-		return true;
-		return $this->Order()->Items();
+		$items = $this->Order()->Items();
+		if($items) {
+			//-- START HACK
+			return true;
+			//-- END HACK
+			if(singleton('DiscountCouponOption')->hasExtension('DiscountCouponSiteTreeDOD')) {
+				foreach($items as $item) {
+					//here we need to add foreach valid coupon
+					//for each item->Buyable
+					//check if the coupon
+					//can be applied to the buyable
+				}
+			}
+			else {
+				return true;
+			}
+		}
+		else {
+			return false;
+		}
 	}
 
 
