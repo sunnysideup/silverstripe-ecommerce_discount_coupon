@@ -161,6 +161,9 @@ class DiscountCouponModifier extends OrderModifier {
 			$this->CouponCodeEntered = $code;
 			$result = array(_t('DiscountCouponModifier.APPLIED', 'Coupon applied'), 'good');
 		}
+		else if($discountCoupon && !$discountCoupon->IsValid()) {
+			$result = array(_t('DiscountCouponModifier.NOT_VALID', 'Coupon is no longer available'), 'bad');
+		}
 		else if($code) {
 			$result = array(_t('DiscountCouponModifier.NOTFOUND', 'Coupon could not be found'), 'bad');
 		}
