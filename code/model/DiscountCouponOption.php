@@ -74,7 +74,6 @@ class DiscountCouponOption extends DataObject {
 	public static $singular_name = "Discount Coupon";
 		function i18n_singular_name() { return _t("DiscountCouponOption.DISCOUNTCOUPON", "Discount Coupon");}
 
-
 	/**
 	 * standard SS variable
 	 *
@@ -82,13 +81,16 @@ class DiscountCouponOption extends DataObject {
 	public static $plural_name = "Discount Coupons";
 		function i18n_plural_name() { return _t("DiscountCouponOption.DISCOUNTCOUPONS", "Discount Coupons");}
 
-
 	/**
 	 * standard SS variable
 	 *
 	 */
 	public static $default_sort = "EndDate DESC, StartDate DESC";
 
+	/**
+	 *
+	 * @var Boolean
+	 */
 	protected $isNew = false;
 
 	/**
@@ -100,6 +102,7 @@ class DiscountCouponOption extends DataObject {
 		$this->Code = $this->createRandomCode();
 		$this->isNew = true;
 	}
+
 	/**
 	 * casted variable
 	 * returns the number of times this coupon has been used.
