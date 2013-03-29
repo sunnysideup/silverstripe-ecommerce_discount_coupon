@@ -82,6 +82,7 @@ class DiscountCouponSiteTreeDOD_Product extends DataObjectDecorator {
 		$coupon = $modifier->DiscountCouponOption();
 		return ! $coupon->canBeDiscounted($this->owner);
 	}
+
 }
 
 class DiscountCouponSiteTreeDOD_ProductVariation extends DataObjectDecorator {
