@@ -4,17 +4,13 @@
  *
  */
 
-class DiscountCouponSiteTreeDOD extends DataObjectDecorator {
+class DiscountCouponSiteTreeDOD extends DataExtension {
 
-	function extraStatics() {
-		return array(
-			'db' => array(
-				'PageIDs' => 'Text(700)'
-			)
-		);
-	}
+	static $db = array(
+		'PageIDs' => 'Text(700)'
+	);
 
-	function updateCMSFields(FieldSet &$fields) {
+	public function updateCMSFields(FieldList $fields) {
 		$label = _t(
 			"SELECTPRODUCTSANDCATEGORIES",
 			"Select Product Categories and/or Products (if nothing is selected, the discount coupon will apply to all buyables)."
@@ -40,7 +36,7 @@ class DiscountCouponSiteTreeDOD extends DataObjectDecorator {
 	function canBeDiscounted(SiteTree $page) {
 		if($this->owner->PageIDs) {
 			$allowedPageIDs = explode(',', $this->owner->PageIDs);
-			$checkPages = new DataObjectSet(array($page));
+			$checkPages = new ArrayList(array($page));
 			$alreadyCheckedPageIDs = array();
 			while($checkPages->Count()) {
 				$page = $checkPages->First();
@@ -48,19 +44,18 @@ class DiscountCouponSiteTreeDOD extends DataObjectDecorator {
 					return true;
 				}
 				$alreadyCheckedPageIDs[] = $page->ID;
-				$checkPages = $checkPages->toArray('ID');
-				unset($checkPages[$page->ID]);
-				$checkPages = new DataObjectSet($checkPages);
+				$checkPages->remove($page);
 
 				// Parents list update
-
-				$parents = new DataObjectSet();
 				if($page->hasMethod('AllParentGroups')) {
-					$parents = $page->AllParentGroups();
+					$parents = new ArrayList($page->AllParentGroups()->toArray());
+				} else {
+					$parents = new ArrayList();
 				}
+
 				$parent = $page->Parent();
 				if($parent && $parent->exists()) {
-					$parents->insertFirst($parent);
+					$parents->unshift($parent);
 				}
 
 				foreach($parents as $parent) {
@@ -76,7 +71,7 @@ class DiscountCouponSiteTreeDOD extends DataObjectDecorator {
 	}
 }
 
-class DiscountCouponSiteTreeDOD_Product extends DataObjectDecorator {
+class DiscountCouponSiteTreeDOD_Product extends DataExtension {
 
 	function ExcludeInDiscountCalculation(DiscountCouponModifier $modifier) {
 		$coupon = $modifier->DiscountCouponOption();
@@ -85,7 +80,7 @@ class DiscountCouponSiteTreeDOD_Product extends DataObjectDecorator {
 
 }
 
-class DiscountCouponSiteTreeDOD_ProductVariation extends DataObjectDecorator {
+class DiscountCouponSiteTreeDOD_ProductVariation extends DataExtension {
 
 	function ExcludeInDiscountCalculation(DiscountCouponModifier $modifier) {
 		$coupon = $modifier->DiscountCouponOption();
@@ -99,7 +94,7 @@ class DiscountCouponSiteTreeDOD_Field extends TreeMultiselectField {
 	 *
 	 * TO DO: explain how this works or what it does.
 	 */
-	function saveInto(DataObject $record) {
+	public function saveInto(DataObjectInterface $record) {
 		if($this->value !== 'unchanged') {
 			$items = array();
 
