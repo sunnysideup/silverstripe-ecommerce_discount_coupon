@@ -180,6 +180,7 @@ class DiscountCouponOption extends DataObject {
 
 	protected function validate(){
 		if(DataObject::get_one($this->ClassName, "\"".$this->ClassName."\".\"ID\" <> ".$this->ID." AND \"Code\" = '".$this->Code."'")) {
+			$validator = new ValidationResult();
 			$validator->error(_t('DiscountCouponOption.CODEALREADYEXISTS', "This code already exists - please use another code."));
 		}
 		if(!$this->isNew) {
@@ -216,8 +217,8 @@ class DiscountCouponOption extends DataObject {
 		if(!$this->Code) {
 			$this->Code = $this->createRandomCode();
 		}
-		$this->Code = eregi_replace("[^[:alnum:]]", " ", $this->Code );
-		$this->Code = trim(eregi_replace(" +", "", $this->Code));
+		$this->Code = preg_replace('/[^a-z0-9]/i', " ", $this->Code );
+		$this->Code = trim(preg_replace('/\s+/', "", $this->Code));
 		$i = 0;
 		while(DataObject::get_one($this->ClassName, "\"".$this->ClassName."\".\"ID\" <> ".$this->ID." AND \"Code\" = '".$this->Code."'") && $i < 100) {
 			$i++;
