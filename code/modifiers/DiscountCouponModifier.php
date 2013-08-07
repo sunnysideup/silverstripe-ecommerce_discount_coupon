@@ -71,7 +71,7 @@ class DiscountCouponModifier extends OrderModifier {
 
 	/**
 	 * Standard SS Method
-	 * @return FieldSet
+	 * @return FieldList
 	 */
 	function getCMSFields() {
 		$fields = parent::getCMSFields();
@@ -154,13 +154,13 @@ class DiscountCouponModifier extends OrderModifier {
 	 * @param Validator $optionalValidator
 	 * @return DiscountCouponModifier_Form
 	 */
-	function getModifierForm($optionalController = null, $optionalValidator = null) {
-		$fields = new FieldSet(
+	public function getModifierForm(Controller $optionalController = null, Validator $optionalValidator = null) {
+		$fields = new FieldList(
 			$this->headingField(),
 			$this->descriptionField(),
 			new TextField('DiscountCouponCode',_t("DiscountCouponModifier.COUPON", 'Coupon', $this->LiveCouponCodeEntered()))
 		);
-		$actions = new FieldSet(
+		$actions = new FieldList(
 			new FormAction('submit', _t("DiscountCouponModifier.APPLY", 'Apply Coupon'))
 		);
 		$form = new DiscountCouponModifier_Form($optionalController, 'DiscountCouponModifier', $fields, $actions, $optionalValidator);
@@ -432,7 +432,7 @@ class DiscountCouponModifier_Form extends OrderModifierForm {
 		return null;
 	}
 
-	function __construct($optionalController = null, $name,FieldSet $fields, FieldSet $actions,$optionalValidator = null) {
+	function __construct($optionalController = null, $name,FieldList $fields, FieldList $actions,$optionalValidator = null) {
 		parent::__construct($optionalController, $name, $fields, $actions, $optionalValidator);
 		Requirements::themedCSS("DiscountCouponModifier");
 		Requirements::javascript(THIRDPARTY_DIR."/jquery/jquery.js");
@@ -446,7 +446,7 @@ class DiscountCouponModifier_Form extends OrderModifierForm {
 		}
 	}
 
-	public function submit($data, $form) {
+	function submit(Array $data, Form $form, $message = "Order updated", $status = "good") {
 		if(isset($data['DiscountCouponCode'])) {
 			$order = ShoppingCart::current_order();
 			if($order) {
