@@ -14,8 +14,12 @@
 		}
 	],
 	"require":{
-		"php": ">=5.3.2",
-		"silverstripe/framework": ">=3.0",
+		"silverstripe/framework": "~3.1",
+		"silverstripe/cms": "~3.1",
 		"sunnysideup/ecommerce": ">=3.0"
+	},
+	"extra": {
+		"installer-name": "ecommerce_discount_coupon"
 	}
 }
+
