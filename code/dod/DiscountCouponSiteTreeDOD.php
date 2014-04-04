@@ -6,7 +6,7 @@
 
 class DiscountCouponSiteTreeDOD extends DataExtension {
 
-	static $db = array(
+	private static $db = array(
 		'PageIDs' => 'Text(700)'
 	);
 

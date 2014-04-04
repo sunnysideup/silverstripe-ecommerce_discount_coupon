@@ -18,7 +18,7 @@ class DiscountCouponModifier extends OrderModifier {
 	 * standard SS Variable
 	 * @var Array
 	 */
-	public static $db = array(
+	private static $db = array(
 		'DebugString' => 'HTMLText',
 		'SubTotalAmount' => 'Currency',
 		'CouponCodeEntered' => 'Varchar(25)'
@@ -29,7 +29,7 @@ class DiscountCouponModifier extends OrderModifier {
 	 * standard SS Variable
 	 * @var Array
 	 */
-	public static $has_one = array(
+	private static $has_one = array(
 		"DiscountCouponOption" => "DiscountCouponOption"
 	);
 
@@ -38,7 +38,7 @@ class DiscountCouponModifier extends OrderModifier {
 	 * the Total Total?
 	 * @var Boolean
 	 */
-	protected static $include_modifiers_in_subtotal = false;
+	private static $include_modifiers_in_subtotal = false;
 		public static function set_include_modifiers_in_subtotal($b) {self::$include_modifiers_in_subtotal = $b;}
 		public static function get_include_modifiers_in_subtotal() {return self::$include_modifiers_in_subtotal;}
 
@@ -46,7 +46,7 @@ class DiscountCouponModifier extends OrderModifier {
 	 * If this method is present in the Buyable, the related order item will be excluded
 	 * @var Boolean
 	 */
-	protected static $exclude_buyable_method = 'ExcludeInDiscountCalculation';
+	private static $exclude_buyable_method = 'ExcludeInDiscountCalculation';
 		static function set_exclude_buyable_method($s) {self::$exclude_buyable_method = $s;}
 		static function get_exclude_buyable_method() {return self::$exclude_buyable_method;}
 
@@ -54,14 +54,14 @@ class DiscountCouponModifier extends OrderModifier {
 	 * Standard SS Variable
 	 * @var String
 	 */
-	public static $singular_name = "Discount Coupon Entry";
+	private static $singular_name = "Discount Coupon Entry";
 		function i18n_singular_name() { return _t("ModifierExample.MODIFIEREXAMPLE", "Discount Coupon Entry");}
 
 	/**
 	 * Standard SS Variable
 	 * @var String
 	 */
-	public static $plural_name = "Discount Coupon Entries";
+	private static $plural_name = "Discount Coupon Entries";
 		function i18n_plural_name() { return _t("ModifierExample.MODIFIEREXAMPLES", "Discount Coupon Entries");}
 
 
@@ -83,7 +83,7 @@ class DiscountCouponModifier extends OrderModifier {
 		return $fields;
 	}
 
-// ######################################## *** other (non) static variables (e.g. protected static $special_name_for_something, protected $order)
+// ######################################## *** other (non) static variables (e.g. private static $special_name_for_something, protected $order)
 
 	/**
 	 * Used in calculations to work out how much we need.
@@ -106,13 +106,11 @@ class DiscountCouponModifier extends OrderModifier {
 	 * @param Bool $force - run it, even if it has run already
 	 */
 	public function runUpdate($force = false) {
-		if (isset($_GET['debug_profile'])) Profiler::mark('DiscountCouponModifier::runUpdate');
 		if(!$this->IsRemoved()) {
 			$this->checkField("SubTotalAmount");
 			$this->checkField("CouponCodeEntered");
 			$this->checkField("DiscountCouponOptionID");
 		}
-		if (isset($_GET['debug_profile'])) Profiler::unmark('DiscountCouponModifier::runUpdate');
 		parent::runUpdate($force);
 	}
 
@@ -419,7 +417,7 @@ class DiscountCouponModifier_Form extends OrderModifierForm {
 	 * @var Array
 	 *
 	 */
-	protected static $custom_javascript_files = array(
+	private static $custom_javascript_files = array(
 		"ecommerce_discount_coupon/javascript/DiscountCouponModifier.js"
 	);
 

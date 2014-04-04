@@ -8,7 +8,7 @@
 
 class DiscountCouponOption extends DataObject {
 
-	static $db = array(
+	private static $db = array(
 		'Title' => 'Varchar(25)',
 		'Code' => 'Varchar(25)',
 		'StartDate' => 'Date',
@@ -24,7 +24,7 @@ class DiscountCouponOption extends DataObject {
 	 * standard SS variable
 	 *
 	 */
-	public static $casting = array(
+	private static $casting = array(
 		"UseCount" => "Int",
 		"IsValid" => "Boolean",
 		"IsValidNice" => "Varchar"
@@ -35,7 +35,7 @@ class DiscountCouponOption extends DataObject {
 	 * standard SS variable
 	 *
 	 */
-	public static $searchable_fields = array(
+	private static $searchable_fields = array(
 		"Code" => "PartialMatchFilter",
 	);
 
@@ -43,7 +43,7 @@ class DiscountCouponOption extends DataObject {
 	 * standard SS variable
 	 *
 	 */
-	public static $field_labels = array(
+	private static $field_labels = array(
 		'StartDate' => 'First date the coupon can be used',
 		'EndDate' => 'Last day the coupon can be used',
 		"Title" => "Name (for internal use only)",
@@ -59,7 +59,7 @@ class DiscountCouponOption extends DataObject {
 	 * standard SS variable
 	 *
 	 */
-	public static $summary_fields = array(
+	private static $summary_fields = array(
 		"Title",
 		"Code",
 		"StartDate",
@@ -71,21 +71,21 @@ class DiscountCouponOption extends DataObject {
 	 * standard SS variable
 	 *
 	 */
-	public static $singular_name = "Discount Coupon";
+	private static $singular_name = "Discount Coupon";
 		function i18n_singular_name() { return _t("DiscountCouponOption.DISCOUNTCOUPON", "Discount Coupon");}
 
 	/**
 	 * standard SS variable
 	 *
 	 */
-	public static $plural_name = "Discount Coupons";
+	private static $plural_name = "Discount Coupons";
 		function i18n_plural_name() { return _t("DiscountCouponOption.DISCOUNTCOUPONS", "Discount Coupons");}
 
 	/**
 	 * standard SS variable
 	 *
 	 */
-	public static $default_sort = "EndDate DESC, StartDate DESC";
+	private static $default_sort = "EndDate DESC, StartDate DESC";
 
 	/**
 	 *
