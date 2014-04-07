@@ -1,7 +1,6 @@
-###############################################
+
 ecommerce discount coupon
-Pre 0.1 proof of concept
-###############################################
+================================================================================
 
 This module adds the "discount coupon" functionality
 to e-commerce. This means that at the checkout page
