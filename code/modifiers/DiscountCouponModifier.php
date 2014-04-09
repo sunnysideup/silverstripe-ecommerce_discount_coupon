@@ -39,16 +39,14 @@ class DiscountCouponModifier extends OrderModifier {
 	 * @var Boolean
 	 */
 	private static $include_modifiers_in_subtotal = false;
-		public static function set_include_modifiers_in_subtotal($b) {self::$include_modifiers_in_subtotal = $b;}
-		public static function get_include_modifiers_in_subtotal() {return self::$include_modifiers_in_subtotal;}
 
 	/**
 	 * If this method is present in the Buyable, the related order item will be excluded
 	 * @var Boolean
 	 */
+
 	private static $exclude_buyable_method = 'ExcludeInDiscountCalculation';
-		static function set_exclude_buyable_method($s) {self::$exclude_buyable_method = $s;}
-		static function get_exclude_buyable_method() {return self::$exclude_buyable_method;}
+
 
 	/**
 	 * Standard SS Variable
@@ -284,7 +282,7 @@ class DiscountCouponModifier extends OrderModifier {
 			$order = $this->Order();
 			$items = $order->Items();
 			$subTotal = $order->SubTotal();
-			$function = self::$exclude_buyable_method;
+			$function = $this->Config()->get("exclude_buyable_method");
 			if($items) {
 				foreach($items as $item) {
 					$buyable = $item->Buyable();
@@ -293,7 +291,7 @@ class DiscountCouponModifier extends OrderModifier {
 					}
 				}
 			}
-			if(self::$include_modifiers_in_subtotal) {
+			if($this->Config()->get("include_modifiers_in_subtotal")) {
 				$subTotal += $order->ModifiersSubTotal(array(get_class($this)));
 			}
 			self::$subtotal = $subTotal;
@@ -421,11 +419,10 @@ class DiscountCouponModifier_Form extends OrderModifierForm {
 		"ecommerce_discount_coupon/javascript/DiscountCouponModifier.js"
 	);
 
-	static function set_custom_javascript_files($a) {self::$custom_javascript_files = $a;}
-
 	static function get_custom_javascript_files() {
-		if(is_array(self::$custom_javascript_files) && count(self::$custom_javascript_files)) {
-			return self::$custom_javascript_files;
+		$jsFiles = $this->Config()->get("custom_javascript_files");
+		if(is_array($jsFiles) && count($jsFiles) {
+			return $jsFiles;
 		}
 		return null;
 	}
@@ -437,7 +434,7 @@ class DiscountCouponModifier_Form extends OrderModifierForm {
 		Requirements::javascript(THIRDPARTY_DIR."/jquery-form/jquery.form.js");
 		//Requirements::block(THIRDPARTY_DIR."/jquery/jquery.js");
 		//Requirements::javascript(Director::protocol()."ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js");
-		if($jsRequirements = self::get_custom_javascript_files()) {
+		if($jsRequirements = $this->Config()->get("custom_javascript_files")) {
 			foreach($jsRequirements as $js) {
 				Requirements::javascript($js);
 			}
