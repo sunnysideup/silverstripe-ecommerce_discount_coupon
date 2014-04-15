@@ -421,7 +421,7 @@ class DiscountCouponModifier_Form extends OrderModifierForm {
 
 	static function get_custom_javascript_files() {
 		$jsFiles = $this->Config()->get("custom_javascript_files");
-		if(is_array($jsFiles) && count($jsFiles) {
+		if(is_array($jsFiles) && count($jsFiles)) {
 			return $jsFiles;
 		}
 		return null;
