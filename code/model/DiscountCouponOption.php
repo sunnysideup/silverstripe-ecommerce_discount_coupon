@@ -178,7 +178,7 @@ class DiscountCouponOption extends DataObject {
 	 * THIS ONLY WORKS FOR CREATED OBJECTS
 	 */
 
-	protected function validate(){
+	public function validate(){
 		if(DataObject::get_one($this->ClassName, "\"".$this->ClassName."\".\"ID\" <> ".$this->ID." AND \"Code\" = '".$this->Code."'")) {
 			$validator = new ValidationResult();
 			$validator->error(_t('DiscountCouponOption.CODEALREADYEXISTS', "This code already exists - please use another code."));
