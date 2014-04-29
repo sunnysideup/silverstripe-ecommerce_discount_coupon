@@ -53,14 +53,14 @@ class DiscountCouponModifier extends OrderModifier {
 	 * @var String
 	 */
 	private static $singular_name = "Discount Coupon Entry";
-		function i18n_singular_name() { return _t("ModifierExample.MODIFIEREXAMPLE", "Discount Coupon Entry");}
+		function i18n_singular_name() { return _t("DiscountCouponModifier.SINGULAR_NAME", "Discount Coupon Entry");}
 
 	/**
 	 * Standard SS Variable
 	 * @var String
 	 */
 	private static $plural_name = "Discount Coupon Entries";
-		function i18n_plural_name() { return _t("ModifierExample.MODIFIEREXAMPLES", "Discount Coupon Entries");}
+		function i18n_plural_name() { return _t("DiscountCouponModifier.PLURAL_NAME", "Discount Coupon Entries");}
 
 
 
