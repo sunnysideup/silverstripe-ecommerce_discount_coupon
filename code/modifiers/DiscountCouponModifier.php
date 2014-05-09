@@ -427,7 +427,7 @@ class DiscountCouponModifier_Form extends OrderModifierForm {
 		return null;
 	}
 
-	function __construct($optionalController = null, $name,FieldList $fields, FieldList $actions,$optionalValidator = null) {
+	function __construct($optionalController = null, $name, FieldList $fields, FieldList $actions,$optionalValidator = null) {
 		parent::__construct($optionalController, $name, $fields, $actions, $optionalValidator);
 		Requirements::themedCSS("DiscountCouponModifier", "ecommerce_discount_coupon");
 		Requirements::javascript(THIRDPARTY_DIR."/jquery/jquery.js");
