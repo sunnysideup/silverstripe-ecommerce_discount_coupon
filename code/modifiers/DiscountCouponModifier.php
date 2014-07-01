@@ -210,8 +210,10 @@ class DiscountCouponModifier extends OrderModifier {
 // ######################################## *** template functions (e.g. ShowInTable, TableTitle, etc...) ... USES DB VALUES
 
 	/**
-	*@return boolean
-	**/
+	* @see self::HideInAjaxUpdate
+	* @return boolean
+	*
+	*/
 	public function ShowInTable() {
 		if($this->DiscountCouponOptionID) {
 			return true;
