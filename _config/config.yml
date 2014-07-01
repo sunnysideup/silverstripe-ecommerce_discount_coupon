@@ -1,0 +1,22 @@
+---
+Name: ecommerce_discount_coupon
+Before: 'mysite/*'
+After: 'framework/*','cms/*','ecommerce/*'
+---
+StoreAdmin:
+  managed_models:
+    - DiscountCouponOption
+
+OrderModifierForm_Controller:
+  allowed_actions:
+    - DiscountCouponModifier
+
+---
+Only:
+  classexists: 'DataObjectSorterDOD'
+---
+
+PickUpOrDeliveryModifierOptions:
+  extensions:
+    - DataObjectSorterDOD
+
