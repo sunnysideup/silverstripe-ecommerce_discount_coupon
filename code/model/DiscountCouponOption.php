@@ -151,13 +151,45 @@ class DiscountCouponOption extends DataObject {
 
 	/**
 	 * standard SS method
-	 *
+	 * @param Member | NULL
+	 * @return Boolean
+	 */
+	public function canCreate($member = null){
+		if(Permission::checkMember($member, Config::inst()->get("EcommerceRole", "admin_permission_code"))) {return true;}
+		return parent::canCreate($member);
+	}
+
+	/**
+	 * standard SS method
+	 * @param Member | NULL
+	 * @return Boolean
+	 */
+	public function canView($member = null){
+		if(Permission::checkMember($member, Config::inst()->get("EcommerceRole", "admin_permission_code"))) {return true;}
+		return parent::canCreate($member);
+	}
+
+	/**
+	 * standard SS method
+	 * @param Member | NULL
+	 * @return Boolean
+	 */
+	public function canEdit($member = null){
+		if(Permission::checkMember($member, Config::inst()->get("EcommerceRole", "admin_permission_code"))) {return true;}
+		return parent::canEdit($member);
+	}
+
+	/**
+	 * standard SS method
+	 * @param Member | NULL
+	 * @return Boolean
 	 */
 	function canDelete($member = null) {
 		if($this->UseCount()) {
 			return false;
 		}
-		return true;
+		if(Permission::checkMember($member, Config::inst()->get("EcommerceRole", "admin_permission_code"))) {return true;}
+		return parent::canCreate($member);
 	}
 
 	/**
