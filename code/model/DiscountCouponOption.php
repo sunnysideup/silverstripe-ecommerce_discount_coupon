@@ -20,6 +20,11 @@ class DiscountCouponOption extends DataObject {
 		'NumberOfTimesCouponCanBeUsed' => 'Int'
 	);
 
+
+	private static $many_many = array(
+		'Products' => 'Product'
+	);
+
 	/**
 	 * standard SS variable
 	 *
@@ -52,7 +57,8 @@ class DiscountCouponOption extends DataObject {
 		"DiscountPercentage" => "Discount as percentage of total - if any (e.g. 10 = -10%)",
 		"NumberOfTimesCouponCanBeUsed" => "Number of times the coupon can be used, set to zero to disallow usage",
 		"UseCount" => "Number of times this coupon has been used",
-		"IsValidNice" => "coupon is currently valid"
+		"IsValidNice" => "coupon is currently valid",
+		"Products" => "only applies to the following products (optional)"
 	);
 
 	/**
@@ -200,8 +206,14 @@ class DiscountCouponOption extends DataObject {
 		$fields = parent::getCMSFields();
 		$fields->addFieldToTab("Root.Main", new ReadonlyField("IsValidNice", self::$field_labels["IsValidNice"]));
 		$fields->addFieldToTab("Root.Main", new ReadonlyField("UseCount", self::$field_labels["UseCount"]));
-		$fields->replaceField("StartDate", new TextField("StartDate"));
-		$fields->replaceField("EndDate", new TextField("EndDate"));
+		if($gridField = $fields->dataFieldByName("Products")) {
+			$gridField->getConfig()
+				->removeComponentsByType("GridFieldEditButton")
+				->removeComponentsByType("GridFieldDeleteAction")
+				->removeComponentsByType("GridFieldAddNewButton")
+				->addComponent(new GridFieldAddNewButtonOriginalPage())
+				->addComponent(new GridFieldEditButtonOriginalPage());
+		}
 		return $fields;
 	}
 

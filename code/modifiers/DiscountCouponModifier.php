@@ -248,11 +248,30 @@ class DiscountCouponModifier extends OrderModifier {
 
 
 	/**
-	*@return DiscountCouponOption
-	**/
+	 * returns the discount coupon, if any ...
+	 * @return DiscountCouponOption | null
+	 **/
 	protected function myDiscountCouponOption() {
+		$coupon = null;
 		if($id = $this->LiveDiscountCouponOptionID()){
-			return DataObject::get_by_id("DiscountCouponOption", $id);
+			$applicableCoupon = true;
+			$coupon = DiscountCouponOption::get()->byID($id);
+			if($products = $coupon->Products()) {
+				if($products->count()) {
+					$applicableCoupon = false;
+					foreach($products as $product) {
+						if($product->IsInCart()) {
+							$applicableCoupon = true;
+						}
+						if(class_exists("ProductVariation") && $product->VariationIsInCart()){
+							$applicableCoupon = true;
+						}
+					}
+				}
+			}
+			if($applicableCoupon && $coupon) {
+				return $coupon;
+			}
 		}
 	}
 
@@ -267,10 +286,10 @@ class DiscountCouponModifier extends OrderModifier {
 		$code = $this->LiveCouponCodeEntered();
 		$coupon = $this->myDiscountCouponOption();
 		if($coupon) {
-			return _t("DiscountCouponModifier.COUPON", "Coupon '").$code._t("DiscountCouponModifier.APPLIED", "' applied.");
+			return _t("DiscountCouponModifier.COUPON", "Coupon")." '".$code."' "._t("DiscountCouponModifier.APPLIED", "applied.");
 		}
 		elseif($code) {
-			return  _t("DiscountCouponModifier.COUPON", "Coupon '").$code._t("DiscountCouponModifier.COULDNOTBEAPPLIED", "' could not be applied.");
+			return  _t("DiscountCouponModifier.COUPON", "Coupon")." '".$code."' "._t("DiscountCouponModifier.COULDNOTBEAPPLIED", "could not be applied.");
 		}
 		return _t("DiscountCouponModifier.NOCOUPONENTERED", "No (valid) coupon entered").$code;
 	}
@@ -302,6 +321,7 @@ class DiscountCouponModifier extends OrderModifier {
 	}
 
 	private static $calculated_total = 0;
+
 	/**
 	*@return float
 	**/
