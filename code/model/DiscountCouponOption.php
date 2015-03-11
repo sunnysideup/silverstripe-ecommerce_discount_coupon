@@ -119,11 +119,7 @@ class DiscountCouponOption extends DataObject {
 	 */
 	function UseCount() {return $this->getUseCount();}
 	function getUseCount() {
-		$objects = DataObject::get("DiscountCouponModifier", "\"DiscountCouponOptionID\" = ".$this->ID);
-		if($objects) {
-			return $objects->count();
-		}
-		return 0;
+		return DiscountCouponModifier::get()->filter(array("DiscountCouponOptionID" => $this->ID))->count();
 	}
 
 	/**
@@ -195,7 +191,7 @@ class DiscountCouponOption extends DataObject {
 			return false;
 		}
 		if(Permission::checkMember($member, Config::inst()->get("EcommerceRole", "admin_permission_code"))) {return true;}
-		return parent::canCreate($member);
+		return parent::canDelete($member);
 	}
 
 	/**
@@ -204,8 +200,8 @@ class DiscountCouponOption extends DataObject {
 	 */
 	function getCMSFields() {
 		$fields = parent::getCMSFields();
-		$fields->addFieldToTab("Root.Main", new ReadonlyField("IsValidNice", self::$field_labels["IsValidNice"]));
 		$fields->addFieldToTab("Root.Main", new ReadonlyField("UseCount", self::$field_labels["UseCount"]));
+		$fields->addFieldToTab("Root.Main", new ReadonlyField("IsValidNice", self::$field_labels["IsValidNice"]));
 		if($gridField = $fields->dataFieldByName("Products")) {
 			$gridField->getConfig()
 				->removeComponentsByType("GridFieldEditButton")
@@ -223,32 +219,46 @@ class DiscountCouponOption extends DataObject {
 	 */
 
 	public function validate(){
-		if(DataObject::get_one($this->ClassName, "\"".$this->ClassName."\".\"ID\" <> ".$this->ID." AND \"Code\" = '".$this->Code."'")) {
-			$validator = new ValidationResult();
+		$validator = parent::validate();
+		if(!$this->isNew) {
+			if($this->thereAreCouponsWithTheSameCode()) {
+				$validator->error(_t('DiscountCouponOption.CODEALREADYEXISTS', "This code already exists - please use another code."));
+			}
+		}
+		return $validator;
+		/*
+		$validator = parent::validate();
+		if($this->thereAreCouponsWithTheSameCode()) {
 			$validator->error(_t('DiscountCouponOption.CODEALREADYEXISTS', "This code already exists - please use another code."));
 		}
-		if(!$this->isNew) {
-			$validator = new ValidationResult();
-			if(isset($_REQUEST["StartDate"])) {
-				$this->StartDate = date("Y-m-d", strtotime($_REQUEST["StartDate"]));
-			}
-			if(isset($_REQUEST["EndDate"])) {
-				$this->EndDate = date("Y-m-d", strtotime($_REQUEST["EndDate"]));
-			}
-			if(strtotime($this->StartDate) < strtotime("-7 years") ) {
-				$validator->error(_t('DiscountCouponOption.NOSTARTDATE', "Please enter a start date"));
-			}
-			if(strtotime($this->EndDate) < strtotime("-7 years") ) {
-				$validator->error(_t('DiscountCouponOption.NOENDDATE', "Please enter an end date"));
-			}
-			if(strtotime($this->EndDate) < strtotime($this->StartDate)) {
-				$validator->error(_t('DiscountCouponOption.ENDDATETOOEARLY', "The end date should be after the start date"));
-			}
-			return $validator;
+		if(isset($_REQUEST["StartDate"])) {
+			$this->StartDate = date("Y-m-d", strtotime($_REQUEST["StartDate"]));
 		}
-		else {
-			return parent::validate();
+		if(isset($_REQUEST["EndDate"])) {
+			$this->EndDate = date("Y-m-d", strtotime($_REQUEST["EndDate"]));
 		}
+		$startDate = strtotime($this->StartDate);
+		$endDate = strtotime($this->EndDate);
+		$minDate = strtotime("1 jan 1980");
+		if($startDate < $minDate ) {
+			$validator->error(_t('DiscountCouponOption.NOSTARTDATE', "Please enter a start date. "));
+		}
+		if($endDate < $minDate ) {
+			$validator->error(_t('DiscountCouponOption.NOENDDATE', "Please enter an end date. "));
+		}
+		if($endDate < $startDate) {
+			$validator->error(_t('DiscountCouponOption.ENDDATETOOEARLY', "The end date should be after the start date. "));
+		}
+		return $validator;
+		*/
+	}
+
+	/**
+	 * Checks if there are coupons with the same code as the current one
+	 * @return Boolean
+	 */
+	protected function thereAreCouponsWithTheSameCode(){
+		return DiscountCouponOption::get()->exclude(array("ID" => $this->ID))->filter(array("Code" => $this->Code))->count() ? true : false;
 	}
 
 
@@ -263,8 +273,8 @@ class DiscountCouponOption extends DataObject {
 		}
 		$this->Code = preg_replace('/[^a-z0-9]/i', " ", $this->Code );
 		$this->Code = trim(preg_replace('/\s+/', "", $this->Code));
-		$i = 0;
-		while(DataObject::get_one($this->ClassName, "\"".$this->ClassName."\".\"ID\" <> ".$this->ID." AND \"Code\" = '".$this->Code."'") && $i < 100) {
+		$i = 1;
+		while($this->thereAreCouponsWithTheSameCode() && $i < 100) {
 			$i++;
 			$this->Code = $this->Code."".$i;
 		}
