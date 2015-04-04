@@ -129,16 +129,26 @@ class DiscountCouponOption extends DataObject {
 	 */
 	function IsValid() {return $this->getIsValid();}
 	function getIsValid() {
-		if(! $this->NumberOfTimesCouponCanBeUsed || $this->getUseCount() < $this->NumberOfTimesCouponCanBeUsed) {
-			$startDate = strtotime($this->StartDate);
-			$endDate = strtotime($this->EndDate);
-			$today = strtotime("today");
-			$yesterday = strtotime("yesterday");
-			if($startDate <= $today && $endDate > $yesterday) {
-				return true;
+		//we go through all the options that would make it invalid...
+		if(! $this->NumberOfTimesCouponCanBeUsed) {
+			return false;
+		}
+		if($this->getUseCount() > $this->NumberOfTimesCouponCanBeUsed) {
+			return false;
+		}
+		$now = strtotime("now");
+		$startDate = strtotime($this->StartDate);
+		if($now < $startDate) {
+			return false;
+		}
+		//include the end date itself.
+		if($this->EndDate) {
+			$endDate = strtotime($this->EndDate)+(60*60*24);
+			if($now > $endDate) {
+				return false;
 			}
 		}
-		return false;
+		return true;
 	}
 
 	/**
