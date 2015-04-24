@@ -11,6 +11,10 @@ OrderModifierForm_Controller:
   allowed_actions:
     - DiscountCouponModifier
 
+Product:
+  extensions:
+    - DiscountCouponProductDataExtension
+
 ---
 Only:
   classexists: 'DataObjectSorterDOD'

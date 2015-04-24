@@ -136,7 +136,7 @@ class DiscountCouponModifier extends OrderModifier {
 				}
 			}
 			else {
-				return true;
+				return DiscountCouponOption::get()->exclude(array("NumberOfTimesCouponCanBeUsed" => 0))->count();
 			}
 		}
 		else {
@@ -169,7 +169,7 @@ class DiscountCouponModifier extends OrderModifier {
 	 *@return Int - only returns a positive value (ID of Discount Coupom) if the coupon entered is valid
 	 **/
 	public function updateCouponCodeEntered($code) {
-		$discountCoupon = DataObject::get_one('DiscountCouponOption', "\"Code\" = '$code'");
+		$discountCoupon = DiscountCouponOption::get()->filter(array("Code" => $code))->first();
 		if($discountCoupon && $discountCoupon->IsValid()) {
 			$this->DiscountCouponOptionID = $discountCoupon->ID;
 			$this->CouponCodeEntered = $code;
@@ -254,25 +254,60 @@ class DiscountCouponModifier extends OrderModifier {
 	protected function myDiscountCouponOption() {
 		$coupon = null;
 		if($id = $this->LiveDiscountCouponOptionID()){
-			$applicableCoupon = true;
 			$coupon = DiscountCouponOption::get()->byID($id);
-			if($products = $coupon->Products()) {
-				if($products->count()) {
-					$applicableCoupon = false;
-					foreach($products as $product) {
-						if($product->IsInCart()) {
-							$applicableCoupon = true;
-						}
-						if(class_exists("ProductVariation") && $product->VariationIsInCart()){
-							$applicableCoupon = true;
+			if($coupon && !$coupon->ApplyPercentageToApplicableProducts){
+				$arrayOfOrderItemsToWhichThisCouponApplies = $this->applicableProductsArray($coupon);
+				if(count($arrayOfOrderItemsToWhichThisCouponApplies) && $coupon) {
+					return $coupon;
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * returns an Array of OrderItem IDs
+	 * to which the coupon applies
+	 * @param DiscountCouponOption
+	 * @return Array
+	 */
+	protected function applicableProductsArray($coupon) {
+		$finalArray = array();
+		$order = $this->Order();
+		if($order) {
+			$items = $order->Items();
+			if($items && $items->count()) {
+				//get a list of all the products in the cart
+				$arrayOfProductsInOrder = array();
+				foreach($items as $item) {
+					$buyable = $item->Buyable();
+					if($buyable instanceof ProductVaration) {
+						$buyable = $buyable->Product();
+					}
+					$arrayOfProductsInOrder[$item->ID] = $buyable->ID;
+				}
+				//if no products / product groups are specified then
+				//it applies
+				//get a list of all the products to which the coupon applies
+				$productsArray = $coupon->Products()->map("ID", "ID")->toArray();
+				if(count($productsArray)) {
+					$matches = array_intersect($productsArray, $arrayOfProductsInOrder);
+					foreach($matches as $buyableID) {
+						foreach($arrayOfProductsInOrder as $itemID => $innerBuyableID) {
+							if($buyableID == $innerBuyableID) {
+								$finalArray[$itemID] = $itemID;
+							}
 						}
 					}
 				}
-			}
-			if($applicableCoupon && $coupon) {
-				return $coupon;
+				else {
+					foreach($arrayOfProductsInOrder as $itemID => $buyableID) {
+						$finalArray[$itemID] = $itemID;
+					}
+				}
 			}
 		}
+		return $finalArray;
 	}
 
 
