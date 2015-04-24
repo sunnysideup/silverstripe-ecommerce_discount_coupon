@@ -76,7 +76,7 @@ class DiscountCouponOption extends DataObject {
 		'EndDate' => 'Last day the coupon can be used',
 		"Title" => "for internal use only",
 		"MaximumDiscount" => "set to zero to ignore",
-		"DiscountAbsolute" => "e.g. 0.1 = -$10.00, set to zero to ignore ",
+		"DiscountAbsolute" => "e.g. 10 = -$10.00, set to zero to ignore ",
 		"DiscountPercentage" => "e.g. 10 = -10%, set to zero to ignore",
 		"MinimumOrderSubTotalValue" => "minimum sub-total of total order to make coupon applicable",
 		"ApplyPercentageToApplicableProducts" => "rather than applying it to the order, the discount is directly applied to selected products (you must select products).",
@@ -268,10 +268,10 @@ class DiscountCouponOption extends DataObject {
 		$fields->addFieldToTab("Root.Main", new ReadonlyField("UseCount", self::$field_labels["UseCount"]));
 		$fields->addFieldToTab("Root.Main", new ReadonlyField("IsValidNice", self::$field_labels["IsValidNice"]));
 		if($gridField1 = $fields->dataFieldByName("Products")) {
-			$gridField1->setConfig(GridFieldEditOriginalPageConfig::create());
+			$gridField1->setConfig(GridFieldEditOriginalPageConfigWithDelete::create());
 		}
 		if($gridField2 = $fields->dataFieldByName("ProductGroups")) {
-			$gridField2->setConfig(GridFieldEditOriginalPageConfig::create());
+			$gridField2->setConfig(GridFieldEditOriginalPageConfigWithDelete::create());
 		}
 		return $fields;
 	}
@@ -290,9 +290,9 @@ class DiscountCouponOption extends DataObject {
 			if(isset($_REQUEST["StartDate"])) {
 				$this->StartDate = date("Y-m-d", strtotime($_REQUEST["StartDate"]));
 			}
-                        if(isset($_REQUEST["EndDate"])) {
-                                $this->EndDate = date("Y-m-d", strtotime($_REQUEST["EndDate"]));
-                        }
+			if(isset($_REQUEST["EndDate"])) {
+				$this->EndDate = date("Y-m-d", strtotime($_REQUEST["EndDate"]));
+			}
 			if(strtotime($this->StartDate) < strtotime("-12 years") ) {
 				$validator->error(_t('DiscountCouponOption.NOSTARTDATE', "Please enter a start date"));
 			}
@@ -396,6 +396,11 @@ class DiscountCouponOption extends DataObject {
 			$this->Products()->addMany($productsArray);
 			$this->write();
 		}
+	}
+
+	function onBeforeDelete() {
+		parent::onBeforeDelete();-
+		DB::query("DELETE FROM \"DiscountCouponOption_Products\" WHERE \"DiscountCouponOptionID\" = ".$this->ID);
 	}
 
 	/**
