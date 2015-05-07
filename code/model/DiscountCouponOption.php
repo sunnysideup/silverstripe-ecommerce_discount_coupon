@@ -24,7 +24,8 @@ class DiscountCouponOption extends DataObject {
 
 	private static $many_many = array(
 		'Products' => 'Product',
-		'ProductGroups' => 'ProductGroup'
+		'ProductGroups' => 'ProductGroup',
+		'ProductGroupsMustAlsoBePresentIn' => 'ProductGroup'
 	);
 
 	/**
@@ -64,6 +65,7 @@ class DiscountCouponOption extends DataObject {
 		"ApplyEvenWithoutCode" => "Automatically applied",
 		"Products" => "Applicable products",
 		"ProductGroups" => "Applicable Categories",
+		"ProductGroupsMustAlsoBePresentIn" => "Products must also be listed in ... ",
 	);
 
 	/**
@@ -86,6 +88,7 @@ class DiscountCouponOption extends DataObject {
 		"ApplyEvenWithoutCode" => "automatically applied - the user does not have to enter the coupon at all",
 		"Products" => "This is the final list of products to which the coupon applies - if no products are selected, it applies to all products",
 		"ProductGroups" => "Adding product categories helps you to select a large number of products at once.",
+		"ProductGroupsMustAlsoBePresentIn" => "Select cross-reference listing to, for example, select products that are in the Large Items category and Expensive Items category (product group)",
 	);
 
 	/**
@@ -273,6 +276,19 @@ class DiscountCouponOption extends DataObject {
 		if($gridField2 = $fields->dataFieldByName("ProductGroups")) {
 			$gridField2->setConfig(GridFieldEditOriginalPageConfigWithDelete::create());
 		}
+		if($gridField3 = $fields->dataFieldByName("ProductGroupsMustAlsoBePresentIn")) {
+			$gridField3->setConfig(GridFieldEditOriginalPageConfigWithDelete::create());
+		}
+		$fields->addFieldToTab(
+			"Root.ProducGroups",
+			new HeaderField(
+				"ProductGroupsExplanation",
+				_t("DiscountCouponOption.PRODUCT_GROUPS_EXPLANATION", "
+					This Tab of Product Groups is used to select Products Only.
+					Discounts are applied to Products only, not Product Categories
+				")
+			)
+		);
 		return $fields;
 	}
 
@@ -387,6 +403,17 @@ class DiscountCouponOption extends DataObject {
 				$productsShowable = $productGroup->currentInitialProducts(null, "default");
 				if($productsShowable && $productsShowable->count()) {
 					$productsShowable = $productsShowable->exclude("ID", $productsArray);
+					if($productsShowable && $productsShowable->count()) {
+						$productsShowableArray = $productsShowable->map("ID", "ID")->toArray();
+						$productsArray += $productsShowableArray;
+					}
+				}
+			}
+			$otherGroups = $this->ProductGroupsMustAlsoBePresentIn();
+			foreach($otherGroups as $otherGroup) {
+				$productsShowableOtherGroups = $otherGroup->currentInitialProducts(null, "default");
+				if($productsShowableOtherGroups && $productsShowableOtherGroups->count()) {
+					$productsShowableOtherGroups = $productsShowable->exclude("ID", $productsArray);
 					if($productsShowable && $productsShowable->count()) {
 						$productsShowableArray = $productsShowable->map("ID", "ID")->toArray();
 						$productsArray += $productsShowableArray;
