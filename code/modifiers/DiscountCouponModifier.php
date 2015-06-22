@@ -348,18 +348,36 @@ class DiscountCouponModifier extends OrderModifier {
 		if(!self::$subtotal) {
 			$order = $this->Order();
 			$items = $order->Items();
-			$subTotal = $order->SubTotal();
-			$function = $this->Config()->get("exclude_buyable_method");
-			if($items) {
-				foreach($items as $item) {
-					$buyable = $item->Buyable();
-					if($buyable && $buyable->hasMethod($function) && $buyable->$function($this)) {
-						$subTotal -= $item->Total();
+			$coupon = $this->myDiscountCouponOption();
+			if($coupon->ApplyPercentageToApplicableProducts) {
+				$array = $this->applicableProductsArray($coupon);
+				$subTotal = 0;
+				if(count($array)) {
+					if($items) {
+						foreach($items as $item) {
+							if($buyable = $item->Buyable()) {
+								if(in_array($buyable->ID, $array)) {
+									$subTotal += $item->Total();
+								}
+							}
+						}
 					}
 				}
 			}
-			if($this->Config()->get("include_modifiers_in_subtotal")) {
-				$subTotal += $order->ModifiersSubTotal(array(get_class($this)));
+			else {
+				$subTotal = $order->SubTotal();
+				$function = $this->Config()->get("exclude_buyable_method");
+				if($items) {
+					foreach($items as $item) {
+						$buyable = $item->Buyable();
+						if($buyable && $buyable->hasMethod($function) && $buyable->$function($this)) {
+							$subTotal -= $item->Total();
+						}
+					}
+				}
+				if($this->Config()->get("include_modifiers_in_subtotal")) {
+					$subTotal += $order->ModifiersSubTotal(array(get_class($this)));
+				}
 			}
 			self::$subtotal = $subTotal;
 		}
