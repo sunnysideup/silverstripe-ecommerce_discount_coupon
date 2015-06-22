@@ -255,9 +255,14 @@ class DiscountCouponModifier extends OrderModifier {
 		$coupon = null;
 		if($id = $this->LiveDiscountCouponOptionID()){
 			$coupon = DiscountCouponOption::get()->byID($id);
-			if($coupon && !$coupon->ApplyPercentageToApplicableProducts){
-				$arrayOfOrderItemsToWhichThisCouponApplies = $this->applicableProductsArray($coupon);
-				if(count($arrayOfOrderItemsToWhichThisCouponApplies) && $coupon) {
+			if($coupon){
+				if($coupon->ApplyPercentageToApplicableProducts) {
+					$arrayOfOrderItemsToWhichThisCouponApplies = $this->applicableProductsArray($coupon);
+					if(count($arrayOfOrderItemsToWhichThisCouponApplies)) {
+						return $coupon;
+					}
+				}
+				else {
 					return $coupon;
 				}
 			}
@@ -265,6 +270,8 @@ class DiscountCouponModifier extends OrderModifier {
 		return null;
 	}
 
+
+	private static $_applicable_products_array = null;
 	/**
 	 * returns an Array of OrderItem IDs
 	 * to which the coupon applies
@@ -272,42 +279,46 @@ class DiscountCouponModifier extends OrderModifier {
 	 * @return Array
 	 */
 	protected function applicableProductsArray($coupon) {
-		$finalArray = array();
-		$order = $this->Order();
-		if($order) {
-			$items = $order->Items();
-			if($items && $items->count()) {
-				//get a list of all the products in the cart
-				$arrayOfProductsInOrder = array();
-				foreach($items as $item) {
-					$buyable = $item->Buyable();
-					if($buyable instanceof ProductVaration) {
-						$buyable = $buyable->Product();
+		if(self::$_applicable_products_array === null) {
+			self::$_applicable_products_array = array();
+			$finalArray = array();
+			$order = $this->Order();
+			if($order) {
+				$items = $order->Items();
+				if($items && $items->count()) {
+					//get a list of all the products in the cart
+					$arrayOfProductsInOrder = array();
+					foreach($items as $item) {
+						$buyable = $item->Buyable();
+						if($buyable instanceof ProductVaration) {
+							$buyable = $buyable->Product();
+						}
+						$arrayOfProductsInOrder[$item->ID] = $buyable->ID;
 					}
-					$arrayOfProductsInOrder[$item->ID] = $buyable->ID;
-				}
-				//if no products / product groups are specified then
-				//it applies
-				//get a list of all the products to which the coupon applies
-				$productsArray = $coupon->Products()->map("ID", "ID")->toArray();
-				if(count($productsArray)) {
-					$matches = array_intersect($productsArray, $arrayOfProductsInOrder);
-					foreach($matches as $buyableID) {
-						foreach($arrayOfProductsInOrder as $itemID => $innerBuyableID) {
-							if($buyableID == $innerBuyableID) {
-								$finalArray[$itemID] = $itemID;
+					//if no products / product groups are specified then
+					//it applies
+					//get a list of all the products to which the coupon applies
+					$productsArray = $coupon->Products()->map("ID", "ID")->toArray();
+					if(count($productsArray)) {
+						$matches = array_intersect($productsArray, $arrayOfProductsInOrder);
+						foreach($matches as $buyableID) {
+							foreach($arrayOfProductsInOrder as $itemID => $innerBuyableID) {
+								if($buyableID == $innerBuyableID) {
+									$finalArray[$itemID] = $itemID;
+								}
 							}
 						}
 					}
-				}
-				else {
-					foreach($arrayOfProductsInOrder as $itemID => $buyableID) {
-						$finalArray[$itemID] = $itemID;
+					else {
+						foreach($arrayOfProductsInOrder as $itemID => $buyableID) {
+							$finalArray[$itemID] = $itemID;
+						}
 					}
 				}
 			}
+			self::$_applicable_products_array = $finalArray;
 		}
-		return $finalArray;
+		return self::$_applicable_products_array;
 	}
 
 
