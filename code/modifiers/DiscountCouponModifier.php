@@ -353,14 +353,30 @@ class DiscountCouponModifier extends OrderModifier {
 				$array = $this->applicableProductsArray($coupon);
 				$subTotal = 0;
 				if(count($array)) {
+					debug::log(print_r($array, 1));
 					if($items) {
+						debug::log("there are items");
+						$itemCount = 0;
 						foreach($items as $item) {
+							$itemCount++;
+							debug::log("there are items: ".$itemCount);
 							if($buyable = $item->Buyable()) {
+								debug::log("buyable: ".$buyable->ID);
 								if(in_array($buyable->ID, $array)) {
 									$subTotal += $item->Total();
+									debug::log("sub-total = ".$subTotal);
+								}
+								else {
+									debug::log("Not in array");
 								}
 							}
+							else {
+								debug::log("no buyable attached to item");
+							}
 						}
+					}
+					else {
+						debug::log("no items");
 					}
 				}
 			}
