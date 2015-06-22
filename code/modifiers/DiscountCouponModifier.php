@@ -349,7 +349,7 @@ class DiscountCouponModifier extends OrderModifier {
 			$order = $this->Order();
 			$items = $order->Items();
 			$coupon = $this->myDiscountCouponOption();
-			if($coupon->ApplyPercentageToApplicableProducts) {
+			if($coupon && $coupon->ApplyPercentageToApplicableProducts) {
 				$array = $this->applicableProductsArray($coupon);
 				$subTotal = 0;
 				if(count($array)) {
