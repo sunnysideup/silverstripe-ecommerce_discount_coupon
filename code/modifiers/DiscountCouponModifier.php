@@ -272,6 +272,7 @@ class DiscountCouponModifier extends OrderModifier {
 
 
 	private static $_applicable_products_array = null;
+
 	/**
 	 * returns an Array of OrderItem IDs
 	 * to which the coupon applies
@@ -353,30 +354,13 @@ class DiscountCouponModifier extends OrderModifier {
 				$array = $this->applicableProductsArray($coupon);
 				$subTotal = 0;
 				if(count($array)) {
-					debug::log(print_r($array, 1));
 					if($items) {
-						debug::log("there are items");
 						$itemCount = 0;
 						foreach($items as $item) {
-							$itemCount++;
-							debug::log("there are items: ".$itemCount);
-							if($buyable = $item->Buyable()) {
-								debug::log("buyable: ".$buyable->ID);
-								if(in_array($buyable->ID, $array)) {
-									$subTotal += $item->Total();
-									debug::log("sub-total = ".$subTotal);
-								}
-								else {
-									debug::log("Not in array");
-								}
-							}
-							else {
-								debug::log("no buyable attached to item");
+							if(in_array($item->ID, $array)) {
+								$subTotal += $item->Total();
 							}
 						}
-					}
-					else {
-						debug::log("no items");
 					}
 				}
 			}
