@@ -280,7 +280,7 @@ class DiscountCouponOption extends DataObject {
 			$gridField3->setConfig(GridFieldEditOriginalPageConfigWithDelete::create());
 		}
 		$fields->addFieldToTab(
-			"Root.ProducGroups",
+			"Root.ProductGroups",
 			new HeaderField(
 				"ProductGroupsExplanation",
 				_t("DiscountCouponOption.PRODUCT_GROUPS_EXPLANATION", "
