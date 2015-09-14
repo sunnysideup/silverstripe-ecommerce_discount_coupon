@@ -87,8 +87,8 @@ class DiscountCouponOption extends DataObject {
 		"IsValidNice" => "coupon is currently valid",
 		"ApplyEvenWithoutCode" => "automatically applied - the user does not have to enter the coupon at all",
 		"Products" => "This is the final list of products to which the coupon applies - if no products are selected, it applies to all products",
-		"ProductGroups" => "Adding product categories helps you to select a large number of products at once.",
-		"ProductGroupsMustAlsoBePresentIn" => "Select cross-reference listing to, for example, select products that are in the Large Items category and Expensive Items category (product group)",
+		"ProductGroups" => "Adding product categories helps you to select a large number of products at once. Please select categories above.  The products in each category selected will be added to the list.  You can also require products to be in two categories. ",
+		"ProductGroupsMustAlsoBePresentIn" => "Select cross-reference listing products (listed in both categories) - e.g. products that are in the Large Items category and Expensive Items category will have a discount.",
 	);
 
 	/**
@@ -279,16 +279,6 @@ class DiscountCouponOption extends DataObject {
 		if($gridField3 = $fields->dataFieldByName("ProductGroupsMustAlsoBePresentIn")) {
 			$gridField3->setConfig(GridFieldEditOriginalPageConfigWithDelete::create());
 		}
-		$fields->addFieldToTab(
-			"Root.ProductGroups",
-			new HeaderField(
-				"ProductGroupsExplanation",
-				_t("DiscountCouponOption.PRODUCT_GROUPS_EXPLANATION", "
-					This Tab of Product Groups is used to select Products Only.
-					Discounts are applied to Products only, not Product Categories
-				")
-			)
-		);
 		return $fields;
 	}
 
