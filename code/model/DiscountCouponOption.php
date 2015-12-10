@@ -278,20 +278,20 @@ class DiscountCouponOption extends DataObject {
 			else {
 				$gridField1->setConfig(GridFieldBasicPageRelationConfig::create());
 			}
+			$fields->addFieldToTab("Root.AddProductsDirectly", $gridField1);
 		}
 		if($gridField2 = $fields->dataFieldByName("ProductGroups")) {
 			$gridField2->setConfig(GridFieldBasicPageRelationConfig::create());
+			$fields->addFieldToTab("Root.AddProductsUsingCategories", $gridField2);
 		}
 
 		if($gridField3 = $fields->dataFieldByName("ProductGroupsMustAlsoBePresentIn")) {
 			$gridField3->setConfig(GridFieldBasicPageRelationConfig::create());
+			$fields->addFieldToTab("Root.AddProductsUsingCategories", $gridField3);
 		}
 		$fields->removeFieldFromTab("Root", "Products");
 		$fields->removeFieldFromTab("Root", "ProductGroups");
 		$fields->removeFieldFromTab("Root", "ProductGroupsMustAlsoBePresentIn");
-		$fields->addFieldToTab("Root.AddProductsDirectly", $gridField1);
-		$fields->addFieldToTab("Root.AddProductsUsingCategories", $gridField2);
-		$fields->addFieldToTab("Root.AddProductsUsingCategories", $gridField3);
 		if(!$this->ApplyPercentageToApplicableProducts) {
 			$fields->removeFieldFromTab("Root.Main", "ApplyEvenWithoutCode");
 		}
