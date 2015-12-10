@@ -197,22 +197,26 @@ class DiscountCouponModifier extends OrderModifier {
 	 * @return array
 	 **/
 	public function updateCouponCodeEntered($code) {
+		//set to new value ....
+		$this->CouponCodeEntered = $code;
 		$discountCoupon = DiscountCouponOption::get()->filter(array("Code" => $code))->first();
-		if($discountCoupon && $discountCoupon->IsValid()) {
-			$this->DiscountCouponOptionID = $discountCoupon->ID;
-			$this->CouponCodeEntered = $code;
-			$result = array(_t('DiscountCouponModifier.APPLIED', 'Coupon applied'), 'good');
-		}
-		else if($discountCoupon && !$discountCoupon->IsValid()) {
-			$result = array(_t('DiscountCouponModifier.NOT_VALID', 'Coupon is no longer available'), 'bad');
+		//apply valid discount coupong
+		if($discountCoupon) {
+			if($discountCoupon->IsValid()) {
+				$this->DiscountCouponOptionID = $discountCoupon->ID;
+				$result = array(_t('DiscountCouponModifier.APPLIED', 'Coupon applied'), 'good');
+			}
+			else if($discountCoupon && !$discountCoupon->IsValid()) {
+				$result = array(_t('DiscountCouponModifier.NOT_VALID', 'Coupon is no longer available'), 'bad');
+				$this->DiscountCouponOptionID = 0;
+			}
 		}
 		else if($code) {
 			$result = array(_t('DiscountCouponModifier.NOTFOUND', 'Coupon could not be found'), 'bad');
-		}
-		else if($this->CouponCodeEntered && $this->DiscountCouponOptionID) {
-			$this->DiscountCouponOptionID = 0;
-			$this->CouponCodeEntered = $code;
-			$result = array(_t('DiscountCouponModifier.REMOVED', 'Coupon removed'), 'good');
+			if($this->DiscountCouponOptionID) {
+				$this->DiscountCouponOptionID = 0;
+				$result = array(_t('DiscountCouponModifier.REMOVED', 'Coupon removed'), 'good');
+			}
 		}
 		else {
 			//to do: do we need to remove it again?
