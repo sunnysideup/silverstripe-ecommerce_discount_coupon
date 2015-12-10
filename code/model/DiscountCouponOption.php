@@ -8,17 +8,18 @@
 class DiscountCouponOption extends DataObject {
 
 	private static $db = array(
-		'ApplyEvenWithoutCode' => 'Boolean(1)',
 		'ApplyPercentageToApplicableProducts' => 'Boolean(1)',
+		'ApplyEvenWithoutCode' => 'Boolean(1)',
 		'Title' => 'Varchar(25)',
 		'Code' => 'Varchar(25)',
+		'NumberOfTimesCouponCanBeUsed' => 'Int',
 		'StartDate' => 'Date',
 		'EndDate' => 'Date',
 		'MaximumDiscount' => 'Currency',
 		'DiscountAbsolute' => 'Currency',
 		'DiscountPercentage' => 'Decimal(4,2)',
-		'MinimumOrderSubTotalValue' => 'Currency',
-		'NumberOfTimesCouponCanBeUsed' => 'Int'
+		'MinimumOrderSubTotalValue' => 'Currency'
+
 	);
 
 
@@ -56,8 +57,8 @@ class DiscountCouponOption extends DataObject {
 		'EndDate' => 'Last Day',
 		"Title" => "Name",
 		"MaximumDiscount" => "Maximum deduction",
-		"DiscountAbsolute" => "Discount as absolute reduction of total",
-		"DiscountPercentage" => "Discount as percentage of total / matching products",
+		"DiscountAbsolute" => "Absolute Discount",
+		"DiscountPercentage" => "Percentage Discount",
 		"ApplyPercentageToApplicableProducts" => "Applicable products only",
 		"NumberOfTimesCouponCanBeUsed" => "Availability count",
 		"UseCount" => "Count of usage thus far",
@@ -73,21 +74,21 @@ class DiscountCouponOption extends DataObject {
 	 *
 	 */
 	private static $field_labels_right = array(
-		'Code' => 'What the user enters',
-		'StartDate' => 'First date the coupon can be used',
-		'EndDate' => 'Last day the coupon can be used',
-		"Title" => "for internal use only",
-		"MaximumDiscount" => "set to zero to ignore",
-		"DiscountAbsolute" => "e.g. 10 = -$10.00, set to zero to ignore ",
-		"DiscountPercentage" => "e.g. 10 = -10%, set to zero to ignore",
-		"MinimumOrderSubTotalValue" => "minimum sub-total of total order to make coupon applicable",
-		"ApplyPercentageToApplicableProducts" => "rather than applying it to the order, the discount is directly applied to selected products (you must select products).",
-		"NumberOfTimesCouponCanBeUsed" => "set to zero to disallow usage, set to 99999 to allow unlimited usage",
+		"ApplyEvenWithoutCode" => "Discount is automatically applied: the user does not have to enter the coupon at all. ",
+		"ApplyPercentageToApplicableProducts" => "Rather than applying it to the order, the discount is directly applied to selected products (you must select products).",
+		"Title" => "The name of the coupon is for internal use only.  This name is not exposed to the customer but can be used to find a particular coupon.",
+		'Code' => 'The code that the customer enters to get their discount.',
+		'StartDate' => 'First date the coupon can be used.',
+		'EndDate' => 'Last day the coupon can be used.',
+		"MaximumDiscount" => "This is the total amount of discount that can ever be applied - no matter waht. Set to zero to ignore.",
+		"DiscountAbsolute" => "Absolute reduction. For example, 10 = -$10.00 off. Set this value to zero to ignore.",
+		"DiscountPercentage" => "Percentage Discount.  For example, 10 = -10% discount Set this value to zero to ignore.",
+		"MinimumOrderSubTotalValue" => "Minimum sub-total of total order to make coupon applicable. For example, order must be at least $100 before the customer gets a discount.",
+		"NumberOfTimesCouponCanBeUsed" => "Set to zero to disallow usage, set to 99999 to allow unlimited usage.",
 		"UseCount" => "number of times this coupon has been used",
 		"IsValidNice" => "coupon is currently valid",
-		"ApplyEvenWithoutCode" => "automatically applied - the user does not have to enter the coupon at all",
-		"Products" => "This is the final list of products to which the coupon applies - if no products are selected, it applies to all products",
-		"ProductGroups" => "Adding product categories helps you to select a large number of products at once. Please select categories above.  The products in each category selected will be added to the list.  You can also require products to be in two categories. ",
+		"Products" => "This is the final list of products to which the coupon applies. To edit this list directly, please remove all product groups selections in the 'Add Products Using Categories' tab.",
+		"ProductGroups" => "Adding product categories helps you to select a large number of products at once. Please select categories above.  The products in each category selected will be added to the list.",
 		"ProductGroupsMustAlsoBePresentIn" => "Select cross-reference listing products (listed in both categories) - e.g. products that are in the Large Items category and Expensive Items category will have a discount.",
 	);
 
@@ -271,13 +272,28 @@ class DiscountCouponOption extends DataObject {
 		$fields->addFieldToTab("Root.Main", new ReadonlyField("UseCount", self::$field_labels["UseCount"]));
 		$fields->addFieldToTab("Root.Main", new ReadonlyField("IsValidNice", self::$field_labels["IsValidNice"]));
 		if($gridField1 = $fields->dataFieldByName("Products")) {
-			$gridField1->setConfig(GridFieldEditOriginalPageConfigWithDelete::create());
+			if($this->ProductGroups()->count() || $this->ProductGroupsMustAlsoBePresentIn()->count()) {
+				$gridField1->setConfig(GridFieldBasicPageRelationConfigNoAddExisting::create());
+			}
+			else {
+				$gridField1->setConfig(GridFieldBasicPageRelationConfig::create());
+			}
 		}
 		if($gridField2 = $fields->dataFieldByName("ProductGroups")) {
-			$gridField2->setConfig(GridFieldEditOriginalPageConfigWithDelete::create());
+			$gridField2->setConfig(GridFieldBasicPageRelationConfig::create());
 		}
+
 		if($gridField3 = $fields->dataFieldByName("ProductGroupsMustAlsoBePresentIn")) {
-			$gridField3->setConfig(GridFieldEditOriginalPageConfigWithDelete::create());
+			$gridField3->setConfig(GridFieldBasicPageRelationConfig::create());
+		}
+		$fields->removeFieldFromTab("Root", "Products");
+		$fields->removeFieldFromTab("Root", "ProductGroups");
+		$fields->removeFieldFromTab("Root", "ProductGroupsMustAlsoBePresentIn");
+		$fields->addFieldToTab("Root.AddProductsDirectly", $gridField1);
+		$fields->addFieldToTab("Root.AddProductsUsingCategories", $gridField2);
+		$fields->addFieldToTab("Root.AddProductsUsingCategories", $gridField3);
+		if(!$this->ApplyPercentageToApplicableProducts) {
+			$fields->removeFieldFromTab("Root.Main", "ApplyEvenWithoutCode");
 		}
 		return $fields;
 	}
@@ -376,6 +392,9 @@ class DiscountCouponOption extends DataObject {
 		if($this->ApplyPercentageToApplicableProducts) {
 			$this->DiscountAbsolute = 0;
 		}
+		else {
+			$this->ApplyEvenWithoutCode = 0;
+		}
 	}
 
 	protected $_productsCalculated = false;
@@ -385,31 +404,29 @@ class DiscountCouponOption extends DataObject {
 	 */
 	function onAfterWrite() {
 		$productsArray = array(0 => 0);
+		$mustAlsoBePresentInProductsArray = array(0 => 0);
 		parent::onAfterWrite();
-		if(!$this->_productsCalculated) {
+		if(!$this->_productsCalculated && $this->ProductGroups()->count()) {
 			$this->_productsCalculated = true;
 			$productGroups = $this->ProductGroups();
+			$productsShowable = Product::get()->filter(array("ID" => -1));
 			foreach($productGroups as $productGroup) {
 				$productsShowable = $productGroup->currentInitialProducts(null, "default");
 				if($productsShowable && $productsShowable->count()) {
-					$productsShowable = $productsShowable->exclude("ID", $productsArray);
-					if($productsShowable && $productsShowable->count()) {
-						$productsShowableArray = $productsShowable->map("ID", "ID")->toArray();
-						$productsArray += $productsShowableArray;
-					}
+					$productsArray += $productsShowable->map("ID", "ID")->toArray();
 				}
 			}
-			$otherGroups = $this->ProductGroupsMustAlsoBePresentIn();
-			foreach($otherGroups as $otherGroup) {
-				$productsShowableOtherGroups = $otherGroup->currentInitialProducts(null, "default");
-				if($productsShowableOtherGroups && $productsShowableOtherGroups->count()) {
-					$productsShowableOtherGroups = $productsShowable->exclude("ID", $productsArray);
-					if($productsShowable && $productsShowable->count()) {
-						$productsShowableArray = $productsShowable->map("ID", "ID")->toArray();
-						$productsArray += $productsShowableArray;
-					}
+			$mustAlsoBePresentInGroups = $this->ProductGroupsMustAlsoBePresentIn();
+			foreach($mustAlsoBePresentInGroups as $mustAlsoBePresentInGroup) {
+				$mustAlsoBePresentInProducts = $mustAlsoBePresentInGroup->currentInitialProducts(null, "default");
+				if($mustAlsoBePresentInProducts && $mustAlsoBePresentInProducts->count()) {
+					$mustAlsoBePresentInProductsArray += $mustAlsoBePresentInProducts->map("ID", "ID")->toArray();
 				}
 			}
+			if($mustAlsoBePresentInProductsArray) {
+				$productsArray = array_intersect_key($mustAlsoBePresentInProductsArray, $productsArray);
+			}
+			$this->Products()->removeAll();
 			$this->Products()->addMany($productsArray);
 			$this->write();
 		}

@@ -76,8 +76,22 @@ class DiscountCouponModifier extends OrderModifier {
 		$fields->removeByName("DebugString");
 		$fields->removeByName("SubTotalAmount");
 		$fields->removeByName("OrderCoupon");
-		$fields->addFieldToTab("Root.Debug", new ReadonlyField("SubTotalAmountShown", "sub-total amount", $this->SubTotalAmount));
-		$fields->addFieldToTab("Root.Debug", new ReadonlyField("DebugStringShown", "debug string", $this->DebugString));
+		$fields->addFieldToTab(
+			"Root.Debug",
+			new ReadonlyField(
+				"SubTotalAmountShown",
+				_t("DiscountCouponModifier.SUB_TOTAL_AMOUNT", "sub-total amount"),
+				$this->SubTotalAmount
+			)
+		);
+		$fields->addFieldToTab(
+			"Root.Debug",
+			new ReadonlyField(
+				"DebugStringShown",
+				_t("DiscountCouponModifier.DEBUG_STRING", "debug string"),
+				$this->DebugString
+			)
+		);
 		return $fields;
 	}
 
@@ -154,19 +168,33 @@ class DiscountCouponModifier extends OrderModifier {
 		$fields = new FieldList(
 			$this->headingField(),
 			$this->descriptionField(),
-			new TextField('DiscountCouponCode',_t("DiscountCouponModifier.COUPON", 'Coupon', $this->LiveCouponCodeEntered()))
+			new TextField(
+				'DiscountCouponCode',
+				_t("DiscountCouponModifier.COUPON", 'Coupon'),
+				$this->LiveCouponCodeEntered()
+			)
 		);
 		$actions = new FieldList(
-			new FormAction('submit', _t("DiscountCouponModifier.APPLY", 'Apply Coupon'))
+			new FormAction(
+				'submit',
+				_t("DiscountCouponModifier.APPLY", 'Apply Coupon')
+			)
 		);
-		$form = new DiscountCouponModifier_Form($optionalController, 'DiscountCouponModifier', $fields, $actions, $optionalValidator);
+		$form = new DiscountCouponModifier_Form(
+			$optionalController,
+			'DiscountCouponModifier',
+			$fields,
+			$actions,
+			$optionalValidator
+		);
 		$fields->fieldByName("DiscountCouponCode")->setValue($this->CouponCodeEntered);
 		return $form;
 	}
 
 	/**
-	 *@param String $code - code that has been entered
-	 *@return Int - only returns a positive value (ID of Discount Coupom) if the coupon entered is valid
+	 * @param String $code - code that has been entered
+	 *
+	 * @return array
 	 **/
 	public function updateCouponCodeEntered($code) {
 		$discountCoupon = DiscountCouponOption::get()->filter(array("Code" => $code))->first();
@@ -194,12 +222,18 @@ class DiscountCouponModifier extends OrderModifier {
 		return $result;
 	}
 
+	/**
+	 * @param string $discountCoupon
+	 */
 	public function setCoupon($discountCoupon) {
 		$this->DiscountCouponOptionID = $discountCoupon->ID;
 		$this->write();
 	}
 
 
+	/**
+	 * @param int $discountCouponID
+	 */
 	public function setCouponByID($discountCouponID) {
 		$this->DiscountCouponOptionID = $discountCouponID;
 		$this->write();
@@ -211,8 +245,8 @@ class DiscountCouponModifier extends OrderModifier {
 
 	/**
 	* @see self::HideInAjaxUpdate
-	* @return boolean
 	*
+	* @return boolean
 	*/
 	public function ShowInTable() {
 		if($this->DiscountCouponOptionID) {
@@ -228,16 +262,16 @@ class DiscountCouponModifier extends OrderModifier {
 	}
 
 	/**
-	*@return boolean
-	**/
+	 * @return boolean
+	 */
 	public function CanRemove() {
 		return false;
 	}
 
 
 	/**
-	*@return float
-	**/
+	 * @return float
+	 */
 	public function CartValue() {return $this->getCartValue();}
 	public function getCartValue() {
 		return $this->TableValue;
@@ -249,8 +283,9 @@ class DiscountCouponModifier extends OrderModifier {
 
 	/**
 	 * returns the discount coupon, if any ...
+	 *
 	 * @return DiscountCouponOption | null
-	 **/
+	 */
 	protected function myDiscountCouponOption() {
 		$coupon = null;
 		if($id = $this->LiveDiscountCouponOptionID()){
