@@ -203,11 +203,11 @@ class DiscountCouponModifier extends OrderModifier {
 		//apply valid discount coupong
 		if($discountCoupon) {
 			if($discountCoupon->IsValid()) {
-				$this->DiscountCouponOptionID = $discountCoupon->ID;
-				$result = array(_t('DiscountCouponModifier.APPLIED', 'Coupon applied'), 'good');
+				$this->setCoupon($discountCoupon);
+				$messages = array(_t('DiscountCouponModifier.APPLIED', 'Coupon applied'), 'good');
 			}
-			else if($discountCoupon && !$discountCoupon->IsValid()) {
-				$result = array(_t('DiscountCouponModifier.NOT_VALID', 'Coupon is no longer available'), 'bad');
+			else {
+				$messages = array(_t('DiscountCouponModifier.NOT_VALID', 'Coupon is no longer available'), 'bad');
 				$this->DiscountCouponOptionID = 0;
 			}
 		}
@@ -215,19 +215,19 @@ class DiscountCouponModifier extends OrderModifier {
 			$result = array(_t('DiscountCouponModifier.NOTFOUND', 'Coupon could not be found'), 'bad');
 			if($this->DiscountCouponOptionID) {
 				$this->DiscountCouponOptionID = 0;
-				$result = array(_t('DiscountCouponModifier.REMOVED', 'Coupon removed'), 'good');
+				$messages = array(_t('DiscountCouponModifier.REMOVED', 'Existing coupon removed'), 'good');
 			}
 		}
 		else {
 			//to do: do we need to remove it again?
-			$result = array(_t('DiscountCouponModifier.NOTFOUND', 'Coupon could not be found'), 'bad');
+			$messages = array(_t('DiscountCouponModifier.NOT_ENTERED', 'No coupon was entered'), 'bad');
 		}
 		$this->write();
-		return $result;
+		return $messages;
 	}
 
 	/**
-	 * @param string $discountCoupon
+	 * @param DiscountCouponOption $discountCoupon
 	 */
 	public function setCoupon($discountCoupon) {
 		$this->DiscountCouponOptionID = $discountCoupon->ID;
