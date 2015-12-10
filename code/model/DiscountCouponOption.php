@@ -19,9 +19,7 @@ class DiscountCouponOption extends DataObject {
 		'DiscountAbsolute' => 'Currency',
 		'DiscountPercentage' => 'Decimal(4,2)',
 		'MinimumOrderSubTotalValue' => 'Currency'
-
 	);
-
 
 	private static $many_many = array(
 		'Products' => 'Product',

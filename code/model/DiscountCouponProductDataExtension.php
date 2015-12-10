@@ -14,15 +14,22 @@ class DiscountCouponProductDataExtension extends DataExtension {
 
 
 	/**
-	 * How do we display the price excluding GST?
-	 * @return STRING / INT
+	 * @param float $price
+	 *
+	 * @return float | null
 	 */
 	function updateCalculatedPrice($price) {
 		$coupons = $this->DirectlyApplicableDiscountCoupons();
-		foreach($coupons as $coupon) {
-			if($coupon->isValid()) {
-				return $price - ($price * ($coupon->DiscountPercentage / 100));
+		if($coupons && $coupons->count()) {
+			$discount = 0;
+			foreach($coupons as $coupon) {
+				if($coupon->isValid()) {
+					if($coupon->DiscountPercentage > $discount) {
+						$discount = $coupon->DiscountPercentage;
+					}
+				}
 			}
+			return $price - ($price * ($discount / 100));
 		}
 	}
 
