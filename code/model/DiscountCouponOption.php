@@ -225,7 +225,9 @@ class DiscountCouponOption extends DataObject {
 
 	/**
 	 * standard SS method
+	 *
 	 * @param Member | NULL
+	 *
 	 * @return Boolean
 	 */
 	function canDelete($member = null) {
@@ -421,7 +423,7 @@ class DiscountCouponOption extends DataObject {
 					$mustAlsoBePresentInProductsArray += $mustAlsoBePresentInProducts->map("ID", "ID")->toArray();
 				}
 			}
-			if($mustAlsoBePresentInProductsArray) {
+			if(count($mustAlsoBePresentInProductsArray) > 1) {
 				$productsArray = array_intersect_key($mustAlsoBePresentInProductsArray, $productsArray);
 			}
 			$this->Products()->removeAll();
