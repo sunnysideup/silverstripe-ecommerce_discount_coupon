@@ -11,7 +11,7 @@ class DiscountCouponOption extends DataObject {
         'ApplyPercentageToApplicableProducts' => 'Boolean(1)',
         'ApplyEvenWithoutCode' => 'Boolean(1)',
         'Title' => 'Varchar(25)',
-        'Code' => 'Varchar(25)',
+        'Code' => 'Varchar(32)',
         'NumberOfTimesCouponCanBeUsed' => 'Int',
         'StartDate' => 'Date',
         'EndDate' => 'Date',
@@ -27,6 +27,16 @@ class DiscountCouponOption extends DataObject {
         'ProductGroupsMustAlsoBePresentIn' => 'ProductGroup'
     );
 
+    /**
+     * standard SS variable
+     *
+     */
+    private static $indexes = array(
+        "Title" => true,
+        "Code" => true,
+        "StartDate" => true,
+        "EndDate" => true
+    );
     /**
      * standard SS variable
      *
