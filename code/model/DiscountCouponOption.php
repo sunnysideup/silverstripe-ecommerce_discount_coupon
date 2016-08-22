@@ -381,7 +381,7 @@ class DiscountCouponOption extends DataObject {
      */
     function onBeforeWrite() {
         parent::onBeforeWrite();
-        if(!$this->Code) {
+        if( ! $this->Code) {
             $this->Code = $this->createRandomCode();
         }
         $this->Code = preg_replace('/[^a-z0-9]/i', " ", $this->Code );
@@ -395,7 +395,6 @@ class DiscountCouponOption extends DataObject {
             $this->Title = $this->Code;
         }
         if($this->ApplyEvenWithoutCode) {
-            $this->Code = "";
             $this->MaximumDiscount = 0;
             $this->MinimumOrderSubTotalValue = 0;
         }
