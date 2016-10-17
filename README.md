@@ -50,4 +50,13 @@ Installation Instructions
 In the _config/ folder of this module
 you can usually find some examples of config options (if any).
 
+3. Make sure that you add the `DiscountCouponModifier` as a Order Modifier in the 
+yml configs: 
+
+```yml
+    Order:
+      modifiers:
+        - DiscountCouponModifier
+```
+
 
