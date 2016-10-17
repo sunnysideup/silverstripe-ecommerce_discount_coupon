@@ -105,10 +105,11 @@ class DiscountCouponOption extends DataObject {
      *
      */
     private static $summary_fields = array(
-        "Title",
-        "Code",
-        "StartDate",
-        "EndDate"
+        "Title" => "Name",
+        "Code" => 'Code',
+        "StartDate" => 'From',
+        "EndDate" => 'Until',
+        'IsValidNice' => 'Current'
     );
 
 
