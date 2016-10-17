@@ -190,6 +190,15 @@ class DiscountCouponOption extends DataObject {
                 return false;
             }
         }
+        $additionalChecks = $this->extend('checkForAdditionalValidity');
+        if(is_array($additionalChecks) && count($additionalChecks)) {
+            foreach($additionalChecks as $additionalCheck) {
+                if(! $additionalCheck) {
+                    return false;
+                }
+            }
+            
+        }
         return true;
     }
 
