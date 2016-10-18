@@ -152,17 +152,19 @@ class DiscountCouponModifier extends OrderModifier {
      */
     public function getModifierForm(Controller $optionalController = null, Validator $optionalValidator = null) {
         $fields = new FieldList(
-                $this->headingField(), $this->descriptionField(), new TextField(
+            $this->headingField(),
+            $this->descriptionField(),
+            new TextField(
                 'DiscountCouponCode', _t("DiscountCouponModifier.COUPON", 'Coupon'), $this->LiveCouponCodeEntered()
-                )
+            )
         );
         $actions = new FieldList(
-                new FormAction(
+            new FormAction(
                 'submit', _t("DiscountCouponModifier.APPLY", 'Apply Coupon')
-                )
+            )
         );
         $form = new DiscountCouponModifier_Form(
-                $optionalController, 'DiscountCouponModifier', $fields, $actions, $optionalValidator
+            $optionalController, 'DiscountCouponModifier', $fields, $actions, $optionalValidator
         );
         $fields->fieldByName("DiscountCouponCode")->setValue($this->CouponCodeEntered);
         return $form;
@@ -187,7 +189,7 @@ class DiscountCouponModifier extends OrderModifier {
                 $this->DiscountCouponOptionID = 0;
             }
         } else if ($code) {
-            $result = array(_t('DiscountCouponModifier.NOTFOUND', 'Coupon could not be found'), 'bad');
+            $messages = array(_t('DiscountCouponModifier.NOTFOUND', 'Coupon could not be found'), 'bad');
             if ($this->DiscountCouponOptionID) {
                 $this->DiscountCouponOptionID = 0;
                 $messages = array(_t('DiscountCouponModifier.REMOVED', 'Existing coupon removed'), 'good');
@@ -197,6 +199,7 @@ class DiscountCouponModifier extends OrderModifier {
             $messages = array(_t('DiscountCouponModifier.NOT_ENTERED', 'No coupon was entered'), 'bad');
         }
         $this->write();
+
         return $messages;
     }
 
@@ -381,7 +384,7 @@ class DiscountCouponModifier extends OrderModifier {
                     $subTotal += $order->ModifiersSubTotal(array(get_class($this)));
                 }
             }
-          
+
             self::$subtotal = $subTotal;
         }
         return self::$subtotal;
@@ -394,7 +397,7 @@ class DiscountCouponModifier extends OrderModifier {
      * */
     protected function LiveCalculatedTotal() {
         if (self::$calculated_total === null) {
-       
+
             $this->actualDeductions = 0;
             $this->DebugString = "";
             $subTotal = $this->LiveSubTotalAmount();
@@ -408,7 +411,7 @@ class DiscountCouponModifier extends OrderModifier {
                         }
                     }
 
-                }                      
+                }
                 if ($coupon->MinimumOrderSubTotalValue > 0 && $subTotal < $coupon->MinimumOrderSubTotalValue) {
                     $this->actualDeductions = 0;
                     $this->DebugString .= "<hr />sub-total is too low to offer any discount: " . $this->actualDeductions;
@@ -437,7 +440,7 @@ class DiscountCouponModifier extends OrderModifier {
                 print_r($this->DebugString);
             }
             $this->actualDeductions = -1 * $this->actualDeductions;
-            
+
             self::$calculated_total = $this->actualDeductions;
         }
         return self::$calculated_total;
