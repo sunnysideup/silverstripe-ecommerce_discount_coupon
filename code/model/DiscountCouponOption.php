@@ -92,7 +92,7 @@ class DiscountCouponOption extends DataObject {
         "DiscountAbsolute" => "Absolute reduction. For example, 10 = -$10.00 off. Set this value to zero to ignore.",
         "DiscountPercentage" => "Percentage Discount.  For example, 10 = -10% discount Set this value to zero to ignore.",
         "MinimumOrderSubTotalValue" => "Minimum sub-total of total order to make coupon applicable. For example, order must be at least $100 before the customer gets a discount.",
-        "NumberOfTimesCouponCanBeUsed" => "Set to zero to disallow usage, set to 99999 to allow unlimited usage.",
+        "NumberOfTimesCouponCanBeUsed" => "Set to zero to disallow usage, set to 999,999 to allow unlimited usage.",
         "UseCount" => "number of times this coupon has been used",
         "IsValidNice" => "coupon is currently valid",
         "Products" => "This is the final list of products to which the coupon applies. To edit this list directly, please remove all product groups selections in the 'Add Products Using Categories' tab.",
@@ -112,6 +112,13 @@ class DiscountCouponOption extends DataObject {
         'IsValidNice' => 'Current'
     );
 
+    /**
+     * standard SS variable
+     *
+     */
+    private static $defaults = array(
+        "NumberOfTimesCouponCanBeUsed" => "999999"
+    );
 
     /**
      * standard SS variable
@@ -198,7 +205,7 @@ class DiscountCouponOption extends DataObject {
                     return false;
                 }
             }
-            
+
         }
         return true;
     }
@@ -348,32 +355,11 @@ class DiscountCouponOption extends DataObject {
                 $validator->error(_t('DiscountCouponOption.DISCOUNTOUTOFBOUNDS', "The discount percentage should be between 0 and 99.999."));
             }
         }
-        return $validator;
-        /*
-        $validator = parent::validate();
-        if($this->thereAreCouponsWithTheSameCode()) {
-            $validator->error(_t('DiscountCouponOption.CODEALREADYEXISTS', "This code already exists - please use another code."));
-        }
-        if(isset($_REQUEST["StartDate"])) {
-            $this->StartDate = date("Y-m-d", strtotime($_REQUEST["StartDate"]));
-        }
-        if(isset($_REQUEST["EndDate"])) {
-            $this->EndDate = date("Y-m-d", strtotime($_REQUEST["EndDate"]));
-        }
-        $startDate = strtotime($this->StartDate);
-        $endDate = strtotime($this->EndDate);
-        $minDate = strtotime("1 jan 1980");
-        if($startDate < $minDate ) {
-            $validator->error(_t('DiscountCouponOption.NOSTARTDATE', "Please enter a start date. "));
-        }
-        if($endDate < $minDate ) {
-            $validator->error(_t('DiscountCouponOption.NOENDDATE', "Please enter an end date. "));
-        }
-        if($endDate < $startDate) {
-            $validator->error(_t('DiscountCouponOption.ENDDATETOOEARLY', "The end date should be after the start date. "));
+        if($this->NumberOfTimesCouponCanBeUsed === null || $this->NumberOfTimesCouponCanBeUsed === '') {
+            $validator->error(_t('DiscountCouponOption.SET_TIMES_AVAILABLE', "Set the number of times the coupon is available (0 = not available ... 999,999 = almost unlimited availability)"));
         }
         return $validator;
-        */
+
     }
 
     /**
@@ -473,4 +459,7 @@ class DiscountCouponOption extends DataObject {
         }
         return $string;
     }
+
+
+
 }
