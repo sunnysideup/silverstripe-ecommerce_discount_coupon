@@ -93,13 +93,7 @@ class DiscountCouponModifier extends OrderModifier {
      * Used in calculations to work out how much we need.
      * @var Double | Null
      */
-    protected $actualDeductions = null;
-
-    /**
-     * Used for debugging
-     * @var String
-     */
-    protected $debugMessage = "";
+    protected $_actualDeductions = null;
 
 // ######################################## *** CRUD functions (e.g. canEdit)
 // ######################################## *** init and update functions
@@ -178,11 +172,12 @@ class DiscountCouponModifier extends OrderModifier {
     public function updateCouponCodeEntered($code) {
         //set to new value ....
         $this->CouponCodeEntered = $code;
-        $discountCoupon = DiscountCouponOption::get()->filter(array("Code" => $code))->first();
+        $coupon = DiscountCouponOption::get()
+            ->filter(array("Code" => $code))->first();
         //apply valid discount coupong
-        if ($discountCoupon) {
-            if ($discountCoupon->IsValid()) {
-                $this->setCoupon($discountCoupon);
+        if ($coupon) {
+            if ($coupon->IsValid() && $this->isValidAdditional($coupon)) {
+                $this->setCoupon($coupon);
                 $messages = array(_t('DiscountCouponModifier.APPLIED', 'Coupon applied'), 'good');
             } else {
                 $messages = array(_t('DiscountCouponModifier.NOT_VALID', 'Coupon is no longer available'), 'bad');
@@ -204,18 +199,18 @@ class DiscountCouponModifier extends OrderModifier {
     }
 
     /**
-     * @param DiscountCouponOption $discountCoupon
+     * @param DiscountCouponOption $coupon
      */
-    public function setCoupon($discountCoupon) {
-        $this->DiscountCouponOptionID = $discountCoupon->ID;
+    public function setCoupon($coupon) {
+        $this->DiscountCouponOptionID = $coupon->ID;
         $this->write();
     }
 
     /**
-     * @param int $discountCouponID
+     * @param int $couponID
      */
-    public function setCouponByID($discountCouponID) {
-        $this->DiscountCouponOptionID = $discountCouponID;
+    public function setCouponByID($couponID) {
+        $this->DiscountCouponOptionID = $couponID;
         $this->write();
     }
 
@@ -256,6 +251,24 @@ class DiscountCouponModifier extends OrderModifier {
     }
 
 // ######################################## ***  inner calculations.... USES CALCULATED VALUES
+
+    /**
+     * Checks for extensions to make sure it is valid...
+     * @param DiscountCouponOption $coupon
+     * @return bool returns true if the coupon is valid
+     */
+    protected function isValidAdditional($coupon)
+    {
+        $exclusions = $this->extend('checkForExclusions', $coupon);
+        if(is_array($exclusions) && count($exclusions)) {
+            foreach($exclusions as $exclusion) {
+                if($exclusion === true){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 
     /**
      * returns the discount coupon, if any ...
@@ -390,60 +403,48 @@ class DiscountCouponModifier extends OrderModifier {
         return self::$subtotal;
     }
 
-    private static $calculated_total = null;
+    protected $_calculatedTotal = null;
 
     /**
      * @return float
      * */
     protected function LiveCalculatedTotal() {
-        if (self::$calculated_total === null) {
-
-            $this->actualDeductions = 0;
+        if ($this->_calculatedTotal === null) {
+            $this->_calculatedTotal = 0;
+            $this->_actualDeductions = 0;
             $this->DebugString = "";
             $subTotal = $this->LiveSubTotalAmount();
-            if ($coupon = $this->myDiscountCouponOption()) {
-                $exclusions = $this->extend('checkForExclusions', $coupon);
-                if(is_array($exclusions) && count($exclusions)) {
-                    foreach($exclusions as $exclusion) {
-                        if($exclusion === true){
-                            self::$calculated_total = 0;
-                            return self::$calculated_total;
-                        }
-                    }
-
-                }
+            $coupon = $this->myDiscountCouponOption();
+            if ($coupon && $this->isValidAdditional($coupon)) {
                 if ($coupon->MinimumOrderSubTotalValue > 0 && $subTotal < $coupon->MinimumOrderSubTotalValue) {
-                    $this->actualDeductions = 0;
-                    $this->DebugString .= "<hr />sub-total is too low to offer any discount: " . $this->actualDeductions;
+                    $this->_actualDeductions = 0;
+                    $this->DebugString .= "<hr />sub-total is too low to offer any discount: " . $this->_actualDeductions;
                 } else {
                     if ($coupon->DiscountAbsolute > 0) {
-                        $this->actualDeductions += $coupon->DiscountAbsolute;
-                        $this->DebugString .= "<hr />using absolutes for coupon discount: " . $this->actualDeductions;
+                        $this->_actualDeductions += $coupon->DiscountAbsolute;
+                        $this->DebugString .= "<hr />using absolutes for coupon discount: " . $this->_actualDeductions;
                     }
                     if ($coupon->DiscountPercentage > 0) {
-                        $this->actualDeductions += ($coupon->DiscountPercentage / 100) * $subTotal;
-                        $this->DebugString .= "<hr />using percentages for coupon discount: " . $this->actualDeductions;
+                        $this->_actualDeductions += ($coupon->DiscountPercentage / 100) * $subTotal;
+                        $this->DebugString .= "<hr />using percentages for coupon discount: " . $this->_actualDeductions;
                     }
                 }
                 if ($coupon->MaximumDiscount > 0) {
-                    if ($this->actualDeductions > $coupon->MaximumDiscount) {
-                        $this->DebugString .= "<hr />actual deductions (" . $this->actualDeductions . ") are greater than maximum discount (" . $coupon->MaximumDiscount . "): ";
-                        $this->actualDeductions = $coupon->MaximumDiscount;
+                    if ($this->_actualDeductions > $coupon->MaximumDiscount) {
+                        $this->DebugString .= "<hr />actual deductions (" . $this->_actualDeductions . ") are greater than maximum discount (" . $coupon->MaximumDiscount . "): ";
+                        $this->_actualDeductions = $coupon->MaximumDiscount;
                     }
                 }
             }
-            if ($subTotal < $this->actualDeductions) {
-                $this->actualDeductions = $subTotal;
+            if ($subTotal < $this->_actualDeductions) {
+                $this->_actualDeductions = $subTotal;
             }
-            $this->DebugString .= "<hr />final score: " . $this->actualDeductions;
-            if (isset($_GET["debug"])) {
-                print_r($this->DebugString);
-            }
-            $this->actualDeductions = -1 * $this->actualDeductions;
+            $this->DebugString .= "<hr />final score: " . $this->_actualDeductions;
+            $this->_actualDeductions = -1 * $this->_actualDeductions;
 
-            self::$calculated_total = $this->actualDeductions;
+            $this->_calculatedTotal = $this->_actualDeductions;
         }
-        return self::$calculated_total;
+        return $this->_calculatedTotal;
     }
 
     /**
