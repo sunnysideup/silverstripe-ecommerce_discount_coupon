@@ -9,7 +9,7 @@ class DiscountCouponOption extends DataObject {
 
     private static $db = array(
         'ApplyPercentageToApplicableProducts' => 'Boolean(1)',
-        'ApplyEvenWithoutCode' => 'Boolean(1)',
+        'ApplyEvenWithoutCode' => 'Boolean',
         'Title' => 'Varchar(25)',
         'Code' => 'Varchar(32)',
         'NumberOfTimesCouponCanBeUsed' => 'Int',
@@ -319,7 +319,7 @@ class DiscountCouponOption extends DataObject {
         $fields->removeFieldFromTab("Root", "Products");
         $fields->removeFieldFromTab("Root", "ProductGroups");
         $fields->removeFieldFromTab("Root", "ProductGroupsMustAlsoBePresentIn");
-        if(!$this->ApplyPercentageToApplicableProducts) {
+        if(! $this->ApplyPercentageToApplicableProducts) {
             $fields->removeFieldFromTab("Root.Main", "ApplyEvenWithoutCode");
         }
         return $fields;
