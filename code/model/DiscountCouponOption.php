@@ -8,7 +8,7 @@
 class DiscountCouponOption extends DataObject {
 
     private static $db = array(
-        'ApplyPercentageToApplicableProducts' => 'Boolean(1)',
+        'ApplyPercentageToApplicableProducts' => 'Boolean',
         'ApplyEvenWithoutCode' => 'Boolean',
         'Title' => 'Varchar(25)',
         'Code' => 'Varchar(32)',

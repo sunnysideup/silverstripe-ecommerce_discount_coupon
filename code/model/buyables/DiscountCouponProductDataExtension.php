@@ -19,17 +19,21 @@ class DiscountCouponProductDataExtension extends DataExtension {
      * @return float | null
      */
     function updateCalculatedPrice($price) {
-        $coupons = $this->DirectlyApplicableDiscountCoupons();
+        $hasDiscount = false;
+        $coupons = $this->owner->DirectlyApplicableDiscountCoupons();
         if($coupons && $coupons->count()) {
-            $discount = 0;
+            $discountPercentage = 0;
             foreach($coupons as $coupon) {
                 if($coupon->isValid()) {
-                    if($coupon->DiscountPercentage > $discount) {
-                        $discount = $coupon->DiscountPercentage;
+                    $hasDiscount = true;
+                    if($coupon->DiscountPercentage > $discountPercentage) {
+                        $discountPercentage = $coupon->DiscountPercentage;
                     }
                 }
             }
-            return $price - ($price * ($discount / 100));
+            if($hasDiscount){            
+                return $price - ($price * ($discountPercentage / 100));
+            }
         }
     }
 
