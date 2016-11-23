@@ -9,8 +9,9 @@
  * It lets you set fixed shipping costs, or a fixed
  * cost for each region you're delivering to.
  */
-class DiscountCouponModifier extends OrderModifier {
-// ######################################## *** model defining static variables (e.g. $db, $has_one)
+class DiscountCouponModifier extends OrderModifier
+{
+    // ######################################## *** model defining static variables (e.g. $db, $has_one)
 
     /**
      * standard SS Variable
@@ -49,7 +50,8 @@ class DiscountCouponModifier extends OrderModifier {
      */
     private static $singular_name = "Discount Coupon Entry";
 
-    function i18n_singular_name() {
+    public function i18n_singular_name()
+    {
         return _t("DiscountCouponModifier.SINGULAR_NAME", "Discount Coupon Entry");
     }
 
@@ -59,7 +61,8 @@ class DiscountCouponModifier extends OrderModifier {
      */
     private static $plural_name = "Discount Coupon Entries";
 
-    function i18n_plural_name() {
+    public function i18n_plural_name()
+    {
         return _t("DiscountCouponModifier.PLURAL_NAME", "Discount Coupon Entries");
     }
 
@@ -69,7 +72,8 @@ class DiscountCouponModifier extends OrderModifier {
      * Standard SS Method
      * @return FieldList
      */
-    function getCMSFields() {
+    public function getCMSFields()
+    {
         $fields = parent::getCMSFields();
         $fields->removeByName("DebugString");
         $fields->removeByName("SubTotalAmount");
@@ -102,7 +106,8 @@ class DiscountCouponModifier extends OrderModifier {
      *
      * @param Bool $force - run it, even if it has run already
      */
-    public function runUpdate($force = false) {
+    public function runUpdate($force = false)
+    {
         if (!$this->IsRemoved()) {
             $this->checkField("SubTotalAmount");
             $this->checkField("CouponCodeEntered");
@@ -118,7 +123,8 @@ class DiscountCouponModifier extends OrderModifier {
      * We always show it when there are items in the cart.
      * @return Boolean
      */
-    public function ShowForm() {
+    public function ShowForm()
+    {
         $items = $this->Order()->Items();
         if ($items) {
             //-- START HACK
@@ -144,7 +150,8 @@ class DiscountCouponModifier extends OrderModifier {
      * @param Validator $optionalValidator
      * @return DiscountCouponModifier_Form
      */
-    public function getModifierForm(Controller $optionalController = null, Validator $optionalValidator = null) {
+    public function getModifierForm(Controller $optionalController = null, Validator $optionalValidator = null)
+    {
         $fields = new FieldList(
             $this->headingField(),
             $this->descriptionField(),
@@ -169,7 +176,8 @@ class DiscountCouponModifier extends OrderModifier {
      *
      * @return array
      * */
-    public function updateCouponCodeEntered($code) {
+    public function updateCouponCodeEntered($code)
+    {
         //set to new value ....
         $this->CouponCodeEntered = $code;
         $coupon = DiscountCouponOption::get()
@@ -183,7 +191,7 @@ class DiscountCouponModifier extends OrderModifier {
                 $messages = array(_t('DiscountCouponModifier.NOT_VALID', 'Coupon is no longer available'), 'bad');
                 $this->DiscountCouponOptionID = 0;
             }
-        } else if ($code) {
+        } elseif ($code) {
             $messages = array(_t('DiscountCouponModifier.NOTFOUND', 'Coupon could not be found'), 'bad');
             if ($this->DiscountCouponOptionID) {
                 $this->DiscountCouponOptionID = 0;
@@ -201,7 +209,8 @@ class DiscountCouponModifier extends OrderModifier {
     /**
      * @param DiscountCouponOption $coupon
      */
-    public function setCoupon($coupon) {
+    public function setCoupon($coupon)
+    {
         $this->DiscountCouponOptionID = $coupon->ID;
         $this->write();
     }
@@ -209,7 +218,8 @@ class DiscountCouponModifier extends OrderModifier {
     /**
      * @param int $couponID
      */
-    public function setCouponByID($couponID) {
+    public function setCouponByID($couponID)
+    {
         $this->DiscountCouponOptionID = $couponID;
         $this->write();
     }
@@ -221,7 +231,8 @@ class DiscountCouponModifier extends OrderModifier {
      *
      * @return boolean
      */
-    public function ShowInTable() {
+    public function ShowInTable()
+    {
         if ($this->DiscountCouponOptionID) {
             return true;
         } elseif ($this->Order()->IsSubmitted()) {
@@ -235,18 +246,21 @@ class DiscountCouponModifier extends OrderModifier {
     /**
      * @return boolean
      */
-    public function CanRemove() {
+    public function CanRemove()
+    {
         return false;
     }
 
     /**
      * @return float
      */
-    public function CartValue() {
+    public function CartValue()
+    {
         return $this->getCartValue();
     }
 
-    public function getCartValue() {
+    public function getCartValue()
+    {
         return $this->TableValue;
     }
 
@@ -260,9 +274,9 @@ class DiscountCouponModifier extends OrderModifier {
     protected function isValidAdditional($coupon)
     {
         $exclusions = $this->extend('checkForExclusions', $coupon);
-        if(is_array($exclusions) && count($exclusions)) {
-            foreach($exclusions as $exclusion) {
-                if($exclusion === true){
+        if (is_array($exclusions) && count($exclusions)) {
+            foreach ($exclusions as $exclusion) {
+                if ($exclusion === true) {
                     return false;
                 }
             }
@@ -275,7 +289,8 @@ class DiscountCouponModifier extends OrderModifier {
      *
      * @return DiscountCouponOption | null
      */
-    protected function myDiscountCouponOption() {
+    protected function myDiscountCouponOption()
+    {
         $coupon = null;
         if ($id = $this->LiveDiscountCouponOptionID()) {
             $coupon = DiscountCouponOption::get()->byID($id);
@@ -301,7 +316,8 @@ class DiscountCouponModifier extends OrderModifier {
      * @param DiscountCouponOption
      * @return Array
      */
-    protected function applicableProductsArray($coupon) {
+    protected function applicableProductsArray($coupon)
+    {
         if (self::$_applicable_products_array === null) {
             self::$_applicable_products_array = array();
             $finalArray = array();
@@ -348,7 +364,8 @@ class DiscountCouponModifier extends OrderModifier {
     /**
      * @return int
      * */
-    protected function LiveName() {
+    protected function LiveName()
+    {
         $code = $this->LiveCouponCodeEntered();
         $coupon = $this->myDiscountCouponOption();
         if ($coupon) {
@@ -364,7 +381,8 @@ class DiscountCouponModifier extends OrderModifier {
     /**
      * @return float
      * */
-    protected function LiveSubTotalAmount() {
+    protected function LiveSubTotalAmount()
+    {
         if (!self::$subtotal) {
             $order = $this->Order();
             $items = $order->Items();
@@ -408,7 +426,8 @@ class DiscountCouponModifier extends OrderModifier {
     /**
      * @return float
      * */
-    protected function LiveCalculatedTotal() {
+    protected function LiveCalculatedTotal()
+    {
         if ($this->_calculatedTotal === null) {
             $this->_calculatedTotal = 0;
             $this->_actualDeductions = 0;
@@ -450,28 +469,32 @@ class DiscountCouponModifier extends OrderModifier {
     /**
      * @return float
      * */
-    public function LiveTableValue() {
+    public function LiveTableValue()
+    {
         return $this->LiveCalculatedTotal();
     }
 
     /**
      * @return String
      * */
-    protected function LiveDebugString() {
+    protected function LiveDebugString()
+    {
         return $this->DebugString;
     }
 
     /**
      * @return String
      * */
-    protected function LiveCouponCodeEntered() {
+    protected function LiveCouponCodeEntered()
+    {
         return $this->CouponCodeEntered;
     }
 
     /**
      * @return int
      * */
-    protected function LiveDiscountCouponOptionID() {
+    protected function LiveDiscountCouponOptionID()
+    {
         return $this->DiscountCouponOptionID;
     }
 
@@ -480,7 +503,8 @@ class DiscountCouponModifier extends OrderModifier {
     /**
      * @return Boolean
      * */
-    public function IsDeductable() {
+    public function IsDeductable()
+    {
         return true;
     }
 
@@ -491,7 +515,8 @@ class DiscountCouponModifier extends OrderModifier {
      * There might be instances where ShowInTable (the starting point) is TRUE and HideInAjaxUpdate return false.
      * @return Boolean
      * */
-    public function HideInAjaxUpdate() {
+    public function HideInAjaxUpdate()
+    {
         //we check if the parent wants to hide it...
         //we need to do this first in case it is being removed.
         if (parent::HideInAjaxUpdate()) {
@@ -507,7 +532,8 @@ class DiscountCouponModifier extends OrderModifier {
 // ######################################## *** debug functions
 }
 
-class DiscountCouponModifier_Form extends OrderModifierForm {
+class DiscountCouponModifier_Form extends OrderModifierForm
+{
 
     /**
      * @var Array
@@ -517,7 +543,8 @@ class DiscountCouponModifier_Form extends OrderModifierForm {
         "ecommerce_discount_coupon/javascript/DiscountCouponModifier.js"
     );
 
-    static function get_custom_javascript_files() {
+    public static function get_custom_javascript_files()
+    {
         $jsFiles = $this->Config()->get("custom_javascript_files");
         if (is_array($jsFiles) && count($jsFiles)) {
             return $jsFiles;
@@ -525,7 +552,8 @@ class DiscountCouponModifier_Form extends OrderModifierForm {
         return null;
     }
 
-    function __construct($optionalController = null, $name, FieldList $fields, FieldList $actions, $optionalValidator = null) {
+    public function __construct($optionalController = null, $name, FieldList $fields, FieldList $actions, $optionalValidator = null)
+    {
         parent::__construct($optionalController, $name, $fields, $actions, $optionalValidator);
         Requirements::themedCSS("DiscountCouponModifier", "ecommerce_discount_coupon");
         Requirements::javascript(THIRDPARTY_DIR . "/jquery/jquery.js");
@@ -539,7 +567,8 @@ class DiscountCouponModifier_Form extends OrderModifierForm {
         }
     }
 
-    function submit(Array $data, Form $form, $message = "Order updated", $status = "good") {
+    public function submit(array $data, Form $form, $message = "Order updated", $status = "good")
+    {
         if (isset($data['DiscountCouponCode'])) {
             $order = ShoppingCart::current_order();
             if ($order) {
@@ -554,5 +583,4 @@ class DiscountCouponModifier_Form extends OrderModifierForm {
         }
         return ShoppingCart::singleton()->setMessageAndReturn(_t("DiscountCouponModifier.NOTAPPLIED", "Coupon could not be found.", "bad"));
     }
-
 }

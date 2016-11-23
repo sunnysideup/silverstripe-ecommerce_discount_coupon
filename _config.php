@@ -11,15 +11,15 @@
 /**
  * ADD TO ECOMMERCE.YAML:
 Order:
-	modifiers: [
-		...
-		DiscountCouponModifier
-	]
+    modifiers: [
+        ...
+        DiscountCouponModifier
+    ]
 StoreAdmin:
-	managed_models: [
-		...
-		DiscountCouponOption
-	]
+    managed_models: [
+        ...
+        DiscountCouponOption
+    ]
 */
 // OPTIONAL
 //Object::add_extension('DiscountCouponOption', 'DiscountCouponSiteTreeDOD');
@@ -27,5 +27,3 @@ StoreAdmin:
 //Object::add_extension('ProductVariation', 'DiscountCouponSiteTreeDOD_ProductVariation');
 //DiscountCouponModifier_Form::set_custom_javascript_files(null | false | array("myjavascript.js"));
 //===================---------------- END ecommerce_discount_coupon MODULE ----------------===================
-
-

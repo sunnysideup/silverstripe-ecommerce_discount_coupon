@@ -3,13 +3,15 @@
     "type": "silverstripe-module",
     "description": "adds a discount coupon functionality to your Silverstripe e-commerce application ",
     "keywords": [
+        "Silverstripe-CMS",
+        "CMS",
+        "Silverstripe",
         "ecommerce",
         "e-commerce",
         "shop",
         "discount coupon",
         "discount",
-        "coupon",
-        "silverstripe"
+        "coupon"
     ],
     "license": "Sunny Side Up (BSD-3-Clause and CUSTOM)",
     "authors": [

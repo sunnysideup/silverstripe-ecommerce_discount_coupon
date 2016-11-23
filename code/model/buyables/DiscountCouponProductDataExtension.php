@@ -1,14 +1,15 @@
 <?php
 
 
-class DiscountCouponProductDataExtension extends DataExtension {
+class DiscountCouponProductDataExtension extends DataExtension
+{
 
 
     /**
      * stadard SS declaration
      * @var Array
      */
-    private static $belongs_many_many = array (
+    private static $belongs_many_many = array(
         "ApplicableDiscountCoupons" => "DiscountCouponOption"
     );
 
@@ -18,26 +19,28 @@ class DiscountCouponProductDataExtension extends DataExtension {
      *
      * @return float | null
      */
-    function updateCalculatedPrice($price) {
+    public function updateCalculatedPrice($price)
+    {
         $hasDiscount = false;
         $coupons = $this->owner->DirectlyApplicableDiscountCoupons();
-        if($coupons && $coupons->count()) {
+        if ($coupons && $coupons->count()) {
             $discountPercentage = 0;
-            foreach($coupons as $coupon) {
-                if($coupon->isValid()) {
+            foreach ($coupons as $coupon) {
+                if ($coupon->isValid()) {
                     $hasDiscount = true;
-                    if($coupon->DiscountPercentage > $discountPercentage) {
+                    if ($coupon->DiscountPercentage > $discountPercentage) {
                         $discountPercentage = $coupon->DiscountPercentage;
                     }
                 }
             }
-            if($hasDiscount){            
+            if ($hasDiscount) {
                 return $price - ($price * ($discountPercentage / 100));
             }
         }
     }
 
-    function DirectlyApplicableDiscountCoupons(){
+    public function DirectlyApplicableDiscountCoupons()
+    {
         return $this->owner->ApplicableDiscountCoupons()
             ->filter(array("ApplyPercentageToApplicableProducts" => 1, "ApplyEvenWithoutCode" => 1));
     }
@@ -46,24 +49,23 @@ class DiscountCouponProductDataExtension extends DataExtension {
      *
      * @return SS_Date
      */
-    function DiscountsAvailableUntil()
+    public function DiscountsAvailableUntil()
     {
         $coupons = $this->DirectlyApplicableDiscountCoupons();
         $next = strtotime('+100 years');
-        if($coupons && $coupons->count()) {
+        if ($coupons && $coupons->count()) {
             $discount = 0;
-            foreach($coupons as $coupon) {
-                if($coupon->EndDate) {
+            foreach ($coupons as $coupon) {
+                if ($coupon->EndDate) {
                     $maxDate = strtotime($coupon->EndDate);
-                    if($maxDate < $next) {
+                    if ($maxDate < $next) {
                         $next = $maxDate;
                     }
                 }
             }
         }
-        if($next) {
+        if ($next) {
             return DBField::create_field('Date', $next);
         }
     }
-
 }
