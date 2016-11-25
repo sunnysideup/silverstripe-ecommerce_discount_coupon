@@ -319,14 +319,6 @@ class DiscountCouponOption extends DataObject
                 )
             );
         }
-        if ($this->ApplyPercentageToApplicableProducts) {
-            $fields->removeFieldsFromTab(
-                "Root.Main",
-                array(
-                    'DiscountAbsolute'
-                )
-            );
-        }
         $fields->addFieldToTab("Root.Main", new ReadonlyField("UseCount", self::$field_labels["UseCount"]));
         $fields->addFieldToTab("Root.Main", new ReadonlyField("IsValidNice", self::$field_labels["IsValidNice"]));
         if ($gridField1 = $fields->dataFieldByName("Products")) {
@@ -427,7 +419,8 @@ class DiscountCouponOption extends DataObject
             $this->MinimumOrderSubTotalValue = 0;
         }
         if ($this->ApplyPercentageToApplicableProducts) {
-            $this->DiscountAbsolute = 0;
+            //we have removed this!
+            //$this->DiscountAbsolute = 0;
         } else {
             $this->ApplyEvenWithoutCode = 0;
         }

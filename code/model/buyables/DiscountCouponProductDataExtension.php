@@ -25,16 +25,26 @@ class DiscountCouponProductDataExtension extends DataExtension
         $coupons = $this->owner->DirectlyApplicableDiscountCoupons();
         if ($coupons && $coupons->count()) {
             $discountPercentage = 0;
+            $discountAbsolute = 0;
             foreach ($coupons as $coupon) {
                 if ($coupon->isValid()) {
                     $hasDiscount = true;
                     if ($coupon->DiscountPercentage > $discountPercentage) {
                         $discountPercentage = $coupon->DiscountPercentage;
                     }
+                    if ($coupon->DiscountAbsolute > $discountAbsolute) {
+                        $discountAbsolute = $coupon->DiscountAbsolute;
+                    }
                 }
             }
             if ($hasDiscount) {
-                return $price - ($price * ($discountPercentage / 100));
+                $priceWithPercentageDiscount = $price - ($price * ($discountPercentage / 100));
+                $priceWithAbsoluteDiscount = $price - $discountAbsolute;
+            }
+            if($priceWithPercentageDiscount < $priceWithAbsoluteDiscount) {
+                return $priceWithPercentageDiscount;
+            } else {
+                return $priceWithAbsoluteDiscount;
             }
         }
     }
