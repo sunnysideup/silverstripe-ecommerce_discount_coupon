@@ -40,11 +40,11 @@ class DiscountCouponProductDataExtension extends DataExtension
             if ($hasDiscount) {
                 $priceWithPercentageDiscount = $price - ($price * ($discountPercentage / 100));
                 $priceWithAbsoluteDiscount = $price - $discountAbsolute;
-            }
-            if ($priceWithPercentageDiscount < $priceWithAbsoluteDiscount) {
-                return $priceWithPercentageDiscount;
-            } else {
-                return $priceWithAbsoluteDiscount;
+                if ($priceWithPercentageDiscount < $priceWithAbsoluteDiscount) {
+                    return $priceWithPercentageDiscount;
+                } else {
+                    return $priceWithAbsoluteDiscount;
+                }
             }
         }
     }
