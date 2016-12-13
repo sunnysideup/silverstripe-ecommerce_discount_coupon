@@ -4,7 +4,6 @@
  *@author nicolaas [at] sunnysideup.co.nz
  *
  **/
-
 class DiscountCouponOption extends DataObject
 {
     private static $db = array(
