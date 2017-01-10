@@ -1,7 +1,11 @@
 ---
 Name: ecommerce_discount_coupon
 Before: 'mysite/*'
-After: 'framework/*','cms/*','ecommerce/*'
+After: 
+  - 'framework/*'
+  - 'cms/*'
+  - 'ecommerce/*'
+
 ---
 StoreAdmin:
   managed_models:
