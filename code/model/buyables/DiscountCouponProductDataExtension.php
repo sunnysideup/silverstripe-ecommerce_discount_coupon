@@ -19,7 +19,7 @@ class DiscountCouponProductDataExtension extends DataExtension
      *
      * @return float | null
      */
-    public function updateCalculatedPrice($price)
+    public function updateCalculatedPrice($price = null)
     {
         $hasDiscount = false;
         $coupons = $this->owner->DirectlyApplicableDiscountCoupons();
