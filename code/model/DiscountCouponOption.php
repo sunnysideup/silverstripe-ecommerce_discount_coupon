@@ -52,8 +52,35 @@ class DiscountCouponOption extends DataObject
      *
      */
     private static $searchable_fields = array(
+        'StartDate' => array(
+            'filter' => 'DiscountCouponFilterForDate',
+        ),
+        'Title' => 'PartialMatchFilter',
         "Code" => "PartialMatchFilter",
+        'ApplyPercentageToApplicableProducts' => 'ExactMatchFilter',
+        'ApplyEvenWithoutCode' => 'ExactMatchFilter',
+        'DiscountAbsolute' => 'ExactMatchFilter',
+        'DiscountPercentage' => 'ExactMatchFilter'
     );
+
+    public function scaffoldSearchFields($_params = null)
+    {
+        $fields = parent::scaffoldSearchFields($_params);
+        $fields->push(
+            DropdownField::create(
+                'StartDate',
+                _t('DiscountCouponOption.FUTURE_CURRENT_OR_PAST', 'Available ...'),
+                array(
+                    '' => _t('DiscountCouponOption.ANY_TIME', ' -- Any Time -- '),
+                    'future' => _t('DiscountCouponOption.FUTURE', 'In Future'),
+                    'current' => _t('DiscountCouponOption.CURRENT', 'Now'),
+                    'past' => _t('DiscountCouponOption.PAST', 'No longer available')
+                )
+            )
+        );
+
+        return $fields;
+    }
 
     /**
      * standard SS variable
@@ -106,8 +133,8 @@ class DiscountCouponOption extends DataObject
     private static $summary_fields = array(
         "Title" => "Name",
         "Code" => 'Code',
-        "StartDate" => 'From',
-        "EndDate" => 'Until',
+        "StartDate.Full" => 'From',
+        "EndDate.Full" => 'Until',
         'IsValidNice' => 'Current'
     );
 
