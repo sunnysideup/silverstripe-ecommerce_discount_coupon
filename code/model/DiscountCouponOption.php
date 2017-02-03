@@ -9,7 +9,7 @@ class DiscountCouponOption extends DataObject
     private static $db = array(
         'ApplyPercentageToApplicableProducts' => 'Boolean',
         'ApplyEvenWithoutCode' => 'Boolean',
-        'Title' => 'Varchar(25)',
+        'Title' => 'Varchar(255)',
         'Code' => 'Varchar(32)',
         'NumberOfTimesCouponCanBeUsed' => 'Int',
         'StartDate' => 'Date',
