@@ -15,7 +15,7 @@
 
  * [Developer Docs](docs/en/INDEX.md)
  * [User Guide](docs/en/userguide.md)
- * [API Docs](http://docs.ssmods.com/sunnysideup/ecommerce_discount_coupon)
+ * [API Docs](http://docs.ssmods.com/sunnysideup/ecommerce_discount_coupon/classes.xhtml)
 
 ## Requirements
 
