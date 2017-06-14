@@ -25,7 +25,7 @@ class DiscountCouponProductDataExtension extends DataExtension
             GridField::create(
                 'ApplicableDiscountCoupons',
                 'Discount Coupons',
-                $this->ApplicableDiscountCoupons(),
+                $this->owner->ApplicableDiscountCoupons(),
                 GridFieldConfig_RelationEditor::create()
             )
         );
