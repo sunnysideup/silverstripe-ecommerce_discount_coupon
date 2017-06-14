@@ -287,7 +287,7 @@ class DiscountCouponOption extends DataObject
         if (Permission::checkMember($member, Config::inst()->get("EcommerceRole", "admin_permission_code"))) {
             return true;
         }
-        return parent::canCreate($member);
+        return parent::canView($member);
     }
 
     /**
