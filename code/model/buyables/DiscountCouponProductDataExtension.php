@@ -15,6 +15,24 @@ class DiscountCouponProductDataExtension extends DataExtension
 
 
     /**
+     * Update Fields
+     * @return FieldList
+     */
+    public function updateCMSFields(FieldList $fields)
+    {
+        $fields->addFieldsToTab(
+            'Root.Discount',
+            GridField::create(
+                'ApplicableDiscountCoupons',
+                'Discount Coupons',
+                $this->ApplicableDiscountCoupons(),
+                GridFieldConfig_RelationEditor::create()
+            )
+        );
+        return $fields;
+    }
+
+    /**
      * @param float $price
      *
      * @return float | null
