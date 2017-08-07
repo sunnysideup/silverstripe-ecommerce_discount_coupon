@@ -172,7 +172,7 @@ class DiscountCouponOption extends DataObject
      */
     private static $default_sort = [
         'EndDate' =>  'DESC',
-        'StartDate' => 'DESC'
+        'StartDate' => 'DESC',
         'ID' =>  'ASC'
     ];
 
