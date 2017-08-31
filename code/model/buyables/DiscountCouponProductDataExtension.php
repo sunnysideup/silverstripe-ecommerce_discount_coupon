@@ -84,10 +84,13 @@ class DiscountCouponProductDataExtension extends DataExtension
         if ($coupons && $coupons->count()) {
             $discount = 0;
             foreach ($coupons as $coupon) {
-                if ($coupon->EndDate) {
-                    $maxDate = strtotime($coupon->EndDate);
-                    if ($maxDate < $next) {
-                        $next = $maxDate;
+                if ($coupon->isValid()) {
+                    if ($coupon->EndDate && $coupon->DiscountAbsolute > $discount) {
+                        $discount = $coupon->DiscountAbsolute;
+                        $maxDate = strtotime($coupon->EndDate);
+                        if ($maxDate < $next) {
+                            $next = $maxDate;
+                        }
                     }
                 }
             }
