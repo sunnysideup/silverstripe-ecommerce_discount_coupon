@@ -66,7 +66,7 @@ class DiscountCouponModifier extends OrderModifier
         return _t("DiscountCouponModifier.PLURAL_NAME", "Discount Coupon Entries");
     }
 
-// ######################################## *** cms variables + functions (e.g. getCMSFields, $searchableFields)
+    // ######################################## *** cms variables + functions (e.g. getCMSFields, $searchableFields)
 
     /**
      * Standard SS Method
@@ -79,19 +79,25 @@ class DiscountCouponModifier extends OrderModifier
         $fields->removeByName("SubTotalAmount");
         $fields->removeByName("OrderCoupon");
         $fields->addFieldToTab(
-                "Root.Debug", new ReadonlyField(
-                "SubTotalAmountShown", _t("DiscountCouponModifier.SUB_TOTAL_AMOUNT", "sub-total amount"), $this->SubTotalAmount
+                "Root.Debug",
+            new ReadonlyField(
+                "SubTotalAmountShown",
+                    _t("DiscountCouponModifier.SUB_TOTAL_AMOUNT", "sub-total amount"),
+                    $this->SubTotalAmount
                 )
         );
         $fields->addFieldToTab(
-                "Root.Debug", new ReadonlyField(
-                "DebugStringShown", _t("DiscountCouponModifier.DEBUG_STRING", "debug string"), $this->DebugString
+                "Root.Debug",
+            new ReadonlyField(
+                "DebugStringShown",
+                    _t("DiscountCouponModifier.DEBUG_STRING", "debug string"),
+                    $this->DebugString
                 )
         );
         return $fields;
     }
 
-// ######################################## *** other (non) static variables (e.g. private static $special_name_for_something, protected $order)
+    // ######################################## *** other (non) static variables (e.g. private static $special_name_for_something, protected $order)
 
     /**
      * Used in calculations to work out how much we need.
@@ -99,8 +105,8 @@ class DiscountCouponModifier extends OrderModifier
      */
     protected $_actualDeductions = null;
 
-// ######################################## *** CRUD functions (e.g. canEdit)
-// ######################################## *** init and update functions
+    // ######################################## *** CRUD functions (e.g. canEdit)
+    // ######################################## *** init and update functions
     /**
      * updates all database fields
      *
@@ -116,7 +122,7 @@ class DiscountCouponModifier extends OrderModifier
         parent::runUpdate($force);
     }
 
-// ######################################## *** form functions (e. g. showform and getform)
+    // ######################################## *** form functions (e. g. showform and getform)
 
     /**
      * Show the form?
@@ -156,16 +162,23 @@ class DiscountCouponModifier extends OrderModifier
             $this->headingField(),
             $this->descriptionField(),
             new TextField(
-                'DiscountCouponCode', _t("DiscountCouponModifier.COUPON", 'Coupon'), $this->LiveCouponCodeEntered()
+                'DiscountCouponCode',
+                _t("DiscountCouponModifier.COUPON", 'Coupon'),
+                $this->LiveCouponCodeEntered()
             )
         );
         $actions = new FieldList(
             new FormAction(
-                'submit', _t("DiscountCouponModifier.APPLY", 'Apply Coupon')
+                'submit',
+                _t("DiscountCouponModifier.APPLY", 'Apply Coupon')
             )
         );
         $form = new DiscountCouponModifier_Form(
-            $optionalController, 'DiscountCouponModifier', $fields, $actions, $optionalValidator
+            $optionalController,
+            'DiscountCouponModifier',
+            $fields,
+            $actions,
+            $optionalValidator
         );
         $fields->fieldByName("DiscountCouponCode")->setValue($this->CouponCodeEntered);
         return $form;
@@ -224,7 +237,7 @@ class DiscountCouponModifier extends OrderModifier
         $this->write();
     }
 
-// ######################################## *** template functions (e.g. ShowInTable, TableTitle, etc...) ... USES DB VALUES
+    // ######################################## *** template functions (e.g. ShowInTable, TableTitle, etc...) ... USES DB VALUES
 
     /**
      * @see self::HideInAjaxUpdate
@@ -264,7 +277,7 @@ class DiscountCouponModifier extends OrderModifier
         return $this->TableValue;
     }
 
-// ######################################## ***  inner calculations.... USES CALCULATED VALUES
+    // ######################################## ***  inner calculations.... USES CALCULATED VALUES
 
     /**
      * Checks for extensions to make sure it is valid...
@@ -359,7 +372,7 @@ class DiscountCouponModifier extends OrderModifier
         return self::$_applicable_products_array;
     }
 
-// ######################################## *** calculate database fields: protected function Live[field name]  ... USES CALCULATED VALUES
+    // ######################################## *** calculate database fields: protected function Live[field name]  ... USES CALCULATED VALUES
 
     /**
      * @return int
@@ -498,7 +511,7 @@ class DiscountCouponModifier extends OrderModifier
         return $this->DiscountCouponOptionID;
     }
 
-// ######################################## *** Type Functions (IsChargeable, IsDeductable, IsNoChange, IsRemoved)
+    // ######################################## *** Type Functions (IsChargeable, IsDeductable, IsNoChange, IsRemoved)
 
     /**
      * @return Boolean
@@ -508,8 +521,8 @@ class DiscountCouponModifier extends OrderModifier
         return true;
     }
 
-// ######################################## *** standard database related functions (e.g. onBeforeWrite, onAfterWrite, etc...)
-// ######################################## *** AJAX related functions
+    // ######################################## *** standard database related functions (e.g. onBeforeWrite, onAfterWrite, etc...)
+    // ######################################## *** AJAX related functions
     /**
      * some modifiers can be hidden after an ajax update (e.g. if someone enters a discount coupon and it does not exist).
      * There might be instances where ShowInTable (the starting point) is TRUE and HideInAjaxUpdate return false.
@@ -529,7 +542,7 @@ class DiscountCouponModifier extends OrderModifier
         return true;
     }
 
-// ######################################## *** debug functions
+    // ######################################## *** debug functions
 }
 
 class DiscountCouponModifier_Form extends OrderModifierForm

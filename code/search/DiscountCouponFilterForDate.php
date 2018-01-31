@@ -28,10 +28,9 @@ class DiscountCouponFilterForDate extends ExactMatchFilter
                 $filterString = 'UNIX_TIMESTAMP("EndDate") <  '.$date;
                 break;
         }
-        if($filterString) {
+        if ($filterString) {
             $query = $query->where($filterString);
         }
         return $query;
     }
-
 }
