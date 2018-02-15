@@ -4,8 +4,8 @@
  *
  */
 
-class DiscountCouponSiteTreeDOD extends DataExtension {
-
+class DiscountCouponSiteTreeDOD extends DataExtension
+{
     private static $db = array(
         'PageIDs' => 'Text(700)'
     );
@@ -16,14 +16,11 @@ class DiscountCouponSiteTreeDOD extends DataExtension {
      * @param FieldList $fields
      *
      */
-    public function updateCMSFields(FieldList $fields) {
+    public function updateCMSFields(FieldList $fields)
+    {
         $label = _t(
-            "SELECTPRODUCTSANDCATEGORIES",
-            _t("DiscountCouponSiteTreeDOD.SELECT_PRODUCTS_AND_SERVICES",
-            "
-                Select Product Categories and/or Products (if nothing is selected,
-                the discount coupon will apply to all buyables).
-            "
+            "DiscountCouponSiteTreeDOD.SELECT_PRODUCTS_AND_SERVICES",
+            'Select Product Categories and/or Products (if nothing is selected, the discount coupon will apply to all buyables).'
         );
         $field = new DiscountCouponSiteTreeDOD_Field(
             $name = "PageIDs",
@@ -45,33 +42,34 @@ class DiscountCouponSiteTreeDOD extends DataExtension {
      *
      * @return boolean
      */
-    function canBeDiscounted(SiteTree $page) {
-        if($this->owner->PageIDs) {
+    public function canBeDiscounted(SiteTree $page)
+    {
+        if ($this->owner->PageIDs) {
             $allowedPageIDs = explode(',', $this->owner->PageIDs);
-            $checkPages = new ArrayList(array($page));
+            $checkPages = ArrayList::create([$page]);
             $alreadyCheckedPageIDs = array();
-            while($checkPages->Count()) {
+            while ($checkPages->Count()) {
                 $page = $checkPages->First();
-                if(array_search($page->ID, $allowedPageIDs) !== false) {
+                if (array_search($page->ID, $allowedPageIDs) !== false) {
                     return true;
                 }
                 $alreadyCheckedPageIDs[] = $page->ID;
                 $checkPages->remove($page);
 
                 // Parents list update
-                if($page->hasMethod('AllParentGroups')) {
-                    $parents = new ArrayList($page->AllParentGroups()->toArray());
+                if ($page->hasMethod('AllParentGroups')) {
+                    $parents = ArrayList::create($page->AllParentGroups()->toArray());
                 } else {
-                    $parents = new ArrayList();
+                    $parents = ArrayList::create();
                 }
 
                 $parent = $page->Parent();
-                if($parent && $parent->exists()) {
+                if ($parent && $parent->exists()) {
                     $parents->unshift($parent);
                 }
 
-                foreach($parents as $parent) {
-                    if(array_search($parent->ID, $alreadyCheckedPageIDs) === false) {
+                foreach ($parents as $parent) {
+                    if (array_search($parent->ID, $alreadyCheckedPageIDs) === false) {
                         $checkPages->push($parent);
                     }
                 }
