@@ -73,6 +73,20 @@ class DiscountCouponProductDataExtension extends DataExtension
             ->filter(array("ApplyPercentageToApplicableProducts" => 1, "ApplyEvenWithoutCode" => 1));
     }
 
+    private $discountCouponAmount = null;
+
+    public function DiscountCouponAmount()
+    {
+        if ($this->discountCouponAmount === null) {
+            $this->discountCouponAmount = 0;
+            $amount = floatval($this->Price) - floatval($this->CalculatedPrice());
+            if($amount > 1) {
+                $this->discountCouponAmount = $amount;
+            } 
+        }
+        return EcommerceCurrency::get_money_object_from_order_currency($this->discountCouponAmount);
+    }
+
     /**
      *
      * @return SS_Date
