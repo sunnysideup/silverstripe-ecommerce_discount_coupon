@@ -79,10 +79,10 @@ class DiscountCouponProductDataExtension extends DataExtension
     {
         if ($this->discountCouponAmount === null) {
             $this->discountCouponAmount = 0;
-            $amount = floatval($this->Price) - floatval($this->CalculatedPrice());
+            $amount = floatval($this->owner->Price) - floatval($this->owner->CalculatedPrice());
             if($amount > 1) {
                 $this->discountCouponAmount = $amount;
-            } 
+            }
         }
         return EcommerceCurrency::get_money_object_from_order_currency($this->discountCouponAmount);
     }
