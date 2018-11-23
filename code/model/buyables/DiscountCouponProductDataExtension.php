@@ -45,7 +45,7 @@ class DiscountCouponProductDataExtension extends DataExtension
         self::$buyable_to_be_excluded_from_discounts[$id] = $id;
     }
 
-    public function setCanBeDiscounted()
+    public function setCanBeNotDiscounted()
     {
         self::$buyable_to_be_excluded_from_discounts[$this->owner->ID] = $this->owner->ID;
 
