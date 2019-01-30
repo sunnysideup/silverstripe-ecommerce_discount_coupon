@@ -32,6 +32,31 @@ class DiscountCouponProductDataExtension extends DataExtension
         return $fields;
     }
 
+    protected static $buyable_to_be_excluded_from_discounts = [];
+
+    public static function add_buyable_to_be_excluded($buyableOrBuyableID)
+    {
+        if(is_object($buyable)) {
+            $id = $buyable->ID;
+        } elseif(intval($buyable)) {
+            $id = intval($buyable);
+        }
+
+        self::$buyable_to_be_excluded_from_discounts[$id] = $id;
+    }
+
+    public function setCanBeNotDiscounted()
+    {
+        self::$buyable_to_be_excluded_from_discounts[$this->owner->ID] = $this->owner->ID;
+
+        return $this;
+    }
+
+    public function getCanBeDiscounted()
+    {
+        return isset(self::$buyable_to_be_excluded_from_discounts[$this->owner->ID]) ? false : true;
+    }
+
     /**
      * @param float $price
      *
@@ -39,29 +64,31 @@ class DiscountCouponProductDataExtension extends DataExtension
      */
     public function updateCalculatedPrice($price = null)
     {
-        $hasDiscount = false;
-        $coupons = $this->owner->DirectlyApplicableDiscountCoupons();
-        if ($coupons && $coupons->count()) {
-            $discountPercentage = 0;
-            $discountAbsolute = 0;
-            foreach ($coupons as $coupon) {
-                if ($coupon->isValid()) {
-                    $hasDiscount = true;
-                    if ($coupon->DiscountPercentage > $discountPercentage) {
-                        $discountPercentage = $coupon->DiscountPercentage;
-                    }
-                    if ($coupon->DiscountAbsolute > $discountAbsolute) {
-                        $discountAbsolute = $coupon->DiscountAbsolute;
+        if($this->getCanBeDiscounted()) {
+            $hasDiscount = false;
+            $coupons = $this->owner->DirectlyApplicableDiscountCoupons();
+            if ($coupons && $coupons->count()) {
+                $discountPercentage = 0;
+                $discountAbsolute = 0;
+                foreach ($coupons as $coupon) {
+                    if ($coupon->isValid()) {
+                        $hasDiscount = true;
+                        if ($coupon->DiscountPercentage > $discountPercentage) {
+                            $discountPercentage = $coupon->DiscountPercentage;
+                        }
+                        if ($coupon->DiscountAbsolute > $discountAbsolute) {
+                            $discountAbsolute = $coupon->DiscountAbsolute;
+                        }
                     }
                 }
-            }
-            if ($hasDiscount) {
-                $priceWithPercentageDiscount = $price - ($price * ($discountPercentage / 100));
-                $priceWithAbsoluteDiscount = $price - $discountAbsolute;
-                if ($priceWithPercentageDiscount < $priceWithAbsoluteDiscount) {
-                    return $priceWithPercentageDiscount;
-                } else {
-                    return $priceWithAbsoluteDiscount;
+                if ($hasDiscount) {
+                    $priceWithPercentageDiscount = $price - ($price * ($discountPercentage / 100));
+                    $priceWithAbsoluteDiscount = $price - $discountAbsolute;
+                    if ($priceWithPercentageDiscount < $priceWithAbsoluteDiscount) {
+                        return $priceWithPercentageDiscount;
+                    } else {
+                        return $priceWithAbsoluteDiscount;
+                    }
                 }
             }
         }
