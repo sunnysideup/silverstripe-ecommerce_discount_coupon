@@ -25,4 +25,4 @@ Only:
 
 PickUpOrDeliveryModifierOptions:
   extensions:
-- DataObjectSorterDOD
+    - DataObjectSorterDOD

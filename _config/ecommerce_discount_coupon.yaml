@@ -1,2 +1,7 @@
+#must have ...
+Order:
+  modifiers:
+    - DiscountCouponModifier
+
 DiscountCouponOption:
-  exlude_buyable_method: IncludeInDiscountCalculation
+  exclude_buyable_method: IncludeInDiscountCalculation
