@@ -23,6 +23,10 @@ class DiscountCouponModifier extends OrderModifier
         'CouponCodeEntered' => 'Varchar(25)'
     );
 
+    private static $defauls = [
+        'Type' => 'Discount',
+    ];
+
     /**
      * standard SS Variable
      * @var Array
@@ -509,6 +513,11 @@ class DiscountCouponModifier extends OrderModifier
     protected function LiveDiscountCouponOptionID()
     {
         return $this->DiscountCouponOptionID;
+    }
+
+    protected function LiveType()
+    {
+        return 'Discount';
     }
 
     // ######################################## *** Type Functions (IsChargeable, IsDeductable, IsNoChange, IsRemoved)
