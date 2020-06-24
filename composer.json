@@ -25,5 +25,10 @@
         "sunnysideup/ecommerce": ">=3.0",
         "silverstripe/recipe-cms": "^4.4"
     },
-    "extra": []
+    "extra": [],
+    "autoload": {
+        "psr-4": {
+            "Sunnysideup\\EcommerceDiscountCoupon\\": "src/"
+        }
+    }
 }
