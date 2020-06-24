@@ -1,6 +1,6 @@
 {
     "name": "sunnysideup/ecommerce_discount_coupon",
-    "type": "silverstripe-module",
+    "type": "silverstripe-vendormodule",
     "description": "adds a discount coupon functionality to your Silverstripe e-commerce application ",
     "keywords": [
         "Silverstripe-CMS",
