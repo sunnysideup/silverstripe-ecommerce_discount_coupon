@@ -80,3 +80,4 @@ class DiscountCouponSiteTreeDOD extends DataExtension
         return true;
     }
 }
+

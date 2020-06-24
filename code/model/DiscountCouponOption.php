@@ -518,3 +518,4 @@ class DiscountCouponOption extends DataObject
         return $string;
     }
 }
+

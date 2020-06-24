@@ -8,3 +8,4 @@ class DiscountCouponSiteTreeDOD_Product extends DataExtension
         return ! $coupon->canBeDiscounted($this->owner);
     }
 }
+

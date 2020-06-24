@@ -34,3 +34,4 @@ class DiscountCouponFilterForDate extends ExactMatchFilter
         return $query;
     }
 }
+
