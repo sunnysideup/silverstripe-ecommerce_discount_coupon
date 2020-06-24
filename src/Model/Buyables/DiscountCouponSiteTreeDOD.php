@@ -2,72 +2,55 @@
 
 namespace Sunnysideup\EcommerceDiscountCoupon\Model\Buyables;
 
-
-
-
-
-
-use SilverStripe\Forms\FieldList;
 use SilverStripe\CMS\Model\SiteTree;
-use Sunnysideup\EcommerceDiscountCoupon\Form\DiscountCouponSiteTreeDOD_Field;
+use SilverStripe\Forms\FieldList;
 use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\DataExtension;
-
-
+use Sunnysideup\EcommerceDiscountCoupon\Form\DiscountCouponSiteTreeDOD_Field;
 
 /**
- *
+ * ### @@@@ START REPLACEMENT @@@@ ###
+ * WHY: automated upgrade
+ * OLD:  extends DataExtension (ignore case)
+ * NEW:  extends DataExtension (COMPLEX)
+ * EXP: Check for use of $this->anyVar and replace with $this->anyVar[$this->owner->ID] or consider turning the class into a trait
+ * ### @@@@ STOP REPLACEMENT @@@@ ###
  */
-
-
-/**
-  * ### @@@@ START REPLACEMENT @@@@ ###
-  * WHY: automated upgrade
-  * OLD:  extends DataExtension (ignore case)
-  * NEW:  extends DataExtension (COMPLEX)
-  * EXP: Check for use of $this->anyVar and replace with $this->anyVar[$this->owner->ID] or consider turning the class into a trait
-  * ### @@@@ STOP REPLACEMENT @@@@ ###
-  */
 class DiscountCouponSiteTreeDOD extends DataExtension
 {
-
-/**
-  * ### @@@@ START REPLACEMENT @@@@ ###
-  * OLD: private static $db (case sensitive)
-  * NEW: 
-    private static $table_name = '[SEARCH_REPLACE_CLASS_NAME_GOES_HERE]';
-
+    /**
+     * ### @@@@ START REPLACEMENT @@@@ ###
+     * OLD: private static $db (case sensitive)
+     * NEW:
     private static $db (COMPLEX)
-  * EXP: Check that is class indeed extends DataObject and that it is not a data-extension!
-  * ### @@@@ STOP REPLACEMENT @@@@ ###
-  */
-    
+     * EXP: Check that is class indeed extends DataObject and that it is not a data-extension!
+     * ### @@@@ STOP REPLACEMENT @@@@ ###
+     */
     private static $table_name = 'DiscountCouponSiteTreeDOD';
 
-    private static $db = array(
-        'PageIDs' => 'Text(700)'
-    );
+    private static $db = [
+        'PageIDs' => 'Text(700)',
+    ];
 
     /**
      * update the CMS Fields
      *
      * @param FieldList $fields
-     *
      */
     public function updateCMSFields(FieldList $fields)
     {
         $label = _t(
-            "DiscountCouponSiteTreeDOD.SELECT_PRODUCTS_AND_SERVICES",
+            'DiscountCouponSiteTreeDOD.SELECT_PRODUCTS_AND_SERVICES',
             'Select Product Categories and/or Products (if nothing is selected, the discount coupon will apply to all buyables).'
         );
         $field = new DiscountCouponSiteTreeDOD_Field(
-            $name = "PageIDs",
+            $name = 'PageIDs',
             $title = $label,
             $sourceObject = SiteTree::class,
-            $keyField = "ID",
-            $labelField = "MenuTitle"
+            $keyField = 'ID',
+            $labelField = 'MenuTitle'
         );
-        $filter = create_function('$obj', 'return ( ( $obj InstanceOf ProductGroup || $obj InstanceOf Product) && ($obj->ParentID != '.$this->owner->ID.'));');
+        $filter = create_function('$obj', 'return ( ( $obj InstanceOf ProductGroup || $obj InstanceOf Product) && ($obj->ParentID != ' . $this->owner->ID . '));');
         $field->setFilterFunction($filter);
         $fields->addFieldToTab('Root.AppliesTo', $field);
     }
@@ -88,7 +71,7 @@ class DiscountCouponSiteTreeDOD extends DataExtension
             $alreadyCheckedPageIDs = [];
             while ($checkPages->Count()) {
                 $page = $checkPages->First();
-                if (array_search($page->ID, $allowedPageIDs) !== false) {
+                if (array_search($page->ID, $allowedPageIDs, true) !== false) {
                     return true;
                 }
                 $alreadyCheckedPageIDs[] = $page->ID;
@@ -107,7 +90,7 @@ class DiscountCouponSiteTreeDOD extends DataExtension
                 }
 
                 foreach ($parents as $parent) {
-                    if (array_search($parent->ID, $alreadyCheckedPageIDs) === false) {
+                    if (array_search($parent->ID, $alreadyCheckedPageIDs, true) === false) {
                         $checkPages->push($parent);
                     }
                 }
@@ -118,4 +101,3 @@ class DiscountCouponSiteTreeDOD extends DataExtension
         return true;
     }
 }
-

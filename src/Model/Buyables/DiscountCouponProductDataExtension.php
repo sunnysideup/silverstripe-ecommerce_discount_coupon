@@ -2,59 +2,47 @@
 
 namespace Sunnysideup\EcommerceDiscountCoupon\Model\Buyables;
 
-
-
-
-
-
-
-use Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption;
 use SilverStripe\Forms\FieldList;
-use SilverStripe\Forms\GridField\GridFieldConfig_RelationEditor;
 use SilverStripe\Forms\GridField\GridField;
-use Sunnysideup\Ecommerce\Model\Money\EcommerceCurrency;
+use SilverStripe\Forms\GridField\GridFieldConfig_RelationEditor;
+use SilverStripe\ORM\DataExtension;
 use SilverStripe\ORM\FieldType\DBDate;
 use SilverStripe\ORM\FieldType\DBField;
-use SilverStripe\ORM\DataExtension;
-
-
-
-
+use Sunnysideup\Ecommerce\Model\Money\EcommerceCurrency;
+use Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption;
 
 /**
-  * ### @@@@ START REPLACEMENT @@@@ ###
-  * WHY: automated upgrade
-  * OLD:  extends DataExtension (ignore case)
-  * NEW:  extends DataExtension (COMPLEX)
-  * EXP: Check for use of $this->anyVar and replace with $this->anyVar[$this->owner->ID] or consider turning the class into a trait
-  * ### @@@@ STOP REPLACEMENT @@@@ ###
-  */
+ * ### @@@@ START REPLACEMENT @@@@ ###
+ * WHY: automated upgrade
+ * OLD:  extends DataExtension (ignore case)
+ * NEW:  extends DataExtension (COMPLEX)
+ * EXP: Check for use of $this->anyVar and replace with $this->anyVar[$this->owner->ID] or consider turning the class into a trait
+ * ### @@@@ STOP REPLACEMENT @@@@ ###
+ */
 class DiscountCouponProductDataExtension extends DataExtension
 {
-
+    protected static $buyable_to_be_excluded_from_discounts = [];
 
     /**
      * stadard SS declaration
-     * @var Array
+     * @var array
      */
 
-/**
-  * ### @@@@ START REPLACEMENT @@@@ ###
-  * OLD: private static $belongs_many_many = (case sensitive)
-  * NEW: 
-    private static $table_name = '[SEARCH_REPLACE_CLASS_NAME_GOES_HERE]';
-
+    /**
+     * ### @@@@ START REPLACEMENT @@@@ ###
+     * OLD: private static $belongs_many_many = (case sensitive)
+     * NEW:
     private static $belongs_many_many = (COMPLEX)
-  * EXP: Check that is class indeed extends DataObject and that it is not a data-extension!
-  * ### @@@@ STOP REPLACEMENT @@@@ ###
-  */
-    
+     * EXP: Check that is class indeed extends DataObject and that it is not a data-extension!
+     * ### @@@@ STOP REPLACEMENT @@@@ ###
+     */
     private static $table_name = 'DiscountCouponProductDataExtension';
 
-    private static $belongs_many_many = array(
-        "ApplicableDiscountCoupons" => DiscountCouponOption::class
-    );
+    private static $belongs_many_many = [
+        'ApplicableDiscountCoupons' => DiscountCouponOption::class,
+    ];
 
+    private $discountCouponAmount = null;
 
     /**
      * Update Fields
@@ -74,13 +62,11 @@ class DiscountCouponProductDataExtension extends DataExtension
         return $fields;
     }
 
-    protected static $buyable_to_be_excluded_from_discounts = [];
-
     public static function add_buyable_to_be_excluded($buyableOrBuyableID)
     {
-        if(is_object($buyable)) {
+        if (is_object($buyable)) {
             $id = $buyable->ID;
-        } elseif(intval($buyable)) {
+        } elseif (intval($buyable)) {
             $id = intval($buyable);
         }
 
@@ -106,7 +92,7 @@ class DiscountCouponProductDataExtension extends DataExtension
      */
     public function updateCalculatedPrice($price = null)
     {
-        if($this->getCanBeDiscounted()) {
+        if ($this->getCanBeDiscounted()) {
             $hasDiscount = false;
             $coupons = $this->owner->DirectlyApplicableDiscountCoupons();
             if ($coupons && $coupons->count()) {
@@ -128,9 +114,8 @@ class DiscountCouponProductDataExtension extends DataExtension
                     $priceWithAbsoluteDiscount = $price - $discountAbsolute;
                     if ($priceWithPercentageDiscount < $priceWithAbsoluteDiscount) {
                         return $priceWithPercentageDiscount;
-                    } else {
-                        return $priceWithAbsoluteDiscount;
                     }
+                    return $priceWithAbsoluteDiscount;
                 }
             }
         }
@@ -139,17 +124,15 @@ class DiscountCouponProductDataExtension extends DataExtension
     public function DirectlyApplicableDiscountCoupons()
     {
         return $this->owner->ApplicableDiscountCoupons()
-            ->filter(array("ApplyPercentageToApplicableProducts" => 1, "ApplyEvenWithoutCode" => 1));
+            ->filter(['ApplyPercentageToApplicableProducts' => 1, 'ApplyEvenWithoutCode' => 1]);
     }
-
-    private $discountCouponAmount = null;
 
     public function DiscountCouponAmount()
     {
         if ($this->discountCouponAmount === null) {
             $this->discountCouponAmount = 0;
             $amount = floatval($this->owner->Price) - floatval($this->owner->CalculatedPrice());
-            if($amount > 1) {
+            if ($amount > 1) {
                 $this->discountCouponAmount = $amount;
             }
         }
@@ -157,7 +140,6 @@ class DiscountCouponProductDataExtension extends DataExtension
     }
 
     /**
-     *
      * @return SS_Date
      */
     public function DiscountsAvailableUntil()
@@ -183,4 +165,3 @@ class DiscountCouponProductDataExtension extends DataExtension
         }
     }
 }
-

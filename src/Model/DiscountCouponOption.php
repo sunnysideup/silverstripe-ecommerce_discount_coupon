@@ -2,30 +2,18 @@
 
 namespace Sunnysideup\EcommerceDiscountCoupon\Model;
 
-
-
-
-
-
-
-
-
-
-
+use SilverStripe\Core\Config\Config;
+use SilverStripe\Forms\DropdownField;
+use SilverStripe\Forms\ReadonlyField;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\DB;
+use SilverStripe\Security\Permission;
+use Sunnysideup\Ecommerce\Forms\Gridfield\Configs\GridFieldBasicPageRelationConfig;
+use Sunnysideup\Ecommerce\Forms\Gridfield\Configs\GridFieldBasicPageRelationConfigNoAddExisting;
+use Sunnysideup\Ecommerce\Model\Extensions\EcommerceRole;
 use Sunnysideup\Ecommerce\Pages\Product;
 use Sunnysideup\Ecommerce\Pages\ProductGroup;
-use SilverStripe\Forms\DropdownField;
 use Sunnysideup\EcommerceDiscountCoupon\Modifiers\DiscountCouponModifier;
-use SilverStripe\Core\Config\Config;
-use Sunnysideup\Ecommerce\Model\Extensions\EcommerceRole;
-use SilverStripe\Security\Permission;
-use SilverStripe\Forms\ReadonlyField;
-use Sunnysideup\Ecommerce\Forms\Gridfield\Configs\GridFieldBasicPageRelationConfigNoAddExisting;
-use Sunnysideup\Ecommerce\Forms\Gridfield\Configs\GridFieldBasicPageRelationConfig;
-use SilverStripe\ORM\DB;
-use SilverStripe\ORM\DataObject;
-
-
 
 /**
  *@author nicolaas [at] sunnysideup.co.nz
@@ -33,7 +21,14 @@ use SilverStripe\ORM\DataObject;
  **/
 class DiscountCouponOption extends DataObject
 {
-    private static $db = array(
+    /**
+     * @var boolean
+     */
+    protected $isNew = false;
+
+    protected $_productsCalculated = false;
+
+    private static $db = [
         'ApplyPercentageToApplicableProducts' => 'Boolean',
         'ApplyEvenWithoutCode' => 'Boolean',
         'Title' => 'Varchar(255)',
@@ -44,51 +39,127 @@ class DiscountCouponOption extends DataObject
         'MaximumDiscount' => 'Currency',
         'DiscountAbsolute' => 'Currency',
         'DiscountPercentage' => 'Decimal(4,2)',
-        'MinimumOrderSubTotalValue' => 'Currency'
-    );
+        'MinimumOrderSubTotalValue' => 'Currency',
+    ];
 
-    private static $many_many = array(
+    private static $many_many = [
         'Products' => Product::class,
         'ProductGroups' => ProductGroup::class,
-        'ProductGroupsMustAlsoBePresentIn' => ProductGroup::class
-    );
+        'ProductGroupsMustAlsoBePresentIn' => ProductGroup::class,
+    ];
 
     /**
      * standard SS variable
-     *
      */
-    private static $indexes = array(
-        "Title" => true,
-        "Code" => true,
-        "StartDate" => true,
-        "EndDate" => true
-    );
-    /**
-     * standard SS variable
-     *
-     */
-    private static $casting = array(
-        "UseCount" => "Int",
-        "IsValid" => "Boolean",
-        "IsValidNice" => "Varchar"
-    );
-
+    private static $indexes = [
+        'Title' => true,
+        'Code' => true,
+        'StartDate' => true,
+        'EndDate' => true,
+    ];
 
     /**
      * standard SS variable
-     *
      */
-    private static $searchable_fields = array(
-        'StartDate' => array(
+    private static $casting = [
+        'UseCount' => 'Int',
+        'IsValid' => 'Boolean',
+        'IsValidNice' => 'Varchar',
+    ];
+
+    /**
+     * standard SS variable
+     */
+    private static $searchable_fields = [
+        'StartDate' => [
             'filter' => 'DiscountCouponFilterForDate',
-        ),
+        ],
         'Title' => 'PartialMatchFilter',
-        "Code" => "PartialMatchFilter",
+        'Code' => 'PartialMatchFilter',
         'ApplyPercentageToApplicableProducts' => 'ExactMatchFilter',
         'ApplyEvenWithoutCode' => 'ExactMatchFilter',
         'DiscountAbsolute' => 'ExactMatchFilter',
-        'DiscountPercentage' => 'ExactMatchFilter'
-    );
+        'DiscountPercentage' => 'ExactMatchFilter',
+    ];
+
+    /**
+     * standard SS variable
+     */
+    private static $field_labels = [
+        'StartDate' => 'Start Date',
+        'EndDate' => 'Last Day',
+        'Title' => 'Name',
+        'MaximumDiscount' => 'Maximum deduction',
+        'DiscountAbsolute' => 'Absolute Discount',
+        'DiscountPercentage' => 'Percentage Discount',
+        'ApplyPercentageToApplicableProducts' => 'Applicable products only',
+        'NumberOfTimesCouponCanBeUsed' => 'Availability count',
+        'UseCount' => 'Count of usage thus far',
+        'IsValidNice' => 'Current validity',
+        'ApplyEvenWithoutCode' => 'Automatically applied',
+        'Products' => 'Applicable products',
+        'ProductGroups' => 'Applicable Categories',
+        'ProductGroupsMustAlsoBePresentIn' => 'Products must also be listed in ... ',
+    ];
+
+    /**
+     * standard SS variable
+     */
+    private static $field_labels_right = [
+        'ApplyEvenWithoutCode' => 'Discount is automatically applied: the user does not have to enter the coupon at all. ',
+        'ApplyPercentageToApplicableProducts' => 'Rather than applying it to the order, the discount is directly applied to selected products (you must select products).',
+        'Title' => 'The name of the coupon is for internal use only.  This name is not exposed to the customer but can be used to find a particular coupon.',
+        'Code' => 'The code that the customer enters to get their discount.',
+        'StartDate' => 'First date the coupon can be used.',
+        'EndDate' => 'Last day the coupon can be used.',
+        'MaximumDiscount' => 'This is the total amount of discount that can ever be applied - no matter waht. Set to zero to ignore.',
+        'DiscountAbsolute' => 'Absolute reduction. For example, 10 = -$10.00 off. Set this value to zero to ignore.',
+        'DiscountPercentage' => 'Percentage Discount.  For example, 10 = -10% discount Set this value to zero to ignore.',
+        'MinimumOrderSubTotalValue' => 'Minimum sub-total of total order to make coupon applicable. For example, order must be at least $100 before the customer gets a discount.',
+        'NumberOfTimesCouponCanBeUsed' => 'Set to zero to disallow usage, set to 999,999 to allow unlimited usage.',
+        'UseCount' => 'number of times this coupon has been used',
+        'IsValidNice' => 'coupon is currently valid',
+        'Products' => "This is the final list of products to which the coupon applies. To edit this list directly, please remove all product groups selections in the 'Add Products Using Categories' tab.",
+        'ProductGroups' => 'Adding product categories helps you to select a large number of products at once. Please select categories above.  The products in each category selected will be added to the list.',
+        'ProductGroupsMustAlsoBePresentIn' => 'Select cross-reference listing products (listed in both categories) - e.g. products that are in the Large Items category and Expensive Items category will have a discount.',
+    ];
+
+    /**
+     * standard SS variable
+     */
+    private static $summary_fields = [
+        'Title' => 'Name',
+        'Code' => 'Code',
+        'StartDate.Full' => 'From',
+        'EndDate.Full' => 'Until',
+        'IsValidNice' => 'Current',
+    ];
+
+    /**
+     * standard SS variable
+     */
+    private static $defaults = [
+        'NumberOfTimesCouponCanBeUsed' => '999999',
+    ];
+
+    /**
+     * standard SS variable
+     */
+    private static $singular_name = 'Discount Coupon';
+
+    /**
+     * standard SS variable
+     */
+    private static $plural_name = 'Discount Coupons';
+
+    /**
+     * standard SS variable
+     */
+    private static $default_sort = [
+        'EndDate' => 'DESC',
+        'StartDate' => 'DESC',
+        'ID' => 'ASC',
+    ];
 
     public function scaffoldSearchFields($_params = null)
     {
@@ -97,121 +168,30 @@ class DiscountCouponOption extends DataObject
             DropdownField::create(
                 'StartDate',
                 _t('DiscountCouponOption.FUTURE_CURRENT_OR_PAST', 'Available ...'),
-                array(
+                [
                     '' => _t('DiscountCouponOption.ANY_TIME', ' -- Any Time -- '),
                     'future' => _t('DiscountCouponOption.FUTURE', 'In Future'),
                     'current' => _t('DiscountCouponOption.CURRENT', 'Now'),
-                    'past' => _t('DiscountCouponOption.PAST', 'No longer available')
-                )
+                    'past' => _t('DiscountCouponOption.PAST', 'No longer available'),
+                ]
             )
         );
 
         return $fields;
     }
 
-    /**
-     * standard SS variable
-     *
-     */
-    private static $field_labels = array(
-        'StartDate' => 'Start Date',
-        'EndDate' => 'Last Day',
-        "Title" => "Name",
-        "MaximumDiscount" => "Maximum deduction",
-        "DiscountAbsolute" => "Absolute Discount",
-        "DiscountPercentage" => "Percentage Discount",
-        "ApplyPercentageToApplicableProducts" => "Applicable products only",
-        "NumberOfTimesCouponCanBeUsed" => "Availability count",
-        "UseCount" => "Count of usage thus far",
-        "IsValidNice" => "Current validity",
-        "ApplyEvenWithoutCode" => "Automatically applied",
-        "Products" => "Applicable products",
-        "ProductGroups" => "Applicable Categories",
-        "ProductGroupsMustAlsoBePresentIn" => "Products must also be listed in ... ",
-    );
-
-    /**
-     * standard SS variable
-     *
-     */
-    private static $field_labels_right = array(
-        "ApplyEvenWithoutCode" => "Discount is automatically applied: the user does not have to enter the coupon at all. ",
-        "ApplyPercentageToApplicableProducts" => "Rather than applying it to the order, the discount is directly applied to selected products (you must select products).",
-        "Title" => "The name of the coupon is for internal use only.  This name is not exposed to the customer but can be used to find a particular coupon.",
-        'Code' => 'The code that the customer enters to get their discount.',
-        'StartDate' => 'First date the coupon can be used.',
-        'EndDate' => 'Last day the coupon can be used.',
-        "MaximumDiscount" => "This is the total amount of discount that can ever be applied - no matter waht. Set to zero to ignore.",
-        "DiscountAbsolute" => "Absolute reduction. For example, 10 = -$10.00 off. Set this value to zero to ignore.",
-        "DiscountPercentage" => "Percentage Discount.  For example, 10 = -10% discount Set this value to zero to ignore.",
-        "MinimumOrderSubTotalValue" => "Minimum sub-total of total order to make coupon applicable. For example, order must be at least $100 before the customer gets a discount.",
-        "NumberOfTimesCouponCanBeUsed" => "Set to zero to disallow usage, set to 999,999 to allow unlimited usage.",
-        "UseCount" => "number of times this coupon has been used",
-        "IsValidNice" => "coupon is currently valid",
-        "Products" => "This is the final list of products to which the coupon applies. To edit this list directly, please remove all product groups selections in the 'Add Products Using Categories' tab.",
-        "ProductGroups" => "Adding product categories helps you to select a large number of products at once. Please select categories above.  The products in each category selected will be added to the list.",
-        "ProductGroupsMustAlsoBePresentIn" => "Select cross-reference listing products (listed in both categories) - e.g. products that are in the Large Items category and Expensive Items category will have a discount.",
-    );
-
-    /**
-     * standard SS variable
-     *
-     */
-    private static $summary_fields = array(
-        "Title" => "Name",
-        "Code" => 'Code',
-        "StartDate.Full" => 'From',
-        "EndDate.Full" => 'Until',
-        'IsValidNice' => 'Current'
-    );
-
-    /**
-     * standard SS variable
-     *
-     */
-    private static $defaults = array(
-        "NumberOfTimesCouponCanBeUsed" => "999999"
-    );
-
-    /**
-     * standard SS variable
-     *
-     */
-    private static $singular_name = "Discount Coupon";
     public function i18n_singular_name()
     {
-        return _t("DiscountCouponOption.SINGULAR_NAME", "Discount Coupon");
+        return _t('DiscountCouponOption.SINGULAR_NAME', 'Discount Coupon');
     }
 
-    /**
-     * standard SS variable
-     *
-     */
-    private static $plural_name = "Discount Coupons";
     public function i18n_plural_name()
     {
-        return _t("DiscountCouponOption.PLURAL_NAME", "Discount Coupons");
+        return _t('DiscountCouponOption.PLURAL_NAME', 'Discount Coupons');
     }
-
-    /**
-     * standard SS variable
-     *
-     */
-    private static $default_sort = [
-        'EndDate' =>  'DESC',
-        'StartDate' => 'DESC',
-        'ID' =>  'ASC'
-    ];
-
-    /**
-     *
-     * @var Boolean
-     */
-    protected $isNew = false;
 
     /**
      * standard SS method
-     *
      */
     public function populateDefaults()
     {
@@ -226,16 +206,17 @@ class DiscountCouponOption extends DataObject
      * Some of the used coupons are not submitted yet, but it should still
      * work on first come first served basis.
      *
-     * @return Int
+     * @return int
      */
     public function UseCount()
     {
         return $this->getUseCount();
     }
+
     public function getUseCount()
     {
         if ($this->ID) {
-            return DiscountCouponModifier::get()->filter(array("DiscountCouponOptionID" => $this->ID))->count();
+            return DiscountCouponModifier::get()->filter(['DiscountCouponOptionID' => $this->ID])->count();
         }
         return 0;
     }
@@ -243,12 +224,13 @@ class DiscountCouponOption extends DataObject
     /**
      * casted variable telling us if the discount coupon is valid.
      *
-     * @return Bool
+     * @return bool
      */
     public function IsValid()
     {
         return $this->getIsValid();
     }
+
     public function getIsValid()
     {
         //we go through all the options that would make it invalid...
@@ -258,14 +240,14 @@ class DiscountCouponOption extends DataObject
         if ($this->getUseCount() > $this->NumberOfTimesCouponCanBeUsed) {
             return false;
         }
-        $now = strtotime("now");
+        $now = strtotime('now');
         $startDate = strtotime($this->StartDate);
         if ($now < $startDate) {
             return false;
         }
         //include the end date itself.
         if ($this->EndDate) {
-            $endDate = strtotime($this->EndDate)+(60*60*24);
+            $endDate = strtotime($this->EndDate) + (60 * 60 * 24);
             if ($now > $endDate) {
                 return false;
             }
@@ -284,25 +266,26 @@ class DiscountCouponOption extends DataObject
     /**
      * casted variable telling us if the discount coupon is valid - formatted nicely...
      *
-     * @return String
+     * @return string
      */
     public function IsValidNice()
     {
         return $this->getIsValidNice();
     }
+
     public function getIsValidNice()
     {
-        return $this->IsValid() ? "yes" : "no";
+        return $this->IsValid() ? 'yes' : 'no';
     }
 
     /**
      * standard SS method
-     * @param Member | NULL
-     * @return Boolean
+     * @param Member $member | NULL
+     * @return boolean
      */
     public function canCreate($member = null, $context = [])
     {
-        if (Permission::checkMember($member, Config::inst()->get(EcommerceRole::class, "admin_permission_code"))) {
+        if (Permission::checkMember($member, Config::inst()->get(EcommerceRole::class, 'admin_permission_code'))) {
             return true;
         }
         return parent::canCreate($member);
@@ -310,12 +293,12 @@ class DiscountCouponOption extends DataObject
 
     /**
      * standard SS method
-     * @param Member | NULL
-     * @return Boolean
+     * @param Member $member | NULL
+     * @return boolean
      */
     public function canView($member = null, $context = [])
     {
-        if (Permission::checkMember($member, Config::inst()->get(EcommerceRole::class, "admin_permission_code"))) {
+        if (Permission::checkMember($member, Config::inst()->get(EcommerceRole::class, 'admin_permission_code'))) {
             return true;
         }
         return parent::canView($member);
@@ -323,12 +306,12 @@ class DiscountCouponOption extends DataObject
 
     /**
      * standard SS method
-     * @param Member | NULL
-     * @return Boolean
+     * @param Member $member | NULL
+     * @return boolean
      */
     public function canEdit($member = null, $context = [])
     {
-        if (Permission::checkMember($member, Config::inst()->get(EcommerceRole::class, "admin_permission_code"))) {
+        if (Permission::checkMember($member, Config::inst()->get(EcommerceRole::class, 'admin_permission_code'))) {
             return true;
         }
         return parent::canEdit($member);
@@ -337,16 +320,16 @@ class DiscountCouponOption extends DataObject
     /**
      * standard SS method
      *
-     * @param Member | NULL
+     * @param Member $member | NULL
      *
-     * @return Boolean
+     * @return boolean
      */
     public function canDelete($member = null, $context = [])
     {
         if ($this->UseCount()) {
             return false;
         }
-        if (Permission::checkMember($member, Config::inst()->get(EcommerceRole::class, "admin_permission_code"))) {
+        if (Permission::checkMember($member, Config::inst()->get(EcommerceRole::class, 'admin_permission_code'))) {
             return true;
         }
         return parent::canDelete($member);
@@ -354,12 +337,11 @@ class DiscountCouponOption extends DataObject
 
     /**
      * standard SS method
-     *
      */
     public function getCMSFields()
     {
         $fields = parent::getCMSFields();
-        $fieldLabels = $this->Config()->get("field_labels_right");
+        $fieldLabels = $this->Config()->get('field_labels_right');
         foreach ($fields->dataFields() as $field) {
             $name = $field->getName();
             if (isset($fieldLabels[$name])) {
@@ -368,38 +350,38 @@ class DiscountCouponOption extends DataObject
         }
         if ($this->ApplyEvenWithoutCode) {
             $fields->removeFieldsFromTab(
-                "Root.Main",
-                array(
+                'Root.Main',
+                [
                     'Code',
                     'MaximumDiscount',
-                    'MinimumOrderSubTotalValue'
-                )
+                    'MinimumOrderSubTotalValue',
+                ]
             );
         }
-        $fields->addFieldToTab("Root.Main", new ReadonlyField("UseCount", self::$field_labels["UseCount"]));
-        $fields->addFieldToTab("Root.Main", new ReadonlyField("IsValidNice", self::$field_labels["IsValidNice"]));
-        if ($gridField1 = $fields->dataFieldByName("Products")) {
+        $fields->addFieldToTab('Root.Main', new ReadonlyField('UseCount', self::$field_labels['UseCount']));
+        $fields->addFieldToTab('Root.Main', new ReadonlyField('IsValidNice', self::$field_labels['IsValidNice']));
+        if ($gridField1 = $fields->dataFieldByName('Products')) {
             if ($this->ProductGroups()->count() || $this->ProductGroupsMustAlsoBePresentIn()->count()) {
                 $gridField1->setConfig(GridFieldBasicPageRelationConfigNoAddExisting::create());
             } else {
                 $gridField1->setConfig(GridFieldBasicPageRelationConfig::create());
             }
-            $fields->addFieldToTab("Root.AddProductsDirectly", $gridField1);
+            $fields->addFieldToTab('Root.AddProductsDirectly', $gridField1);
         }
-        if ($gridField2 = $fields->dataFieldByName("ProductGroups")) {
+        if ($gridField2 = $fields->dataFieldByName('ProductGroups')) {
             $gridField2->setConfig(GridFieldBasicPageRelationConfig::create());
-            $fields->addFieldToTab("Root.AddProductsUsingCategories", $gridField2);
+            $fields->addFieldToTab('Root.AddProductsUsingCategories', $gridField2);
         }
 
-        if ($gridField3 = $fields->dataFieldByName("ProductGroupsMustAlsoBePresentIn")) {
+        if ($gridField3 = $fields->dataFieldByName('ProductGroupsMustAlsoBePresentIn')) {
             $gridField3->setConfig(GridFieldBasicPageRelationConfig::create());
-            $fields->addFieldToTab("Root.AddProductsUsingCategories", $gridField3);
+            $fields->addFieldToTab('Root.AddProductsUsingCategories', $gridField3);
         }
-        $fields->removeFieldFromTab("Root", "Products");
-        $fields->removeFieldFromTab("Root", "ProductGroups");
-        $fields->removeFieldFromTab("Root", "ProductGroupsMustAlsoBePresentIn");
+        $fields->removeFieldFromTab('Root', 'Products');
+        $fields->removeFieldFromTab('Root', 'ProductGroups');
+        $fields->removeFieldFromTab('Root', 'ProductGroupsMustAlsoBePresentIn');
         if (! $this->ApplyPercentageToApplicableProducts) {
-            $fields->removeFieldFromTab("Root.Main", "ApplyEvenWithoutCode");
+            $fields->removeFieldFromTab('Root.Main', 'ApplyEvenWithoutCode');
         }
         return $fields;
     }
@@ -408,52 +390,40 @@ class DiscountCouponOption extends DataObject
      * standard SS method
      * THIS ONLY WORKS FOR CREATED OBJECTS
      */
-
     public function validate()
     {
         $validator = parent::validate();
-        if (!$this->isNew) {
+        if (! $this->isNew) {
             if ($this->thereAreCouponsWithTheSameCode()) {
-                $validator->error(_t('DiscountCouponOption.CODEALREADYEXISTS', "This code already exists - please use another code."));
+                $validator->error(_t('DiscountCouponOption.CODEALREADYEXISTS', 'This code already exists - please use another code.'));
             }
-            if (isset($_REQUEST["StartDate"])) {
-                $this->StartDate = date("Y-m-d", strtotime($_REQUEST["StartDate"]));
+            if (isset($_REQUEST['StartDate'])) {
+                $this->StartDate = date('Y-m-d', strtotime($_REQUEST['StartDate']));
             }
-            if (isset($_REQUEST["EndDate"])) {
-                $this->EndDate = date("Y-m-d", strtotime($_REQUEST["EndDate"]));
+            if (isset($_REQUEST['EndDate'])) {
+                $this->EndDate = date('Y-m-d', strtotime($_REQUEST['EndDate']));
             }
-            if (strtotime($this->StartDate) < strtotime("-12 years")) {
-                $validator->error(_t('DiscountCouponOption.NOSTARTDATE', "Please enter a start date"));
+            if (strtotime($this->StartDate) < strtotime('-12 years')) {
+                $validator->error(_t('DiscountCouponOption.NOSTARTDATE', 'Please enter a start date'));
             }
-            if (strtotime($this->EndDate) < strtotime("-12 years")) {
-                $validator->error(_t('DiscountCouponOption.NOENDDATE', "Please enter an end date"));
+            if (strtotime($this->EndDate) < strtotime('-12 years')) {
+                $validator->error(_t('DiscountCouponOption.NOENDDATE', 'Please enter an end date'));
             }
             if (strtotime($this->EndDate) < strtotime($this->StartDate)) {
-                $validator->error(_t('DiscountCouponOption.ENDDATETOOEARLY', "The end date should be after the start date"));
+                $validator->error(_t('DiscountCouponOption.ENDDATETOOEARLY', 'The end date should be after the start date'));
             }
             if ($this->DiscountPercentage < 0 || $this->DiscountPercentage > 99.999) {
-                $validator->error(_t('DiscountCouponOption.DISCOUNTOUTOFBOUNDS', "The discount percentage should be between 0 and 99.999."));
+                $validator->error(_t('DiscountCouponOption.DISCOUNTOUTOFBOUNDS', 'The discount percentage should be between 0 and 99.999.'));
             }
         }
         if ($this->NumberOfTimesCouponCanBeUsed === null || $this->NumberOfTimesCouponCanBeUsed === '') {
-            $validator->error(_t('DiscountCouponOption.SET_TIMES_AVAILABLE', "Set the number of times the coupon is available (0 = not available ... 999,999 = almost unlimited availability)"));
+            $validator->error(_t('DiscountCouponOption.SET_TIMES_AVAILABLE', 'Set the number of times the coupon is available (0 = not available ... 999,999 = almost unlimited availability)'));
         }
         return $validator;
     }
 
     /**
-     * Checks if there are coupons with the same code as the current one
-     * @return Boolean
-     */
-    protected function thereAreCouponsWithTheSameCode()
-    {
-        return DiscountCouponOption::get()->exclude(array("ID" => $this->ID))->filter(array("Code" => $this->Code))->count() ? true : false;
-    }
-
-
-    /**
      * standard SS method
-     *
      */
     public function onBeforeWrite()
     {
@@ -461,12 +431,12 @@ class DiscountCouponOption extends DataObject
         if (! $this->Code) {
             $this->Code = $this->createRandomCode();
         }
-        $this->Code = preg_replace('/[^a-z0-9]/i', " ", $this->Code);
-        $this->Code = trim(preg_replace('/\s+/', "", $this->Code));
+        $this->Code = preg_replace('/[^a-z0-9]/i', ' ', $this->Code);
+        $this->Code = trim(preg_replace('/\s+/', '', $this->Code));
         $i = 1;
         while ($this->thereAreCouponsWithTheSameCode() && $i < 100) {
             $i++;
-            $this->Code = $this->Code."_".$i;
+            $this->Code .= '_' . $i;
         }
         if (strlen(trim($this->Title)) < 1) {
             $this->Title = $this->Code;
@@ -483,31 +453,29 @@ class DiscountCouponOption extends DataObject
         }
     }
 
-    protected $_productsCalculated = false;
     /**
      * standard SS method
-     *
      */
     public function onAfterWrite()
     {
-        $productsArray = array(0 => 0);
-        $mustAlsoBePresentInProductsArray = array(0 => 0);
+        $productsArray = [0 => 0];
+        $mustAlsoBePresentInProductsArray = [0 => 0];
         parent::onAfterWrite();
-        if (!$this->_productsCalculated && $this->ProductGroups()->count()) {
+        if (! $this->_productsCalculated && $this->ProductGroups()->count()) {
             $this->_productsCalculated = true;
             $productGroups = $this->ProductGroups();
-            $productsShowable = Product::get()->filter(array("ID" => -1));
+            $productsShowable = Product::get()->filter(['ID' => -1]);
             foreach ($productGroups as $productGroup) {
-                $productsShowable = $productGroup->currentInitialProducts(null, "default");
+                $productsShowable = $productGroup->currentInitialProducts(null, 'default');
                 if ($productsShowable && $productsShowable->count()) {
-                    $productsArray += $productsShowable->map("ID", "ID")->toArray();
+                    $productsArray += $productsShowable->map('ID', 'ID')->toArray();
                 }
             }
             $mustAlsoBePresentInGroups = $this->ProductGroupsMustAlsoBePresentIn();
             foreach ($mustAlsoBePresentInGroups as $mustAlsoBePresentInGroup) {
-                $mustAlsoBePresentInProducts = $mustAlsoBePresentInGroup->currentInitialProducts(null, "default");
+                $mustAlsoBePresentInProducts = $mustAlsoBePresentInGroup->currentInitialProducts(null, 'default');
                 if ($mustAlsoBePresentInProducts && $mustAlsoBePresentInProducts->count()) {
-                    $mustAlsoBePresentInProductsArray += $mustAlsoBePresentInProducts->map("ID", "ID")->toArray();
+                    $mustAlsoBePresentInProductsArray += $mustAlsoBePresentInProducts->map('ID', 'ID')->toArray();
                 }
             }
             if (count($mustAlsoBePresentInProductsArray) > 1) {
@@ -523,26 +491,34 @@ class DiscountCouponOption extends DataObject
     {
         parent::onBeforeDelete();
         -
-        DB::query("DELETE FROM \"DiscountCouponOption_Products\" WHERE \"DiscountCouponOptionID\" = ".$this->ID);
+        DB::query('DELETE FROM "DiscountCouponOption_Products" WHERE "DiscountCouponOptionID" = ' . $this->ID);
+    }
+
+    /**
+     * Checks if there are coupons with the same code as the current one
+     * @return boolean
+     */
+    protected function thereAreCouponsWithTheSameCode()
+    {
+        return DiscountCouponOption::get()->exclude(['ID' => $this->ID])->filter(['Code' => $this->Code])->count() ? true : false;
     }
 
     /**
      * returns a random string.
-     * @param Int $length - number of characters
-     * @param Int $chars - input characters
+     * @param int $length - number of characters
+     * @param int $chars - input characters
      * @return string
      */
     protected function createRandomCode($length = 5, $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890')
     {
-        $chars_length = (strlen($chars) - 1);
+        $chars_length = strlen($chars) - 1;
         $string = $chars{rand(0, $chars_length)};
         for ($i = 1; $i < $length; $i = strlen($string)) {
             $r = $chars{rand(0, $chars_length)};
-            if ($r != $string{$i - 1}) {
-                $string .=  $r;
+            if ($r !== $string{$i - 1}) {
+                $string .= $r;
             }
         }
         return $string;
     }
 }
-

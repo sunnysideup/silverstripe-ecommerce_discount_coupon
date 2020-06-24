@@ -2,22 +2,17 @@
 
 namespace Sunnysideup\EcommerceDiscountCoupon\Model\Buyables;
 
-
-
-use Sunnysideup\EcommerceDiscountCoupon\Modifiers\DiscountCouponModifier;
 use SilverStripe\ORM\DataExtension;
-
-
-
+use Sunnysideup\EcommerceDiscountCoupon\Modifiers\DiscountCouponModifier;
 
 /**
-  * ### @@@@ START REPLACEMENT @@@@ ###
-  * WHY: automated upgrade
-  * OLD:  extends DataExtension (ignore case)
-  * NEW:  extends DataExtension (COMPLEX)
-  * EXP: Check for use of $this->anyVar and replace with $this->anyVar[$this->owner->ID] or consider turning the class into a trait
-  * ### @@@@ STOP REPLACEMENT @@@@ ###
-  */
+ * ### @@@@ START REPLACEMENT @@@@ ###
+ * WHY: automated upgrade
+ * OLD:  extends DataExtension (ignore case)
+ * NEW:  extends DataExtension (COMPLEX)
+ * EXP: Check for use of $this->anyVar and replace with $this->anyVar[$this->owner->ID] or consider turning the class into a trait
+ * ### @@@@ STOP REPLACEMENT @@@@ ###
+ */
 class DiscountCouponSiteTreeDOD_Product extends DataExtension
 {
     public function ExcludeInDiscountCalculation(DiscountCouponModifier $modifier)
@@ -26,4 +21,3 @@ class DiscountCouponSiteTreeDOD_Product extends DataExtension
         return ! $coupon->canBeDiscounted($this->owner);
     }
 }
-

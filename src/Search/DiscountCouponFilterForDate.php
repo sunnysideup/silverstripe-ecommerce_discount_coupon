@@ -2,13 +2,10 @@
 
 namespace Sunnysideup\EcommerceDiscountCoupon\Search;
 
-
-
 use SilverStripe\ORM\DataQuery;
 use SilverStripe\ORM\Filters\ExactMatchFilter;
 
-
- // Future one
+// Future one
  //0----------F--|-------|----------------3000
  // Current One
  //0------------|--C-----|----------------3000
@@ -17,7 +14,6 @@ use SilverStripe\ORM\Filters\ExactMatchFilter;
 
 class DiscountCouponFilterForDate extends ExactMatchFilter
 {
-
     /**
      *@return SQLQuery
      **/
@@ -28,13 +24,13 @@ class DiscountCouponFilterForDate extends ExactMatchFilter
         $filterString = '';
         switch ($value) {
             case 'future':
-                $filterString = 'UNIX_TIMESTAMP("StartDate") > '.$date;
+                $filterString = 'UNIX_TIMESTAMP("StartDate") > ' . $date;
                 break;
             case 'current':
-                $filterString = 'UNIX_TIMESTAMP("StartDate") <=  '.$date.' AND UNIX_TIMESTAMP("EndDate") >= '.$date;
+                $filterString = 'UNIX_TIMESTAMP("StartDate") <=  ' . $date . ' AND UNIX_TIMESTAMP("EndDate") >= ' . $date;
                 break;
             case 'past':
-                $filterString = 'UNIX_TIMESTAMP("EndDate") <  '.$date;
+                $filterString = 'UNIX_TIMESTAMP("EndDate") <  ' . $date;
                 break;
         }
         if ($filterString) {
@@ -43,4 +39,3 @@ class DiscountCouponFilterForDate extends ExactMatchFilter
         return $query;
     }
 }
-
