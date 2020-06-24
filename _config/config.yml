@@ -6,23 +6,19 @@ After:
     - 'cms/*'
     - 'ecommerce/*'
 ---
-StoreAdmin:
+Sunnysideup\Ecommerce\Cms\StoreAdmin:
   managed_models:
-    - DiscountCouponOption
-
-OrderModifierFormController:
+    - Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption
+Sunnysideup\Ecommerce\Control\OrderModifierFormController:
   allowed_actions:
-    - DiscountCouponModifier
-
-Product:
+    - Sunnysideup\EcommerceDiscountCoupon\Modifiers\DiscountCouponModifier
+Sunnysideup\Ecommerce\Pages\Product:
   extensions:
-    - DiscountCouponProductDataExtension
-
+    - Sunnysideup\EcommerceDiscountCoupon\Model\Buyables\DiscountCouponProductDataExtension
 ---
 Only:
   classexists: 'DataObjectSorterDOD'
 ---
-
 PickUpOrDeliveryModifierOptions:
   extensions:
     - DataObjectSorterDOD

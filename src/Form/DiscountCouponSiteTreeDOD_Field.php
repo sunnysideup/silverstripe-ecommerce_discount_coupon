@@ -2,8 +2,11 @@
 
 namespace Sunnysideup\EcommerceDiscountCoupon\Form;
 
-use TreeMultiselectField;
-use DataObjectInterface;
+
+
+use SilverStripe\ORM\DataObjectInterface;
+use SilverStripe\Forms\TreeMultiselectField;
+
 
 
 

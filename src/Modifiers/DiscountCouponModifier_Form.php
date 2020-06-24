@@ -2,12 +2,20 @@
 
 namespace Sunnysideup\EcommerceDiscountCoupon\Modifiers;
 
-use OrderModifierForm;
-use FieldList;
-use Requirements;
-use Form;
-use ShoppingCart;
-use Convert;
+
+
+
+
+
+
+use SilverStripe\Forms\FieldList;
+use SilverStripe\View\Requirements;
+use SilverStripe\Forms\Form;
+use Sunnysideup\Ecommerce\Api\ShoppingCart;
+use Sunnysideup\EcommerceDiscountCoupon\Modifiers\DiscountCouponModifier;
+use SilverStripe\Core\Convert;
+use Sunnysideup\Ecommerce\Forms\OrderModifierForm;
+
 
 
 class DiscountCouponModifier_Form extends OrderModifierForm
@@ -59,7 +67,7 @@ class DiscountCouponModifier_Form extends OrderModifierForm
         if (isset($data['DiscountCouponCode'])) {
             $order = ShoppingCart::current_order();
             if ($order) {
-                $modifiers = $order->Modifiers('DiscountCouponModifier');
+                $modifiers = $order->Modifiers(DiscountCouponModifier::class);
                 $modifier = $modifiers->First();
                 if ($modifier) {
                     list($message, $type) = $modifier->updateCouponCodeEntered(Convert::raw2sql($data['DiscountCouponCode']));

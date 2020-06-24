@@ -2,12 +2,21 @@
 
 namespace Sunnysideup\EcommerceDiscountCoupon\Model\Buyables;
 
-use DataExtension;
-use FieldList;
-use GridField;
-use GridFieldConfig_RelationEditor;
-use EcommerceCurrency;
-use DBField;
+
+
+
+
+
+
+use Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption;
+use SilverStripe\Forms\FieldList;
+use SilverStripe\Forms\GridField\GridFieldConfig_RelationEditor;
+use SilverStripe\Forms\GridField\GridField;
+use Sunnysideup\Ecommerce\Model\Money\EcommerceCurrency;
+use SilverStripe\ORM\FieldType\DBDate;
+use SilverStripe\ORM\FieldType\DBField;
+use SilverStripe\ORM\DataExtension;
+
 
 
 
@@ -43,7 +52,7 @@ class DiscountCouponProductDataExtension extends DataExtension
     private static $table_name = 'DiscountCouponProductDataExtension';
 
     private static $belongs_many_many = array(
-        "ApplicableDiscountCoupons" => "DiscountCouponOption"
+        "ApplicableDiscountCoupons" => DiscountCouponOption::class
     );
 
 
@@ -170,7 +179,7 @@ class DiscountCouponProductDataExtension extends DataExtension
             }
         }
         if ($next) {
-            return DBField::create_field('Date', $next);
+            return DBField::create_field(DBDate::class, $next);
         }
     }
 }

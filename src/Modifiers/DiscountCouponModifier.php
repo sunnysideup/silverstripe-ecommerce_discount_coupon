@@ -2,15 +2,26 @@
 
 namespace Sunnysideup\EcommerceDiscountCoupon\Modifiers;
 
-use OrderModifier;
-use ReadonlyField;
-use DiscountCouponOption;
-use Controller;
-use Validator;
-use FieldList;
-use TextField;
-use FormAction;
+
+
+
+
+
+
+
+
 use ProductVaration;
+use Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption;
+use SilverStripe\Forms\ReadonlyField;
+use Sunnysideup\EcommerceDiscountCoupon\Model\Buyables\DiscountCouponSiteTreeDOD;
+use SilverStripe\Control\Controller;
+use SilverStripe\Forms\Validator;
+use SilverStripe\Forms\TextField;
+use SilverStripe\Forms\FieldList;
+use SilverStripe\Forms\FormAction;
+use Sunnysideup\EcommerceDiscountCoupon\Modifiers\DiscountCouponModifier;
+use Sunnysideup\Ecommerce\Model\OrderModifier;
+
 
 
 /**
@@ -59,7 +70,7 @@ class DiscountCouponModifier extends OrderModifier
      * @var Array
      */
     private static $has_one = array(
-        "DiscountCouponOption" => "DiscountCouponOption"
+        "DiscountCouponOption" => DiscountCouponOption::class
     );
 
     /**
@@ -167,7 +178,7 @@ class DiscountCouponModifier extends OrderModifier
             //-- START HACK
             return true;
             //-- END HACK
-            if (singleton('DiscountCouponOption')->hasExtension('DiscountCouponSiteTreeDOD')) {
+            if (singleton(DiscountCouponOption::class)->hasExtension(DiscountCouponSiteTreeDOD::class)) {
                 foreach ($items as $item) {
                     //here we need to add foreach valid coupon
                     //for each item->Buyable
@@ -206,7 +217,7 @@ class DiscountCouponModifier extends OrderModifier
         );
         $form = new DiscountCouponModifier_Form(
             $optionalController,
-            'DiscountCouponModifier',
+            DiscountCouponModifier::class,
             $fields,
             $actions,
             $optionalValidator

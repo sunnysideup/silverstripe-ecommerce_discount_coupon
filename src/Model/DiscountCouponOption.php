@@ -2,16 +2,29 @@
 
 namespace Sunnysideup\EcommerceDiscountCoupon\Model;
 
-use DataObject;
-use DropdownField;
-use DiscountCouponModifier;
-use Permission;
-use Config;
-use ReadonlyField;
-use GridFieldBasicPageRelationConfigNoAddExisting;
-use GridFieldBasicPageRelationConfig;
-use Product;
-use DB;
+
+
+
+
+
+
+
+
+
+
+use Sunnysideup\Ecommerce\Pages\Product;
+use Sunnysideup\Ecommerce\Pages\ProductGroup;
+use SilverStripe\Forms\DropdownField;
+use Sunnysideup\EcommerceDiscountCoupon\Modifiers\DiscountCouponModifier;
+use SilverStripe\Core\Config\Config;
+use Sunnysideup\Ecommerce\Model\Extensions\EcommerceRole;
+use SilverStripe\Security\Permission;
+use SilverStripe\Forms\ReadonlyField;
+use Sunnysideup\Ecommerce\Forms\Gridfield\Configs\GridFieldBasicPageRelationConfigNoAddExisting;
+use Sunnysideup\Ecommerce\Forms\Gridfield\Configs\GridFieldBasicPageRelationConfig;
+use SilverStripe\ORM\DB;
+use SilverStripe\ORM\DataObject;
+
 
 
 /**
@@ -35,9 +48,9 @@ class DiscountCouponOption extends DataObject
     );
 
     private static $many_many = array(
-        'Products' => 'Product',
-        'ProductGroups' => 'ProductGroup',
-        'ProductGroupsMustAlsoBePresentIn' => 'ProductGroup'
+        'Products' => Product::class,
+        'ProductGroups' => ProductGroup::class,
+        'ProductGroupsMustAlsoBePresentIn' => ProductGroup::class
     );
 
     /**
@@ -289,7 +302,7 @@ class DiscountCouponOption extends DataObject
      */
     public function canCreate($member = null, $context = [])
     {
-        if (Permission::checkMember($member, Config::inst()->get("EcommerceRole", "admin_permission_code"))) {
+        if (Permission::checkMember($member, Config::inst()->get(EcommerceRole::class, "admin_permission_code"))) {
             return true;
         }
         return parent::canCreate($member);
@@ -302,7 +315,7 @@ class DiscountCouponOption extends DataObject
      */
     public function canView($member = null, $context = [])
     {
-        if (Permission::checkMember($member, Config::inst()->get("EcommerceRole", "admin_permission_code"))) {
+        if (Permission::checkMember($member, Config::inst()->get(EcommerceRole::class, "admin_permission_code"))) {
             return true;
         }
         return parent::canView($member);
@@ -315,7 +328,7 @@ class DiscountCouponOption extends DataObject
      */
     public function canEdit($member = null, $context = [])
     {
-        if (Permission::checkMember($member, Config::inst()->get("EcommerceRole", "admin_permission_code"))) {
+        if (Permission::checkMember($member, Config::inst()->get(EcommerceRole::class, "admin_permission_code"))) {
             return true;
         }
         return parent::canEdit($member);
@@ -333,7 +346,7 @@ class DiscountCouponOption extends DataObject
         if ($this->UseCount()) {
             return false;
         }
-        if (Permission::checkMember($member, Config::inst()->get("EcommerceRole", "admin_permission_code"))) {
+        if (Permission::checkMember($member, Config::inst()->get(EcommerceRole::class, "admin_permission_code"))) {
             return true;
         }
         return parent::canDelete($member);

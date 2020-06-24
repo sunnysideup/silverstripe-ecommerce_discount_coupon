@@ -2,8 +2,11 @@
 
 namespace Sunnysideup\EcommerceDiscountCoupon\Model\Buyables;
 
-use DataExtension;
-use DiscountCouponModifier;
+
+
+use Sunnysideup\EcommerceDiscountCoupon\Modifiers\DiscountCouponModifier;
+use SilverStripe\ORM\DataExtension;
+
 
 
 

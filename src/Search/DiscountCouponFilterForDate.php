@@ -2,8 +2,11 @@
 
 namespace Sunnysideup\EcommerceDiscountCoupon\Search;
 
-use ExactMatchFilter;
-use DataQuery;
+
+
+use SilverStripe\ORM\DataQuery;
+use SilverStripe\ORM\Filters\ExactMatchFilter;
+
 
  // Future one
  //0----------F--|-------|----------------3000

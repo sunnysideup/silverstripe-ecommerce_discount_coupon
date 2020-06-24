@@ -2,11 +2,17 @@
 
 namespace Sunnysideup\EcommerceDiscountCoupon\Model\Buyables;
 
-use DataExtension;
-use FieldList;
-use DiscountCouponSiteTreeDOD_Field;
-use SiteTree;
-use ArrayList;
+
+
+
+
+
+use SilverStripe\Forms\FieldList;
+use SilverStripe\CMS\Model\SiteTree;
+use Sunnysideup\EcommerceDiscountCoupon\Form\DiscountCouponSiteTreeDOD_Field;
+use SilverStripe\ORM\ArrayList;
+use SilverStripe\ORM\DataExtension;
+
 
 
 /**
@@ -57,7 +63,7 @@ class DiscountCouponSiteTreeDOD extends DataExtension
         $field = new DiscountCouponSiteTreeDOD_Field(
             $name = "PageIDs",
             $title = $label,
-            $sourceObject = "SiteTree",
+            $sourceObject = SiteTree::class,
             $keyField = "ID",
             $labelField = "MenuTitle"
         );
