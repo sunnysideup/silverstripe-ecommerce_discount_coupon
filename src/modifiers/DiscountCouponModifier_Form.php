@@ -23,7 +23,7 @@ class DiscountCouponModifier_Form extends OrderModifierForm
     public function __construct($optionalController = null, $name, FieldList $fields, FieldList $actions, $optionalValidator = null)
     {
         parent::__construct($optionalController, $name, $fields, $actions, $optionalValidator);
-        Requirements::themedCSS("DiscountCouponModifier", "ecommerce_discount_coupon");
+        Requirements::themedCSS("sunnysideup/ecommerce_discount_coupon: DiscountCouponModifier", "ecommerce_discount_coupon");
 
 /**
   * ### @@@@ START REPLACEMENT @@@@ ###
@@ -33,7 +33,7 @@ class DiscountCouponModifier_Form extends OrderModifierForm
   * EXP: Check for best usage and inclusion of Jquery
   * ### @@@@ STOP REPLACEMENT @@@@ ###
   */
-        Requirements::javascript('silverstripe/admin: thirdparty/jquery/jquery.js');
+        Requirements::javascript('sunnysideup/ecommerce_discount_coupon: silverstripe/admin: thirdparty/jquery/jquery.js');
         Requirements::javascript(THIRDPARTY_DIR . "/jquery-form/jquery.form.js");
         //Requirements::block(THIRDPARTY_DIR."/jquery/jquery.js");
         //Requirements::javascript(Director::protocol()."ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js");
