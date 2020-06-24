@@ -9,6 +9,20 @@ class DiscountCouponProductDataExtension extends DataExtension
      * stadard SS declaration
      * @var Array
      */
+
+/**
+  * ### @@@@ START REPLACEMENT @@@@ ###
+  * OLD: private static $belongs_many_many = (case sensitive)
+  * NEW: 
+    private static $table_name = '[SEARCH_REPLACE_CLASS_NAME_GOES_HERE]';
+
+    private static $belongs_many_many = (COMPLEX)
+  * EXP: Check that is class indeed extends DataObject and that it is not a data-extension!
+  * ### @@@@ STOP REPLACEMENT @@@@ ###
+  */
+    
+    private static $table_name = 'DiscountCouponProductDataExtension';
+
     private static $belongs_many_many = array(
         "ApplicableDiscountCoupons" => "DiscountCouponOption"
     );
