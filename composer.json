@@ -22,8 +22,8 @@
         }
     ],
     "require": {
-        "silverstripe/cms": "~3.6",
-        "sunnysideup/ecommerce": ">=3.0"
+        "sunnysideup/ecommerce": ">=3.0",
+        "silverstripe/recipe-cms": "^4.4"
     },
     "extra": {
         "installer-name": "ecommerce_discount_coupon"
