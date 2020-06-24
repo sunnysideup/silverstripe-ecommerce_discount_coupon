@@ -1,5 +1,15 @@
 <?php
 
+namespace Sunnysideup\EcommerceDiscountCoupon\Modifiers;
+
+use OrderModifierForm;
+use FieldList;
+use Requirements;
+use Form;
+use ShoppingCart;
+use Convert;
+
+
 class DiscountCouponModifier_Form extends OrderModifierForm
 {
 

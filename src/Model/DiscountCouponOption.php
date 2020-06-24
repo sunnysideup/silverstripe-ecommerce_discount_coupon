@@ -1,5 +1,19 @@
 <?php
 
+namespace Sunnysideup\EcommerceDiscountCoupon\Model;
+
+use DataObject;
+use DropdownField;
+use DiscountCouponModifier;
+use Permission;
+use Config;
+use ReadonlyField;
+use GridFieldBasicPageRelationConfigNoAddExisting;
+use GridFieldBasicPageRelationConfig;
+use Product;
+use DB;
+
+
 /**
  *@author nicolaas [at] sunnysideup.co.nz
  *

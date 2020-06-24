@@ -1,5 +1,14 @@
 <?php
 
+namespace Sunnysideup\EcommerceDiscountCoupon\Model\Buyables;
+
+use DataExtension;
+use FieldList;
+use DiscountCouponSiteTreeDOD_Field;
+use SiteTree;
+use ArrayList;
+
+
 /**
  *
  */

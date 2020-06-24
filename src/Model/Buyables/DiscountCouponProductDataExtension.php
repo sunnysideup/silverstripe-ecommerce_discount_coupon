@@ -1,5 +1,15 @@
 <?php
 
+namespace Sunnysideup\EcommerceDiscountCoupon\Model\Buyables;
+
+use DataExtension;
+use FieldList;
+use GridField;
+use GridFieldConfig_RelationEditor;
+use EcommerceCurrency;
+use DBField;
+
+
 
 
 /**

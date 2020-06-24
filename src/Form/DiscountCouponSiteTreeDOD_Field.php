@@ -1,5 +1,11 @@
 <?php
 
+namespace Sunnysideup\EcommerceDiscountCoupon\Form;
+
+use TreeMultiselectField;
+use DataObjectInterface;
+
+
 
 class DiscountCouponSiteTreeDOD_Field extends TreeMultiselectField
 {

@@ -1,4 +1,10 @@
 <?php
+
+namespace Sunnysideup\EcommerceDiscountCoupon\Search;
+
+use ExactMatchFilter;
+use DataQuery;
+
  // Future one
  //0----------F--|-------|----------------3000
  // Current One

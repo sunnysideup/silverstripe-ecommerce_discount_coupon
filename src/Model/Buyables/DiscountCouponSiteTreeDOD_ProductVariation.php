@@ -1,5 +1,11 @@
 <?php
 
+namespace Sunnysideup\EcommerceDiscountCoupon\Model\Buyables;
+
+use DataExtension;
+use DiscountCouponModifier;
+
+
 
 
 /**

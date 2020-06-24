@@ -1,5 +1,18 @@
 <?php
 
+namespace Sunnysideup\EcommerceDiscountCoupon\Modifiers;
+
+use OrderModifier;
+use ReadonlyField;
+use DiscountCouponOption;
+use Controller;
+use Validator;
+use FieldList;
+use TextField;
+use FormAction;
+use ProductVaration;
+
+
 /**
  * @author Nicolaas [at] sunnysideup.co.nz
  * @author Romain [at] sunnysideup.co.nz
