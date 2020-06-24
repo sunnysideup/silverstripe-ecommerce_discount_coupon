@@ -24,7 +24,16 @@ class DiscountCouponModifier_Form extends OrderModifierForm
     {
         parent::__construct($optionalController, $name, $fields, $actions, $optionalValidator);
         Requirements::themedCSS("DiscountCouponModifier", "ecommerce_discount_coupon");
-        Requirements::javascript(THIRDPARTY_DIR . "/jquery/jquery.js");
+
+/**
+  * ### @@@@ START REPLACEMENT @@@@ ###
+  * WHY: automated upgrade
+  * OLD: THIRDPARTY_DIR . "/jquery/jquery.js" (case sensitive)
+  * NEW: 'silverstripe/admin: thirdparty/jquery/jquery.js' (COMPLEX)
+  * EXP: Check for best usage and inclusion of Jquery
+  * ### @@@@ STOP REPLACEMENT @@@@ ###
+  */
+        Requirements::javascript('silverstripe/admin: thirdparty/jquery/jquery.js');
         Requirements::javascript(THIRDPARTY_DIR . "/jquery-form/jquery.form.js");
         //Requirements::block(THIRDPARTY_DIR."/jquery/jquery.js");
         //Requirements::javascript(Director::protocol()."ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js");
@@ -44,7 +53,16 @@ class DiscountCouponModifier_Form extends OrderModifierForm
                 $modifier = $modifiers->First();
                 if ($modifier) {
                     list($message, $type) = $modifier->updateCouponCodeEntered(Convert::raw2sql($data['DiscountCouponCode']));
-                    $form->addErrorMessage("DiscountCouponCode", $message, $type);
+
+/**
+  * ### @@@@ START REPLACEMENT @@@@ ###
+  * WHY: automated upgrade
+  * OLD: $form->addErrorMessage( (case sensitive)
+  * NEW: $form->sessionError( (COMPLEX)
+  * EXP: SilverStripe\Forms\Form->addErrorMessage(): Removed. Use `sessionMessage()` or `sessionError()` to add a form level message, throw a `ValidationException` during submission, or add a custom validator.
+  * ### @@@@ STOP REPLACEMENT @@@@ ###
+  */
+                    $form->sessionError("DiscountCouponCode", $message, $type);
                     return ShoppingCart::singleton()->setMessageAndReturn($message, $type);
                 }
             }

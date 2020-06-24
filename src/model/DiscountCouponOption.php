@@ -273,7 +273,7 @@ class DiscountCouponOption extends DataObject
      * @param Member | NULL
      * @return Boolean
      */
-    public function canCreate($member = null)
+    public function canCreate($member = null, $context = [])
     {
         if (Permission::checkMember($member, Config::inst()->get("EcommerceRole", "admin_permission_code"))) {
             return true;
@@ -286,7 +286,7 @@ class DiscountCouponOption extends DataObject
      * @param Member | NULL
      * @return Boolean
      */
-    public function canView($member = null)
+    public function canView($member = null, $context = [])
     {
         if (Permission::checkMember($member, Config::inst()->get("EcommerceRole", "admin_permission_code"))) {
             return true;
@@ -299,7 +299,7 @@ class DiscountCouponOption extends DataObject
      * @param Member | NULL
      * @return Boolean
      */
-    public function canEdit($member = null)
+    public function canEdit($member = null, $context = [])
     {
         if (Permission::checkMember($member, Config::inst()->get("EcommerceRole", "admin_permission_code"))) {
             return true;
@@ -314,7 +314,7 @@ class DiscountCouponOption extends DataObject
      *
      * @return Boolean
      */
-    public function canDelete($member = null)
+    public function canDelete($member = null, $context = [])
     {
         if ($this->UseCount()) {
             return false;

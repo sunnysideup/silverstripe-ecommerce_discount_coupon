@@ -350,14 +350,14 @@ class DiscountCouponModifier extends OrderModifier
     protected function applicableProductsArray($coupon)
     {
         if (self::$_applicable_products_array === null) {
-            self::$_applicable_products_array = array();
-            $finalArray = array();
+            self::$_applicable_products_array = [];
+            $finalArray = [];
             $order = $this->Order();
             if ($order) {
                 $items = $order->Items();
                 if ($items && $items->count()) {
                     //get a list of all the products in the cart
-                    $arrayOfProductsInOrder = array();
+                    $arrayOfProductsInOrder = [];
                     foreach ($items as $item) {
                         $buyable = $item->Buyable();
                         if ($buyable instanceof ProductVaration) {

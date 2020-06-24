@@ -1,6 +1,6 @@
 ---
 Name: ecommerce_discount_coupon
-Before: 'mysite/*'
+Before: 'app/*'
 After:
     - 'framework/*'
     - 'cms/*'
@@ -10,7 +10,7 @@ StoreAdmin:
   managed_models:
     - DiscountCouponOption
 
-OrderModifierForm_Controller:
+OrderModifierFormController:
   allowed_actions:
     - DiscountCouponModifier
 
