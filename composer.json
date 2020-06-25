@@ -28,5 +28,6 @@
     },
     "extra": {
         "installer-name": "ecommerce_discount_coupon"
-    }
+    },
+    "minimum-stability": "dev"
 }
