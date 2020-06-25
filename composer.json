@@ -24,7 +24,7 @@
     "require": {
         "silverstripe/framework": "~3.6",
         "silverstripe/cms": "~3.6",
-        "sunnysideup/ecommerce": ">=3.0"
+        "sunnysideup/ecommerce": "^11.0"
     },
     "extra": {
         "installer-name": "ecommerce_discount_coupon"
