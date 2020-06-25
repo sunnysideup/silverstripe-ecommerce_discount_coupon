@@ -15,24 +15,15 @@ class DiscountCouponModifier_Form extends OrderModifierForm
      * @var array
      */
     private static $custom_javascript_files = [
-        'ecommerce_discount_coupon/javascript/DiscountCouponModifier.js',
+        'sunnysideup/ecommerce_discount_coupon: client/javascript/DiscountCouponModifier.js',
     ];
 
     public function __construct($optionalController = null, $name, FieldList $fields, FieldList $actions, $optionalValidator = null)
     {
         parent::__construct($optionalController, $name, $fields, $actions, $optionalValidator);
-        Requirements::themedCSS('sunnysideup/ecommerce_discount_coupon: DiscountCouponModifier', 'ecommerce_discount_coupon');
-
-        /**
-         * ### @@@@ START REPLACEMENT @@@@ ###
-         * WHY: automated upgrade
-         * OLD: THIRDPARTY_DIR . "/jquery/jquery.js" (case sensitive)
-         * NEW: 'silverstripe/admin: thirdparty/jquery/jquery.js' (COMPLEX)
-         * EXP: Check for best usage and inclusion of Jquery
-         * ### @@@@ STOP REPLACEMENT @@@@ ###
-         */
-        Requirements::javascript('sunnysideup/ecommerce_discount_coupon: silverstripe/admin: thirdparty/jquery/jquery.js');
-        Requirements::javascript(THIRDPARTY_DIR . '/jquery-form/jquery.form.js');
+        Requirements::themedCSS('sunnysideup/ecommerce_discount_coupon: client/css/DiscountCouponModifier');
+        Requirements::javascript('silverstripe/admin: thirdparty/jquery/jquery.js');
+        Requirements::javascript('silverstripe/admin: thirdparty/jquery-form/jquery.form.js');
         //Requirements::block(THIRDPARTY_DIR."/jquery/jquery.js");
         //Requirements::javascript(Director::protocol()."ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js");
         if ($jsRequirements = $this->Config()->get('custom_javascript_files')) {

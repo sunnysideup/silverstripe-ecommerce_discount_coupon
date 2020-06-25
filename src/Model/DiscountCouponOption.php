@@ -14,6 +14,7 @@ use Sunnysideup\Ecommerce\Model\Extensions\EcommerceRole;
 use Sunnysideup\Ecommerce\Pages\Product;
 use Sunnysideup\Ecommerce\Pages\ProductGroup;
 use Sunnysideup\EcommerceDiscountCoupon\Modifiers\DiscountCouponModifier;
+use Sunnysideup\EcommerceDiscountCoupon\Search\DiscountCouponFilterForDate;
 
 /**
  *@author nicolaas [at] sunnysideup.co.nz
@@ -27,6 +28,12 @@ class DiscountCouponOption extends DataObject
     protected $isNew = false;
 
     protected $_productsCalculated = false;
+
+    /**
+     * standard SS Variable
+     * @var string
+     */
+    private static $table_name = 'DiscountCouponOption';
 
     private static $db = [
         'ApplyPercentageToApplicableProducts' => 'Boolean',
@@ -72,7 +79,7 @@ class DiscountCouponOption extends DataObject
      */
     private static $searchable_fields = [
         'StartDate' => [
-            'filter' => 'DiscountCouponFilterForDate',
+            'filter' => DiscountCouponFilterForDate::class,
         ],
         'Title' => 'PartialMatchFilter',
         'Code' => 'PartialMatchFilter',
@@ -512,10 +519,10 @@ class DiscountCouponOption extends DataObject
     protected function createRandomCode($length = 5, $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890')
     {
         $chars_length = strlen($chars) - 1;
-        $string = $chars{rand(0, $chars_length)};
+        $string = $chars[rand(0, $chars_length)];
         for ($i = 1; $i < $length; $i = strlen($string)) {
-            $r = $chars{rand(0, $chars_length)};
-            if ($r !== $string{$i - 1}) {
+            $r = $chars[rand(0, $chars_length)];
+            if ($r !== $string[$i - 1]) {
                 $string .= $r;
             }
         }

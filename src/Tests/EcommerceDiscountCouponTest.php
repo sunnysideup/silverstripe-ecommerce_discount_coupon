@@ -1,5 +1,7 @@
 <?php
 
+namespace Sunnysideup\EcommerceDiscountCoupon\Tests;
+
 use SilverStripe\Dev\SapphireTest;
 
 class EcommerceDiscountCouponTest extends SapphireTest

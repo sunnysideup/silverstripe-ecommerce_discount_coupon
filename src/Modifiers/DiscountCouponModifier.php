@@ -38,16 +38,7 @@ class DiscountCouponModifier extends OrderModifier
 
     /**
      * standard SS Variable
-     * @var array
-     */
-
-    /**
-     * ### @@@@ START REPLACEMENT @@@@ ###
-     * OLD: private static $db (case sensitive)
-     * NEW:
-    private static $db (COMPLEX)
-     * EXP: Check that is class indeed extends DataObject and that it is not a data-extension!
-     * ### @@@@ STOP REPLACEMENT @@@@ ###
+     * @var string
      */
     private static $table_name = 'DiscountCouponModifier';
 

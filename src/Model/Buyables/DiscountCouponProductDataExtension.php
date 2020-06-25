@@ -11,14 +11,6 @@ use SilverStripe\ORM\FieldType\DBField;
 use Sunnysideup\Ecommerce\Model\Money\EcommerceCurrency;
 use Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption;
 
-/**
- * ### @@@@ START REPLACEMENT @@@@ ###
- * WHY: automated upgrade
- * OLD:  extends DataExtension (ignore case)
- * NEW:  extends DataExtension (COMPLEX)
- * EXP: Check for use of $this->anyVar and replace with $this->anyVar[$this->owner->ID] or consider turning the class into a trait
- * ### @@@@ STOP REPLACEMENT @@@@ ###
- */
 class DiscountCouponProductDataExtension extends DataExtension
 {
     protected static $buyable_to_be_excluded_from_discounts = [];
@@ -27,17 +19,6 @@ class DiscountCouponProductDataExtension extends DataExtension
      * stadard SS declaration
      * @var array
      */
-
-    /**
-     * ### @@@@ START REPLACEMENT @@@@ ###
-     * OLD: private static $belongs_many_many = (case sensitive)
-     * NEW:
-    private static $belongs_many_many = (COMPLEX)
-     * EXP: Check that is class indeed extends DataObject and that it is not a data-extension!
-     * ### @@@@ STOP REPLACEMENT @@@@ ###
-     */
-    private static $table_name = 'DiscountCouponProductDataExtension';
-
     private static $belongs_many_many = [
         'ApplicableDiscountCoupons' => DiscountCouponOption::class,
     ];

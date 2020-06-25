@@ -5,15 +5,7 @@ namespace Sunnysideup\EcommerceDiscountCoupon\Model\Buyables;
 use SilverStripe\ORM\DataExtension;
 use Sunnysideup\EcommerceDiscountCoupon\Modifiers\DiscountCouponModifier;
 
-/**
- * ### @@@@ START REPLACEMENT @@@@ ###
- * WHY: automated upgrade
- * OLD:  extends DataExtension (ignore case)
- * NEW:  extends DataExtension (COMPLEX)
- * EXP: Check for use of $this->anyVar and replace with $this->anyVar[$this->owner->ID] or consider turning the class into a trait
- * ### @@@@ STOP REPLACEMENT @@@@ ###
- */
-class DiscountCouponSiteTreeDOD_ProductVariation extends DataExtension
+class DiscountCouponSiteTreeDODProductVariation extends DataExtension
 {
     /**
      * @param DiscountCouponModifier $modifier

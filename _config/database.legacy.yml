@@ -5,7 +5,7 @@ SilverStripe\ORM\DatabaseAdmin:
     DiscountCouponModifier: Sunnysideup\EcommerceDiscountCoupon\Modifiers\DiscountCouponModifier
     DiscountCouponFilterForDate: Sunnysideup\EcommerceDiscountCoupon\Search\DiscountCouponFilterForDate
     DiscountCouponProductDataExtension: Sunnysideup\EcommerceDiscountCoupon\Model\Buyables\DiscountCouponProductDataExtension
-    DiscountCouponSiteTreeDOD_ProductVariation: Sunnysideup\EcommerceDiscountCoupon\Model\Buyables\DiscountCouponSiteTreeDOD_ProductVariation
+    DiscountCouponSiteTreeDOD_ProductVariation: Sunnysideup\EcommerceDiscountCoupon\Model\Buyables\DiscountCouponSiteTreeDODProductVariation
     DiscountCouponSiteTreeDOD: Sunnysideup\EcommerceDiscountCoupon\Model\Buyables\DiscountCouponSiteTreeDOD
-    DiscountCouponSiteTreeDOD_Product: Sunnysideup\EcommerceDiscountCoupon\Model\Buyables\DiscountCouponSiteTreeDOD_Product
+    DiscountCouponSiteTreeDOD_Product: Sunnysideup\EcommerceDiscountCoupon\Model\Buyables\DiscountCouponSiteTreeDODProduct
     DiscountCouponOption: Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption

@@ -6,30 +6,14 @@ use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\DataExtension;
+use Sunnysideup\Ecommerce\Pages\Product;
+use Sunnysideup\Ecommerce\Pages\ProductGroup;
 use Sunnysideup\EcommerceDiscountCoupon\Form\DiscountCouponSiteTreeDOD_Field;
 
-/**
- * ### @@@@ START REPLACEMENT @@@@ ###
- * WHY: automated upgrade
- * OLD:  extends DataExtension (ignore case)
- * NEW:  extends DataExtension (COMPLEX)
- * EXP: Check for use of $this->anyVar and replace with $this->anyVar[$this->owner->ID] or consider turning the class into a trait
- * ### @@@@ STOP REPLACEMENT @@@@ ###
- */
 class DiscountCouponSiteTreeDOD extends DataExtension
 {
-    /**
-     * ### @@@@ START REPLACEMENT @@@@ ###
-     * OLD: private static $db (case sensitive)
-     * NEW:
-    private static $db (COMPLEX)
-     * EXP: Check that is class indeed extends DataObject and that it is not a data-extension!
-     * ### @@@@ STOP REPLACEMENT @@@@ ###
-     */
-    private static $table_name = 'DiscountCouponSiteTreeDOD';
-
     private static $db = [
-        'PageIDs' => 'Text(700)',
+        'PageIDs' => 'Text',
     ];
 
     /**
@@ -50,8 +34,10 @@ class DiscountCouponSiteTreeDOD extends DataExtension
             $keyField = 'ID',
             $labelField = 'MenuTitle'
         );
-        $filter = create_function('$obj', 'return ( ( $obj InstanceOf ProductGroup || $obj InstanceOf Product) && ($obj->ParentID != ' . $this->owner->ID . '));');
-        $field->setFilterFunction($filter);
+        // $filter = function ($o) use ($obj)  {
+        //     return (($obj instanceof ProductGroup || $obj instanceof Product) && ($obj->ParentID != ' . $this->owner->ID . '));
+        // };
+        // $field->setFilterFunction($filter);
         $fields->addFieldToTab('Root.AppliesTo', $field);
     }
 
