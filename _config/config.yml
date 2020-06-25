@@ -1,28 +1,25 @@
 ---
 Name: ecommerce_discount_coupon
-Before: 'mysite/*'
-After:
-    - 'framework/*'
-    - 'cms/*'
-    - 'ecommerce/*'
+Before: 
+  - '#app'
+After: 
+  - '#coreconfig'
+  - '#cmsextensions'
+  - '#ecommerce'
 ---
-StoreAdmin:
+Sunnysideup\Ecommerce\Cms\StoreAdmin:
   managed_models:
-    - DiscountCouponOption
-
-OrderModifierForm_Controller:
+    - Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption
+Sunnysideup\Ecommerce\Control\OrderModifierFormController:
   allowed_actions:
     - DiscountCouponModifier
-
-Product:
+Sunnysideup\Ecommerce\Pages\Product:
   extensions:
-    - DiscountCouponProductDataExtension
-
+    - Sunnysideup\EcommerceDiscountCoupon\Model\Buyables\DiscountCouponProductDataExtension
 ---
 Only:
   classexists: 'DataObjectSorterDOD'
 ---
-
 PickUpOrDeliveryModifierOptions:
   extensions:
     - DataObjectSorterDOD

@@ -1,36 +1,43 @@
 <?php
 
-/**
- *
- */
+namespace Sunnysideup\EcommerceDiscountCoupon\Model\Buyables;
+
+use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\Forms\FieldList;
+use SilverStripe\ORM\ArrayList;
+use SilverStripe\ORM\DataExtension;
+use Sunnysideup\Ecommerce\Pages\Product;
+use Sunnysideup\Ecommerce\Pages\ProductGroup;
+use Sunnysideup\EcommerceDiscountCoupon\Form\DiscountCouponSiteTreeDOD_Field;
 
 class DiscountCouponSiteTreeDOD extends DataExtension
 {
-    private static $db = array(
-        'PageIDs' => 'Text(700)'
-    );
+    private static $db = [
+        'PageIDs' => 'Text',
+    ];
 
     /**
      * update the CMS Fields
      *
      * @param FieldList $fields
-     *
      */
     public function updateCMSFields(FieldList $fields)
     {
         $label = _t(
-            "DiscountCouponSiteTreeDOD.SELECT_PRODUCTS_AND_SERVICES",
+            'DiscountCouponSiteTreeDOD.SELECT_PRODUCTS_AND_SERVICES',
             'Select Product Categories and/or Products (if nothing is selected, the discount coupon will apply to all buyables).'
         );
         $field = new DiscountCouponSiteTreeDOD_Field(
-            $name = "PageIDs",
+            $name = 'PageIDs',
             $title = $label,
-            $sourceObject = "SiteTree",
-            $keyField = "ID",
-            $labelField = "MenuTitle"
+            $sourceObject = SiteTree::class,
+            $keyField = 'ID',
+            $labelField = 'MenuTitle'
         );
-        $filter = create_function('$obj', 'return ( ( $obj InstanceOf ProductGroup || $obj InstanceOf Product) && ($obj->ParentID != '.$this->owner->ID.'));');
-        $field->setFilterFunction($filter);
+        // $filter = function ($o) use ($obj)  {
+        //     return (($obj instanceof ProductGroup || $obj instanceof Product) && ($obj->ParentID != ' . $this->owner->ID . '));
+        // };
+        // $field->setFilterFunction($filter);
         $fields->addFieldToTab('Root.AppliesTo', $field);
     }
 
@@ -47,10 +54,10 @@ class DiscountCouponSiteTreeDOD extends DataExtension
         if ($this->owner->PageIDs) {
             $allowedPageIDs = explode(',', $this->owner->PageIDs);
             $checkPages = ArrayList::create([$page]);
-            $alreadyCheckedPageIDs = array();
+            $alreadyCheckedPageIDs = [];
             while ($checkPages->Count()) {
                 $page = $checkPages->First();
-                if (array_search($page->ID, $allowedPageIDs) !== false) {
+                if (array_search($page->ID, $allowedPageIDs, true) !== false) {
                     return true;
                 }
                 $alreadyCheckedPageIDs[] = $page->ID;
@@ -69,7 +76,7 @@ class DiscountCouponSiteTreeDOD extends DataExtension
                 }
 
                 foreach ($parents as $parent) {
-                    if (array_search($parent->ID, $alreadyCheckedPageIDs) === false) {
+                    if (array_search($parent->ID, $alreadyCheckedPageIDs, true) === false) {
                         $checkPages->push($parent);
                     }
                 }
