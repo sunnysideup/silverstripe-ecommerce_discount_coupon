@@ -1,6 +1,6 @@
 mappings:
   DiscountCouponSiteTreeDOD_Field: Sunnysideup\EcommerceDiscountCoupon\Form\DiscountCouponSiteTreeDOD_Field
-  DiscountCouponModifier_Form: Sunnysideup\EcommerceDiscountCoupon\Modifiers\DiscountCouponModifier_Form
+  DiscountCouponModifier_Form: Sunnysideup\EcommerceDiscountCoupon\Modifiers\DiscountCouponModifierForm
   DiscountCouponModifier: Sunnysideup\EcommerceDiscountCoupon\Modifiers\DiscountCouponModifier
   DiscountCouponFilterForDate: Sunnysideup\EcommerceDiscountCoupon\Search\DiscountCouponFilterForDate
   DiscountCouponProductDataExtension: Sunnysideup\EcommerceDiscountCoupon\Model\Buyables\DiscountCouponProductDataExtension

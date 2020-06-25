@@ -9,9 +9,9 @@
 
 var DiscountCoupon = {
 
-    formID: "#DiscountCouponModifier_Form_DiscountCouponModifier",
+    formID: "#DiscountCouponModifierForm_DiscountCouponModifier",
 
-    fieldID: "#DiscountCouponModifier_Form_DiscountCouponModifier input[name='DiscountCouponCode']",
+    fieldID: "#DiscountCouponModifierForm_DiscountCouponModifier input[name='DiscountCouponCode']",
 
     loadingClass: "loading",
 
@@ -26,14 +26,13 @@ var DiscountCoupon = {
     EcomCart: {},
 
     init: function() {
-
-        if(typeof EcomCart === "undefined" ) {
+        if (typeof window.EcomCart === "undefined") {
             //webpack route
             var EcomCart = require("./EcomCartWebPack");
             DiscountCoupon.EcomCart = EcomCart.EcomCart;
         } else {
             //alternative route
-            DiscountCoupon.EcomCart = EcomCart;
+            DiscountCoupon.EcomCart = window.EcomCart;
         }
         var options = {
             beforeSubmit:  DiscountCoupon.showRequest,  // pre-submit callback
@@ -123,7 +122,7 @@ jQuery.fn.handleKeyboardChange = function(nDelay)
         // Start a timeout to fire our event after some time of inactivity
         // Eventually cancel a previously running timeout
         clearPreviousTimeout();
-        var $self = $(this);
+        var $self = jQuery(this);
         timeout = setTimeout(function(){ fireChange($self) }, nDelay);
     })
     .change(function()
@@ -134,7 +133,7 @@ jQuery.fn.handleKeyboardChange = function(nDelay)
         // our previous event.
         // This is for when the browser fires the change event
         // though we already fired the event because of the timeout
-        fireChange($(this));
+        fireChange(jQuery(this));
     })
     ;
 }

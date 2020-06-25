@@ -29,7 +29,7 @@ class DiscountCouponSiteTreeDOD_Field extends TreeMultiselectField
                     return;
                 }
             }
-            if ($fieldName && ($record->has_many($fieldName) || $record->many_many($fieldName))) {
+            if ($fieldName && ($record->getSchema()->hasManyComponent($record->ClassName, $fieldName) || $record->getSchema()->manyManyComponent($record->ClassName, $fieldName))) {
                 // Set related records
                 $record->{$fieldName}()->setByIDList($items);
             } else {

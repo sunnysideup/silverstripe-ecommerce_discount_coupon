@@ -12,14 +12,10 @@ Sunnysideup\Ecommerce\Cms\StoreAdmin:
     - Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption
 Sunnysideup\Ecommerce\Control\OrderModifierFormController:
   allowed_actions:
-    - Sunnysideup\EcommerceDiscountCoupon\Modifiers\DiscountCouponModifier
+    - DiscountCouponModifier
 Sunnysideup\Ecommerce\Pages\Product:
   extensions:
     - Sunnysideup\EcommerceDiscountCoupon\Model\Buyables\DiscountCouponProductDataExtension
-
-Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption:
-  extensions:
-    - Sunnysideup\EcommerceDiscountCoupon\Model\Buyables\DiscountCouponSiteTreeDOD
 ---
 Only:
   classexists: 'DataObjectSorterDOD'

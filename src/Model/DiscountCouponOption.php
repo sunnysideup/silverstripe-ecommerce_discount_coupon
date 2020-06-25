@@ -402,7 +402,7 @@ class DiscountCouponOption extends DataObject
         $validator = parent::validate();
         if (! $this->isNew) {
             if ($this->thereAreCouponsWithTheSameCode()) {
-                $validator->error(_t('DiscountCouponOption.CODEALREADYEXISTS', 'This code already exists - please use another code.'));
+                $validator->addError(_t('DiscountCouponOption.CODEALREADYEXISTS', 'This code already exists - please use another code.'));
             }
             if (isset($_REQUEST['StartDate'])) {
                 $this->StartDate = date('Y-m-d', strtotime($_REQUEST['StartDate']));
@@ -411,20 +411,32 @@ class DiscountCouponOption extends DataObject
                 $this->EndDate = date('Y-m-d', strtotime($_REQUEST['EndDate']));
             }
             if (strtotime($this->StartDate) < strtotime('-12 years')) {
-                $validator->error(_t('DiscountCouponOption.NOSTARTDATE', 'Please enter a start date'));
+                $validator->addFieldError(
+                    'StartDate',
+                    _t('DiscountCouponOption.NOSTARTDATE', 'Please enter a start date')
+                );
             }
             if (strtotime($this->EndDate) < strtotime('-12 years')) {
-                $validator->error(_t('DiscountCouponOption.NOENDDATE', 'Please enter an end date'));
+                $validator->addFieldError(
+                    'EndDate',
+                    _t('DiscountCouponOption.NOENDDATE', 'Please enter an end date')
+                );
             }
             if (strtotime($this->EndDate) < strtotime($this->StartDate)) {
-                $validator->error(_t('DiscountCouponOption.ENDDATETOOEARLY', 'The end date should be after the start date'));
+                $validator->addError(_t('DiscountCouponOption.ENDDATETOOEARLY', 'The end date should be after the start date'));
             }
             if ($this->DiscountPercentage < 0 || $this->DiscountPercentage > 99.999) {
-                $validator->error(_t('DiscountCouponOption.DISCOUNTOUTOFBOUNDS', 'The discount percentage should be between 0 and 99.999.'));
+                $validator->addFieldError(
+                    'DiscountPercentage',
+                    _t('DiscountCouponOption.DISCOUNTOUTOFBOUNDS', 'The discount percentage should be between 0 and 99.999.')
+                );
             }
         }
         if ($this->NumberOfTimesCouponCanBeUsed === null || $this->NumberOfTimesCouponCanBeUsed === '') {
-            $validator->error(_t('DiscountCouponOption.SET_TIMES_AVAILABLE', 'Set the number of times the coupon is available (0 = not available ... 999,999 = almost unlimited availability)'));
+            $validator->addFieldError(
+                'NumberOfTimesCouponCanBeUsed',
+                _t('DiscountCouponOption.SET_TIMES_AVAILABLE', 'Set the number of times the coupon is available (0 = not available ... 999,999 = almost unlimited availability)')
+            );
         }
         return $validator;
     }

@@ -9,7 +9,7 @@ use SilverStripe\View\Requirements;
 use Sunnysideup\Ecommerce\Api\ShoppingCart;
 use Sunnysideup\Ecommerce\Forms\OrderModifierForm;
 
-class DiscountCouponModifier_Form extends OrderModifierForm
+class DiscountCouponModifierForm extends OrderModifierForm
 {
     /**
      * @var array
@@ -21,7 +21,6 @@ class DiscountCouponModifier_Form extends OrderModifierForm
     public function __construct($optionalController = null, $name, FieldList $fields, FieldList $actions, $optionalValidator = null)
     {
         parent::__construct($optionalController, $name, $fields, $actions, $optionalValidator);
-        Requirements::themedCSS('sunnysideup/ecommerce_discount_coupon: client/css/DiscountCouponModifier');
         Requirements::javascript('silverstripe/admin: thirdparty/jquery/jquery.js');
         Requirements::javascript('silverstripe/admin: thirdparty/jquery-form/jquery.form.js');
         //Requirements::block(THIRDPARTY_DIR."/jquery/jquery.js");
@@ -31,6 +30,11 @@ class DiscountCouponModifier_Form extends OrderModifierForm
                 Requirements::javascript($js);
             }
         }
+        /**
+         * ### @@@@ START REPLACEMENT @@@@ ###
+         * WHY doesnt this work?
+         */
+        //Requirements::themedCSS('client/css/DiscountCouponModifier');
     }
 
     public static function get_custom_javascript_files()
@@ -51,16 +55,7 @@ class DiscountCouponModifier_Form extends OrderModifierForm
                 $modifier = $modifiers->First();
                 if ($modifier) {
                     list($message, $type) = $modifier->updateCouponCodeEntered(Convert::raw2sql($data['DiscountCouponCode']));
-
-                    /**
-                     * ### @@@@ START REPLACEMENT @@@@ ###
-                     * WHY: automated upgrade
-                     * OLD: $form->addErrorMessage( (case sensitive)
-                     * NEW: $form->sessionError( (COMPLEX)
-                     * EXP: SilverStripe\Forms\Form->addErrorMessage(): Removed. Use `sessionMessage()` or `sessionError()` to add a form level message, throw a `ValidationException` during submission, or add a custom validator.
-                     * ### @@@@ STOP REPLACEMENT @@@@ ###
-                     */
-                    $form->sessionError('DiscountCouponCode', $message, $type);
+                    $form->sessionMessage($message, $type);
                     return ShoppingCart::singleton()->setMessageAndReturn($message, $type);
                 }
             }

@@ -180,7 +180,7 @@ class DiscountCouponModifier extends OrderModifier
     /**
      * @param Controller $optionalController
      * @param Validator $optionalValidator
-     * @return DiscountCouponModifier_Form
+     * @return DiscountCouponModifierForm
      */
     public function getModifierForm(Controller $optionalController = null, Validator $optionalValidator = null)
     {
@@ -199,9 +199,9 @@ class DiscountCouponModifier extends OrderModifier
                 _t('DiscountCouponModifier.APPLY', 'Apply Coupon')
             )
         );
-        $form = new DiscountCouponModifier_Form(
+        $form = new DiscountCouponModifierForm(
             $optionalController,
-            DiscountCouponModifier::class,
+            'DiscountCouponModifier',
             $fields,
             $actions,
             $optionalValidator
