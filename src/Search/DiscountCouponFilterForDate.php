@@ -15,7 +15,7 @@ use SilverStripe\ORM\Filters\ExactMatchFilter;
 class DiscountCouponFilterForDate extends ExactMatchFilter
 {
     /**
-     *@return SQLQuery
+     *  @return DataQuery
      **/
     public function apply(DataQuery $query)
     {

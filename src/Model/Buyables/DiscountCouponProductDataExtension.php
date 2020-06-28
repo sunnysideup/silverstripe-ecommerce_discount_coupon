@@ -45,10 +45,12 @@ class DiscountCouponProductDataExtension extends DataExtension
 
     public static function add_buyable_to_be_excluded($buyableOrBuyableID)
     {
-        if (is_object($buyable)) {
-            $id = $buyable->ID;
-        } elseif (intval($buyable)) {
-            $id = intval($buyable);
+        $id = 0;
+        
+        if (is_object($buyableOrBuyableID)) {
+            $id = $buyableOrBuyableID->ID;
+        } elseif (intval($buyableOrBuyableID)) {
+            $id = intval($buyableOrBuyableID);
         }
 
         self::$buyable_to_be_excluded_from_discounts[$id] = $id;
@@ -121,7 +123,7 @@ class DiscountCouponProductDataExtension extends DataExtension
     }
 
     /**
-     * @return SS_Date
+     * @return \SilverStripe\ORM\FieldType\DBDate
      */
     public function DiscountsAvailableUntil()
     {

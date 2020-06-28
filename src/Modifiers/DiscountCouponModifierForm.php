@@ -37,15 +37,6 @@ class DiscountCouponModifierForm extends OrderModifierForm
         //Requirements::themedCSS('client/css/DiscountCouponModifier');
     }
 
-    public static function get_custom_javascript_files()
-    {
-        $jsFiles = $this->Config()->get('custom_javascript_files');
-        if (is_array($jsFiles) && count($jsFiles)) {
-            return $jsFiles;
-        }
-        return null;
-    }
-
     public function submit(array $data, Form $form, $message = 'Order updated', $status = 'good')
     {
         if (isset($data['DiscountCouponCode'])) {
