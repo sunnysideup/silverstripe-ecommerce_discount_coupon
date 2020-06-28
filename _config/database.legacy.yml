@@ -1,6 +1,6 @@
 SilverStripe\ORM\DatabaseAdmin:
   classname_value_remapping:
-    DiscountCouponSiteTreeDOD_Field: Sunnysideup\EcommerceDiscountCoupon\Form\DiscountCouponSiteTreeDOD_Field
+    DiscountCouponSiteTreeDOD_Field: Sunnysideup\EcommerceDiscountCoupon\Form\DiscountCouponSiteTreeDODField
     DiscountCouponModifier_Form: Sunnysideup\EcommerceDiscountCoupon\Modifiers\DiscountCouponModifierForm
     DiscountCouponModifier: Sunnysideup\EcommerceDiscountCoupon\Modifiers\DiscountCouponModifier
     DiscountCouponFilterForDate: Sunnysideup\EcommerceDiscountCoupon\Search\DiscountCouponFilterForDate

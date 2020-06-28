@@ -466,7 +466,6 @@ class DiscountCouponModifier extends OrderModifier
                 $subTotal = 0;
                 if (count($array)) {
                     if ($items) {
-                        $itemCount = 0;
                         foreach ($items as $item) {
                             if (in_array($item->ID, $array, true)) {
                                 $subTotal += $item->Total();
@@ -486,7 +485,7 @@ class DiscountCouponModifier extends OrderModifier
                     }
                 }
                 if ($this->Config()->get('include_modifiers_in_subtotal')) {
-                    $subTotal += $order->ModifiersSubTotal([get_class($this)]);
+                    $subTotal += $order->ModifiersSubTotal([static::class]);
                 }
             }
 

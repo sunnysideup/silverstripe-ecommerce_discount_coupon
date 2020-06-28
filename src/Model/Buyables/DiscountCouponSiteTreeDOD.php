@@ -8,7 +8,7 @@ use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\DataExtension;
 use Sunnysideup\Ecommerce\Pages\Product;
 use Sunnysideup\Ecommerce\Pages\ProductGroup;
-use Sunnysideup\EcommerceDiscountCoupon\Form\DiscountCouponSiteTreeDOD_Field;
+use Sunnysideup\EcommerceDiscountCoupon\Form\DiscountCouponSiteTreeDODField;
 
 class DiscountCouponSiteTreeDOD extends DataExtension
 {
@@ -27,7 +27,7 @@ class DiscountCouponSiteTreeDOD extends DataExtension
             'DiscountCouponSiteTreeDOD.SELECT_PRODUCTS_AND_SERVICES',
             'Select Product Categories and/or Products (if nothing is selected, the discount coupon will apply to all buyables).'
         );
-        $field = new DiscountCouponSiteTreeDOD_Field(
+        $field = new DiscountCouponSiteTreeDODField(
             $name = 'PageIDs',
             $title = $label,
             $sourceObject = SiteTree::class,

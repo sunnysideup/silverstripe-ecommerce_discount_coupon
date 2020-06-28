@@ -10,15 +10,6 @@
 //===================---------------- START ecommerce_discount_coupon MODULE ----------------===================
 /**
  * ADD TO ECOMMERCE.YAML:
-Order:
-    modifiers: [
-        ...
-        DiscountCouponModifier
-    ]
-StoreAdmin:
-    managed_models: [
-        ...
-        DiscountCouponOption
     ]
 */
 // OPTIONAL

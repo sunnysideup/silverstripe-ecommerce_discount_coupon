@@ -5,7 +5,7 @@ namespace Sunnysideup\EcommerceDiscountCoupon\Form;
 use SilverStripe\Forms\TreeMultiselectField;
 use SilverStripe\ORM\DataObjectInterface;
 
-class DiscountCouponSiteTreeDOD_Field extends TreeMultiselectField
+class DiscountCouponSiteTreeDODField extends TreeMultiselectField
 {
     /**
      * TO DO: explain how this works or what it does.
