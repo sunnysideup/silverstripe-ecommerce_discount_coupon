@@ -22,7 +22,7 @@
         }
     ],
     "require": {
-        "sunnysideup/ecommerce": ">=3.0",
+        "sunnysideup/ecommerce": ">12.0.0",
         "silverstripe/recipe-cms": "^4.4"
     },
     "extra": {
@@ -36,5 +36,6 @@
         "psr-4": {
             "Sunnysideup\\EcommerceDiscountCoupon\\": "src/"
         }
-    }
+    },
+    "minimum-stability": "dev"
 }
