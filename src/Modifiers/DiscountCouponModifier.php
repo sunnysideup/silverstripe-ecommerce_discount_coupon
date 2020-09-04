@@ -163,12 +163,12 @@ class DiscountCouponModifier extends OrderModifier
             return true;
             //-- END HACK
             if (singleton(DiscountCouponOption::class)->hasExtension(DiscountCouponSiteTreeDOD::class)) {
-                foreach ($items as $item) {
-                    //here we need to add foreach valid coupon
-                    //for each item->Buyable
-                    //check if the coupon
-                    //can be applied to the buyable
-                }
+                // foreach ($items as $item) {
+                //     //here we need to add foreach valid coupon
+                //     //for each item->Buyable
+                //     //check if the coupon
+                //     //can be applied to the buyable
+                // }
             } else {
                 return DiscountCouponOption::get()->exclude(['NumberOfTimesCouponCanBeUsed' => 0])->count();
             }
@@ -424,7 +424,7 @@ class DiscountCouponModifier extends OrderModifier
                             }
                         }
                     } else {
-                        foreach ($arrayOfProductsInOrder as $itemID => $buyableID) {
+                        foreach (array_keys($arrayOfProductsInOrder) as $itemID) {
                             $finalArray[$itemID] = $itemID;
                         }
                     }

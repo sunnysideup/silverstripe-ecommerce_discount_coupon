@@ -18,7 +18,7 @@ class DiscountCouponModifierForm extends OrderModifierForm
         'sunnysideup/ecommerce_discount_coupon: client/javascript/DiscountCouponModifier.js',
     ];
 
-    public function __construct($optionalController = null, $name, FieldList $fields, FieldList $actions, $optionalValidator = null)
+    public function __construct($optionalController, string $name, FieldList $fields, FieldList $actions, $optionalValidator = null)
     {
         parent::__construct($optionalController, $name, $fields, $actions, $optionalValidator);
         Requirements::javascript('silverstripe/admin: thirdparty/jquery/jquery.js');
