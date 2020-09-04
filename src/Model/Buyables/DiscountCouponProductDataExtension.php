@@ -46,7 +46,7 @@ class DiscountCouponProductDataExtension extends DataExtension
     public static function add_buyable_to_be_excluded($buyableOrBuyableID)
     {
         $id = 0;
-        
+
         if (is_object($buyableOrBuyableID)) {
             $id = $buyableOrBuyableID->ID;
         } elseif (intval($buyableOrBuyableID)) {
