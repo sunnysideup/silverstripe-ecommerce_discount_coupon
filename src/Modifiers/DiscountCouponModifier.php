@@ -2,7 +2,7 @@
 
 namespace Sunnysideup\EcommerceDiscountCoupon\Modifiers;
 
-use ProductVaration;
+use Sunnysideup\EcommerceProductVaration\Model\ProductVaration;
 use SilverStripe\Control\Controller;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\FormAction;
