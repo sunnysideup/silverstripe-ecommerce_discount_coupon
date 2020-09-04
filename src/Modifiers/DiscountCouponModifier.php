@@ -153,7 +153,7 @@ class DiscountCouponModifier extends OrderModifier
     /**
      * Show the form?
      * We always show it when there are items in the cart.
-     * @return boolean
+     * @return bool
      */
     public function ShowForm()
     {
@@ -268,7 +268,7 @@ class DiscountCouponModifier extends OrderModifier
     /**
      * @see self::HideInAjaxUpdate
      *
-     * @return boolean
+     * @return bool
      */
     public function ShowInTable()
     {
@@ -282,7 +282,7 @@ class DiscountCouponModifier extends OrderModifier
     }
 
     /**
-     * @return boolean
+     * @return bool
      */
     public function CanRemove()
     {
@@ -313,7 +313,7 @@ class DiscountCouponModifier extends OrderModifier
     // ######################################## *** Type Functions (IsChargeable, IsDeductable, IsNoChange, IsRemoved)
 
     /**
-     * @return boolean
+     * @return bool
      * */
     public function IsDeductable()
     {
@@ -326,7 +326,7 @@ class DiscountCouponModifier extends OrderModifier
     /**
      * some modifiers can be hidden after an ajax update (e.g. if someone enters a discount coupon and it does not exist).
      * There might be instances where ShowInTable (the starting point) is TRUE and HideInAjaxUpdate return false.
-     * @return boolean
+     * @return bool
      * */
     public function HideInAjaxUpdate()
     {
@@ -365,7 +365,7 @@ class DiscountCouponModifier extends OrderModifier
     /**
      * returns the discount coupon, if any ...
      *
-     * @return DiscountCouponOption | null
+     * @return DiscountCouponOption|null
      */
     protected function myDiscountCouponOption()
     {

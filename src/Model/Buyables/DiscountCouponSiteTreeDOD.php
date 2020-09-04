@@ -47,7 +47,7 @@ class DiscountCouponSiteTreeDOD extends DataExtension
      *
      * @param SiteTree $page
      *
-     * @return boolean
+     * @return bool
      */
     public function canBeDiscounted(SiteTree $page)
     {

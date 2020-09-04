@@ -71,7 +71,7 @@ class DiscountCouponProductDataExtension extends DataExtension
     /**
      * @param float $price
      *
-     * @return float | null
+     * @return float|null
      */
     public function updateCalculatedPrice($price = null)
     {

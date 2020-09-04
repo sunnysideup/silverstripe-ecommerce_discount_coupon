@@ -10,7 +10,7 @@ class DiscountCouponSiteTreeDODProductVariation extends DataExtension
     /**
      * @param DiscountCouponModifier $modifier
      *
-     * @return boolean
+     * @return bool
      */
     public function ExcludeInDiscountCalculation(DiscountCouponModifier $modifier)
     {
