@@ -2,7 +2,6 @@
 
 namespace Sunnysideup\EcommerceDiscountCoupon\Modifiers;
 
-use Sunnysideup\EcommerceProductVaration\Model\ProductVaration;
 use SilverStripe\Control\Controller;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\FormAction;
@@ -12,6 +11,7 @@ use SilverStripe\Forms\Validator;
 use Sunnysideup\Ecommerce\Model\OrderModifier;
 use Sunnysideup\EcommerceDiscountCoupon\Model\Buyables\DiscountCouponSiteTreeDOD;
 use Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption;
+use Sunnysideup\EcommerceProductVaration\Model\ProductVaration;
 
 /**
  * @author Nicolaas [at] sunnysideup.co.nz
