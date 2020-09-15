@@ -30,7 +30,7 @@ class DiscountCouponModifierForm extends OrderModifierForm
                 Requirements::javascript($js);
             }
         }
-        Requirements::themedCSS('DiscountCouponModifier');
+        Requirements::themedCSS('client/css/DiscountCouponModifier');
     }
 
     public function submit(array $data, Form $form, $message = 'Order updated', $status = 'good')
