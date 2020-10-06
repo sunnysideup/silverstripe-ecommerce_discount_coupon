@@ -28,7 +28,7 @@ var DiscountCoupon = {
     init: function() {
         if (typeof window.EcomCart === "undefined") {
             //webpack route
-            var EcomCart = require("./EcomCartWebPack");
+            // var EcomCart = require("./EcomCartWebPack");
             DiscountCoupon.EcomCart = EcomCart.EcomCart;
         } else {
             //alternative route
