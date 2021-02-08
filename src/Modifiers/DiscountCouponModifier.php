@@ -413,7 +413,7 @@ class DiscountCouponModifier extends OrderModifier
                     //if no products / product groups are specified then
                     //it applies
                     //get a list of all the products to which the coupon applies
-                    $productsArray = $coupon->Products()->map('ID', 'ID')->toArray();
+                    $productsArray = $coupon->Products()->columnUnique();
                     if (count($productsArray)) {
                         $matches = array_intersect($productsArray, $arrayOfProductsInOrder);
                         foreach ($matches as $buyableID) {
