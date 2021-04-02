@@ -23,7 +23,7 @@ class DiscountCouponProductDataExtension extends DataExtension
         'ApplicableDiscountCoupons' => DiscountCouponOption::class,
     ];
 
-    private $discountCouponAmount = null;
+    private $discountCouponAmount;
 
     /**
      * Update Fields
@@ -49,8 +49,8 @@ class DiscountCouponProductDataExtension extends DataExtension
 
         if (is_object($buyableOrBuyableID)) {
             $id = $buyableOrBuyableID->ID;
-        } elseif (intval($buyableOrBuyableID)) {
-            $id = intval($buyableOrBuyableID);
+        } elseif ((int) $buyableOrBuyableID) {
+            $id = (int) $buyableOrBuyableID;
         }
 
         self::$buyable_to_be_excluded_from_discounts[$id] = $id;
@@ -65,7 +65,7 @@ class DiscountCouponProductDataExtension extends DataExtension
 
     public function getCanBeDiscounted()
     {
-        return isset(self::$buyable_to_be_excluded_from_discounts[$this->owner->ID]) ? false : true;
+        return ! isset(self::$buyable_to_be_excluded_from_discounts[$this->owner->ID]);
     }
 
     /**

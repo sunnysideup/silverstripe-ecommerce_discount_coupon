@@ -444,17 +444,18 @@ class DiscountCouponOption extends DataObject
     /**
      * standard SS method
      */
-    public function onBeforeWrite()
+    protected function onBeforeWrite()
     {
         parent::onBeforeWrite();
         if (! $this->Code) {
             $this->Code = $this->createRandomCode();
         }
-        $this->Code = preg_replace('/[^a-z0-9]/i', ' ', $this->Code);
-        $this->Code = trim(preg_replace('/\s+/', '', $this->Code));
+        $this->Code = preg_replace('#[^a-z0-9]#i', ' ', $this->Code);
+        $this->Code = trim(preg_replace('#\s+#', '', $this->Code));
+
         $i = 1;
         while ($this->thereAreCouponsWithTheSameCode() && $i < 100) {
-            $i++;
+            ++$i;
             $this->Code .= '_' . $i;
         }
         if (strlen(trim($this->Title)) < 1) {
@@ -475,7 +476,7 @@ class DiscountCouponOption extends DataObject
     /**
      * standard SS method
      */
-    public function onAfterWrite()
+    protected function onAfterWrite()
     {
         $productsArray = [0 => 0];
         $mustAlsoBePresentInProductsArray = [0 => 0];
@@ -506,10 +507,9 @@ class DiscountCouponOption extends DataObject
         }
     }
 
-    public function onBeforeDelete()
+    protected function onBeforeDelete()
     {
         parent::onBeforeDelete();
-        -
         DB::query('DELETE FROM "DiscountCouponOption_Products" WHERE "DiscountCouponOptionID" = ' . $this->ID);
     }
 
@@ -519,7 +519,7 @@ class DiscountCouponOption extends DataObject
      */
     protected function thereAreCouponsWithTheSameCode()
     {
-        return DiscountCouponOption::get()->exclude(['ID' => $this->ID])->filter(['Code' => $this->Code])->count() ? true : false;
+        return (bool) DiscountCouponOption::get()->exclude(['ID' => $this->ID])->filter(['Code' => $this->Code])->count();
     }
 
     /**

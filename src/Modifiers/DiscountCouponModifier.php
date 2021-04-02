@@ -9,7 +9,6 @@ use SilverStripe\Forms\ReadonlyField;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\Validator;
 use Sunnysideup\Ecommerce\Model\OrderModifier;
-use Sunnysideup\EcommerceDiscountCoupon\Model\Buyables\DiscountCouponSiteTreeDOD;
 use Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption;
 use Sunnysideup\EcommerceProductVaration\Model\ProductVaration;
 
@@ -30,9 +29,9 @@ class DiscountCouponModifier extends OrderModifier
      * Used in calculations to work out how much we need.
      * @var double | Null
      */
-    protected $_actualDeductions = null;
+    protected $_actualDeductions;
 
-    protected $_calculatedTotal = null;
+    protected $_calculatedTotal;
 
     // ######################################## *** model defining static variables (e.g. $db, $has_one)
 
@@ -85,7 +84,7 @@ class DiscountCouponModifier extends OrderModifier
      */
     private static $plural_name = 'Discount Coupon Entries';
 
-    private static $_applicable_products_array = null;
+    private static $_applicable_products_array;
 
     private static $subtotal = 0;
 
@@ -158,28 +157,11 @@ class DiscountCouponModifier extends OrderModifier
     public function ShowForm()
     {
         $items = $this->Order()->Items();
-        if ($items) {
-            //-- START HACK
-            return true;
-            //-- END HACK
-            if (singleton(DiscountCouponOption::class)->hasExtension(DiscountCouponSiteTreeDOD::class)) {
-                // foreach ($items as $item) {
-                //     //here we need to add foreach valid coupon
-                //     //for each item->Buyable
-                //     //check if the coupon
-                //     //can be applied to the buyable
-                // }
-            } else {
-                return DiscountCouponOption::get()->exclude(['NumberOfTimesCouponCanBeUsed' => 0])->count();
-            }
-        } else {
-            return false;
-        }
+        //-- START HACK
+        return (bool) $items;
     }
 
     /**
-     * @param Controller $optionalController
-     * @param Validator $optionalValidator
      * @return DiscountCouponModifierForm
      */
     public function getModifierForm(Controller $optionalController = null, Validator $optionalValidator = null)
@@ -302,14 +284,6 @@ class DiscountCouponModifier extends OrderModifier
         return $this->TableValue;
     }
 
-    /**
-     * @return float
-     * */
-    public function LiveTableValue()
-    {
-        return $this->LiveCalculatedTotal();
-    }
-
     // ######################################## *** Type Functions (IsChargeable, IsDeductable, IsNoChange, IsRemoved)
 
     /**
@@ -336,10 +310,15 @@ class DiscountCouponModifier extends OrderModifier
             return true;
         }
         // we do NOT hide it if values have been entered
-        if ($this->CouponCodeEntered) {
-            return false;
-        }
-        return true;
+        return ! $this->CouponCodeEntered;
+    }
+
+    /**
+     * @return float
+     * */
+    protected function LiveTableValue()
+    {
+        return $this->LiveCalculatedTotal();
     }
 
     // ######################################## ***  inner calculations.... USES CALCULATED VALUES

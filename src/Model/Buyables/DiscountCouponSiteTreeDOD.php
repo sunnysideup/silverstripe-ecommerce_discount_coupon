@@ -18,8 +18,6 @@ class DiscountCouponSiteTreeDOD extends DataExtension
 
     /**
      * update the CMS Fields
-     *
-     * @param FieldList $fields
      */
     public function updateCMSFields(FieldList $fields)
     {
@@ -45,8 +43,6 @@ class DiscountCouponSiteTreeDOD extends DataExtension
      * normally returns TRUE, but returns FALSE when it, or its parent is in the list.
      * todo: add products in other product categories
      *
-     * @param SiteTree $page
-     *
      * @return bool
      */
     public function canBeDiscounted(SiteTree $page)
@@ -57,7 +53,7 @@ class DiscountCouponSiteTreeDOD extends DataExtension
             $alreadyCheckedPageIDs = [];
             while ($checkPages->Count()) {
                 $page = $checkPages->First();
-                if (array_search($page->ID, $allowedPageIDs, true) !== false) {
+                if (in_array($page->ID, $allowedPageIDs, true)) {
                     return true;
                 }
                 $alreadyCheckedPageIDs[] = $page->ID;
@@ -76,7 +72,7 @@ class DiscountCouponSiteTreeDOD extends DataExtension
                 }
 
                 foreach ($parents as $parent) {
-                    if (array_search($parent->ID, $alreadyCheckedPageIDs, true) === false) {
+                    if (! in_array($parent->ID, $alreadyCheckedPageIDs, true)) {
                         $checkPages->push($parent);
                     }
                 }

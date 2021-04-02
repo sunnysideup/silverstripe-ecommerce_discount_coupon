@@ -8,8 +8,6 @@ use Sunnysideup\EcommerceDiscountCoupon\Modifiers\DiscountCouponModifier;
 class DiscountCouponSiteTreeDODProductVariation extends DataExtension
 {
     /**
-     * @param DiscountCouponModifier $modifier
-     *
      * @return bool
      */
     public function ExcludeInDiscountCalculation(DiscountCouponModifier $modifier)

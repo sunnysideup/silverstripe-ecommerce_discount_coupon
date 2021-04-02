@@ -18,11 +18,11 @@ class DiscountCouponSiteTreeDODField extends TreeMultiselectField
             $fieldName = $this->name;
 
             if ($this->value) {
-                $items = preg_split('/ *, */', trim($this->value));
+                $items = preg_split('# *, *#', trim($this->value));
             }
 
             // Allows you to modify the items on your object before save
-            $funcName = "onChange${fieldName}";
+            $funcName = "onChange{$fieldName}";
             if ($record->hasMethod($funcName)) {
                 $result = $record->{$funcName}($items);
                 if (! $result) {
