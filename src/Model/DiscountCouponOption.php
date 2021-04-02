@@ -202,9 +202,9 @@ class DiscountCouponOption extends DataObject
      */
     public function populateDefaults()
     {
-        parent::populateDefaults();
         $this->Code = $this->createRandomCode();
         $this->isNew = true;
+        return parent::populateDefaults();
     }
 
     /**

@@ -27,7 +27,6 @@ class DiscountCouponProductDataExtension extends DataExtension
 
     /**
      * Update Fields
-     * @return FieldList
      */
     public function updateCMSFields(FieldList $fields)
     {
@@ -40,7 +39,6 @@ class DiscountCouponProductDataExtension extends DataExtension
                 GridFieldConfig_RelationEditor::create()
             )
         );
-        return $fields;
     }
 
     public static function add_buyable_to_be_excluded($buyableOrBuyableID)
