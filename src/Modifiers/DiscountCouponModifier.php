@@ -9,6 +9,8 @@ use SilverStripe\Forms\ReadonlyField;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\Validator;
 use Sunnysideup\Ecommerce\Model\OrderModifier;
+
+use Sunnysideup\Ecommerce\Pages\Product;
 use Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption;
 use Sunnysideup\EcommerceProductVaration\Model\ProductVaration;
 
@@ -384,9 +386,7 @@ class DiscountCouponModifier extends OrderModifier
                     $arrayOfProductsInOrder = [];
                     foreach ($items as $item) {
                         $buyable = $item->Buyable();
-                        if ($buyable instanceof ProductVaration) {
-                            $buyable = $buyable->Product();
-                        }
+                        $buyable = $buyable->Product();
                         $arrayOfProductsInOrder[$item->ID] = $buyable->ID;
                     }
                     //if no products / product groups are specified then

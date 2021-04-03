@@ -71,7 +71,7 @@ class DiscountCouponProductDataExtension extends DataExtension
      *
      * @return float|null
      */
-    public function updateCalculatedPrice($price = null)
+    public function updateCalculatedPrice(?float $price = null)
     {
         if ($this->getCanBeDiscounted()) {
             $hasDiscount = false;
@@ -90,7 +90,7 @@ class DiscountCouponProductDataExtension extends DataExtension
                         }
                     }
                 }
-                if ($hasDiscount) {
+                if ($hasDiscount && $price) {
                     $priceWithPercentageDiscount = $price - ($price * ($discountPercentage / 100));
                     $priceWithAbsoluteDiscount = $price - $discountAbsolute;
                     if ($priceWithPercentageDiscount < $priceWithAbsoluteDiscount) {
@@ -100,6 +100,7 @@ class DiscountCouponProductDataExtension extends DataExtension
                 }
             }
         }
+        return null;
     }
 
     public function DirectlyApplicableDiscountCoupons()
@@ -127,6 +128,7 @@ class DiscountCouponProductDataExtension extends DataExtension
     {
         $coupons = $this->DirectlyApplicableDiscountCoupons();
         $next = strtotime('+100 years');
+        $obj = null;
         if ($coupons && $coupons->count()) {
             $discount = 0;
             foreach ($coupons as $coupon) {
@@ -142,7 +144,7 @@ class DiscountCouponProductDataExtension extends DataExtension
             }
         }
         if ($next) {
-            return DBField::create_field(DBDate::class, $next);
+            $obj = DBField::create_field(DBDate::class, $next);
         }
     }
 }

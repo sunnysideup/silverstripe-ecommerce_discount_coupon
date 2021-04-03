@@ -524,11 +524,11 @@ class DiscountCouponOption extends DataObject
 
     /**
      * returns a random string.
-     * @param int $length - number of characters
-     * @param int $chars - input characters
+     * @param int       $length - number of characters
+     * @param string    $chars - input characters
      * @return string
      */
-    protected function createRandomCode($length = 5, $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890')
+    protected function createRandomCode($length = 5, $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890') : string
     {
         $chars_length = strlen($chars) - 1;
         $string = $chars[rand(0, $chars_length)];
