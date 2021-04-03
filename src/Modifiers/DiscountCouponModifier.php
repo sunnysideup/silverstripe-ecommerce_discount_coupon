@@ -12,7 +12,6 @@ use Sunnysideup\Ecommerce\Model\OrderModifier;
 
 use Sunnysideup\Ecommerce\Pages\Product;
 use Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption;
-use Sunnysideup\EcommerceProductVaration\Model\ProductVaration;
 
 /**
  * @author Nicolaas [at] sunnysideup.co.nz
@@ -154,9 +153,8 @@ class DiscountCouponModifier extends OrderModifier
     /**
      * Show the form?
      * We always show it when there are items in the cart.
-     * @return bool
      */
-    public function ShowForm() : bool
+    public function ShowForm(): bool
     {
         $items = $this->Order()->Items();
         //-- START HACK
@@ -251,10 +249,8 @@ class DiscountCouponModifier extends OrderModifier
 
     /**
      * @see self::HideInAjaxUpdate
-     *
-     * @return bool
      */
-    public function ShowInTable() : bool
+    public function ShowInTable(): bool
     {
         if ($this->DiscountCouponOptionID) {
             return true;
@@ -265,10 +261,7 @@ class DiscountCouponModifier extends OrderModifier
         return true;
     }
 
-    /**
-     * @return bool
-     */
-    public function CanRemove() : bool
+    public function CanRemove(): bool
     {
         return false;
     }
