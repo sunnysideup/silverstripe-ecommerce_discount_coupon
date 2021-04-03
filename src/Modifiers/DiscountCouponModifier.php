@@ -28,7 +28,7 @@ class DiscountCouponModifier extends OrderModifier
 
     /**
      * Used in calculations to work out how much we need.
-     * @var double | Null
+     * @var double|null
      */
     protected $_actualDeductions;
 
