@@ -264,11 +264,8 @@ class DiscountCouponModifier extends OrderModifier
         if ($this->DiscountCouponOptionID) {
             return true;
         }
-        if ($this->Order()->IsSubmitted()) {
-            return false;
-        }
         //we hide it with ajax if needed
-        return true;
+        return ! $this->Order()->IsSubmitted();
     }
 
     public function CanRemove(): bool
