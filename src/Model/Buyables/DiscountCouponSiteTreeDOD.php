@@ -17,7 +17,7 @@ class DiscountCouponSiteTreeDOD extends DataExtension
     ];
 
     /**
-     * update the CMS Fields
+     * update the CMS Fields.
      */
     public function updateCMSFields(FieldList $fields)
     {
@@ -41,7 +41,7 @@ class DiscountCouponSiteTreeDOD extends DataExtension
 
     /**
      * normally returns TRUE, but returns FALSE when it, or its parent is in the list.
-     * todo: add products in other product categories
+     * todo: add products in other product categories.
      *
      * @return bool
      */
@@ -78,8 +78,10 @@ class DiscountCouponSiteTreeDOD extends DataExtension
                 }
                 $checkPages->removeDuplicates();
             }
+
             return false;
         }
+
         return true;
     }
 }

@@ -18,19 +18,19 @@ use Sunnysideup\EcommerceDiscountCoupon\Search\DiscountCouponFilterForDate;
 
 /**
  *@author nicolaas [at] sunnysideup.co.nz
- *
- **/
+ */
 class DiscountCouponOption extends DataObject
 {
     /**
-     * @var boolean
+     * @var bool
      */
     protected $isNew = false;
 
     protected $_productsCalculated = false;
 
     /**
-     * standard SS Variable
+     * standard SS Variable.
+     *
      * @var string
      */
     private static $table_name = 'DiscountCouponOption';
@@ -56,7 +56,7 @@ class DiscountCouponOption extends DataObject
     ];
 
     /**
-     * standard SS variable
+     * standard SS variable.
      */
     private static $indexes = [
         'Title' => true,
@@ -66,7 +66,7 @@ class DiscountCouponOption extends DataObject
     ];
 
     /**
-     * standard SS variable
+     * standard SS variable.
      */
     private static $casting = [
         'UseCount' => 'Int',
@@ -75,7 +75,7 @@ class DiscountCouponOption extends DataObject
     ];
 
     /**
-     * standard SS variable
+     * standard SS variable.
      */
     private static $searchable_fields = [
         'StartDate' => [
@@ -90,7 +90,7 @@ class DiscountCouponOption extends DataObject
     ];
 
     /**
-     * standard SS variable
+     * standard SS variable.
      */
     private static $field_labels = [
         'StartDate' => 'Start Date',
@@ -110,7 +110,7 @@ class DiscountCouponOption extends DataObject
     ];
 
     /**
-     * standard SS variable
+     * standard SS variable.
      */
     private static $field_labels_right = [
         'ApplyEvenWithoutCode' => 'Discount is automatically applied: the user does not have to enter the coupon at all. ',
@@ -132,7 +132,7 @@ class DiscountCouponOption extends DataObject
     ];
 
     /**
-     * standard SS variable
+     * standard SS variable.
      */
     private static $summary_fields = [
         'Title' => 'Name',
@@ -143,24 +143,24 @@ class DiscountCouponOption extends DataObject
     ];
 
     /**
-     * standard SS variable
+     * standard SS variable.
      */
     private static $defaults = [
         'NumberOfTimesCouponCanBeUsed' => '999999',
     ];
 
     /**
-     * standard SS variable
+     * standard SS variable.
      */
     private static $singular_name = 'Discount Coupon';
 
     /**
-     * standard SS variable
+     * standard SS variable.
      */
     private static $plural_name = 'Discount Coupons';
 
     /**
-     * standard SS variable
+     * standard SS variable.
      */
     private static $default_sort = [
         'EndDate' => 'DESC',
@@ -198,12 +198,13 @@ class DiscountCouponOption extends DataObject
     }
 
     /**
-     * standard SS method
+     * standard SS method.
      */
     public function populateDefaults()
     {
         $this->Code = $this->createRandomCode();
         $this->isNew = true;
+
         return parent::populateDefaults();
     }
 
@@ -225,6 +226,7 @@ class DiscountCouponOption extends DataObject
         if ($this->ID) {
             return DiscountCouponModifier::get()->filter(['DiscountCouponOptionID' => $this->ID])->count();
         }
+
         return 0;
     }
 
@@ -267,6 +269,7 @@ class DiscountCouponOption extends DataObject
                 }
             }
         }
+
         return true;
     }
 
@@ -286,7 +289,11 @@ class DiscountCouponOption extends DataObject
     }
 
     /**
-     * standard SS method
+     * standard SS method.
+     *
+     * @param null|mixed $member
+     * @param mixed      $context
+     *
      * @return bool
      */
     public function canCreate($member = null, $context = [])
@@ -294,11 +301,16 @@ class DiscountCouponOption extends DataObject
         if (Permission::checkMember($member, Config::inst()->get(EcommerceRole::class, 'admin_permission_code'))) {
             return true;
         }
+
         return parent::canCreate($member);
     }
 
     /**
-     * standard SS method
+     * standard SS method.
+     *
+     * @param null|mixed $member
+     * @param mixed      $context
+     *
      * @return bool
      */
     public function canView($member = null, $context = [])
@@ -306,11 +318,16 @@ class DiscountCouponOption extends DataObject
         if (Permission::checkMember($member, Config::inst()->get(EcommerceRole::class, 'admin_permission_code'))) {
             return true;
         }
+
         return parent::canView($member);
     }
 
     /**
-     * standard SS method
+     * standard SS method.
+     *
+     * @param null|mixed $member
+     * @param mixed      $context
+     *
      * @return bool
      */
     public function canEdit($member = null, $context = [])
@@ -318,11 +335,14 @@ class DiscountCouponOption extends DataObject
         if (Permission::checkMember($member, Config::inst()->get(EcommerceRole::class, 'admin_permission_code'))) {
             return true;
         }
+
         return parent::canEdit($member);
     }
 
     /**
-     * standard SS method
+     * standard SS method.
+     *
+     * @param null|mixed $member
      *
      * @return bool
      */
@@ -334,11 +354,12 @@ class DiscountCouponOption extends DataObject
         if (Permission::checkMember($member, Config::inst()->get(EcommerceRole::class, 'admin_permission_code'))) {
             return true;
         }
+
         return parent::canDelete($member);
     }
 
     /**
-     * standard SS method
+     * standard SS method.
      */
     public function getCMSFields()
     {
@@ -385,12 +406,13 @@ class DiscountCouponOption extends DataObject
         if (! $this->ApplyPercentageToApplicableProducts) {
             $fields->removeFieldFromTab('Root.Main', 'ApplyEvenWithoutCode');
         }
+
         return $fields;
     }
 
     /**
      * standard SS method
-     * THIS ONLY WORKS FOR CREATED OBJECTS
+     * THIS ONLY WORKS FOR CREATED OBJECTS.
      */
     public function validate()
     {
@@ -427,17 +449,18 @@ class DiscountCouponOption extends DataObject
                 );
             }
         }
-        if ($this->NumberOfTimesCouponCanBeUsed === null || $this->NumberOfTimesCouponCanBeUsed === '') {
+        if (null === $this->NumberOfTimesCouponCanBeUsed || '' === $this->NumberOfTimesCouponCanBeUsed) {
             $validator->addFieldError(
                 'NumberOfTimesCouponCanBeUsed',
                 _t('DiscountCouponOption.SET_TIMES_AVAILABLE', 'Set the number of times the coupon is available (0 = not available ... 999,999 = almost unlimited availability)')
             );
         }
+
         return $validator;
     }
 
     /**
-     * standard SS method
+     * standard SS method.
      */
     protected function onBeforeWrite()
     {
@@ -469,7 +492,7 @@ class DiscountCouponOption extends DataObject
     }
 
     /**
-     * standard SS method
+     * standard SS method.
      */
     protected function onAfterWrite()
     {
@@ -509,7 +532,8 @@ class DiscountCouponOption extends DataObject
     }
 
     /**
-     * Checks if there are coupons with the same code as the current one
+     * Checks if there are coupons with the same code as the current one.
+     *
      * @return bool
      */
     protected function thereAreCouponsWithTheSameCode()
@@ -519,8 +543,9 @@ class DiscountCouponOption extends DataObject
 
     /**
      * returns a random string.
-     * @param int       $length - number of characters
-     * @param string    $chars - input characters
+     *
+     * @param int    $length - number of characters
+     * @param string $chars  - input characters
      */
     protected function createRandomCode($length = 5, $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890'): string
     {
@@ -532,6 +557,7 @@ class DiscountCouponOption extends DataObject
                 $string .= $r;
             }
         }
+
         return $string;
     }
 }

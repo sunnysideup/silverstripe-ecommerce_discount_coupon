@@ -12,7 +12,7 @@ class DiscountCouponSiteTreeDODField extends TreeMultiselectField
      */
     public function saveInto(DataObjectInterface $record)
     {
-        if ($this->value !== 'unchanged') {
+        if ('unchanged' !== $this->value) {
             $items = [];
 
             $fieldName = $this->name;

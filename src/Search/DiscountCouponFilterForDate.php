@@ -16,7 +16,7 @@ class DiscountCouponFilterForDate extends ExactMatchFilter
 {
     /**
      *  @return DataQuery
-     **/
+     */
     public function apply(DataQuery $query)
     {
         $value = $this->getValue();
@@ -25,17 +25,21 @@ class DiscountCouponFilterForDate extends ExactMatchFilter
         switch ($value) {
             case 'future':
                 $filterString = 'UNIX_TIMESTAMP("StartDate") > ' . $date;
+
                 break;
             case 'current':
                 $filterString = 'UNIX_TIMESTAMP("StartDate") <=  ' . $date . ' AND UNIX_TIMESTAMP("EndDate") >= ' . $date;
+
                 break;
             case 'past':
                 $filterString = 'UNIX_TIMESTAMP("EndDate") <  ' . $date;
+
                 break;
         }
         if ($filterString) {
             $query = $query->where($filterString);
         }
+
         return $query;
     }
 }

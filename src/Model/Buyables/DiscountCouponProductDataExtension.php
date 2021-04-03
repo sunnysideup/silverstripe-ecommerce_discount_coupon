@@ -16,7 +16,8 @@ class DiscountCouponProductDataExtension extends DataExtension
     protected static $buyable_to_be_excluded_from_discounts = [];
 
     /**
-     * stadard SS declaration
+     * stadard SS declaration.
+     *
      * @var array
      */
     private static $belongs_many_many = [
@@ -26,7 +27,7 @@ class DiscountCouponProductDataExtension extends DataExtension
     private $discountCouponAmount;
 
     /**
-     * Update Fields
+     * Update Fields.
      */
     public function updateCMSFields(FieldList $fields)
     {
@@ -69,7 +70,7 @@ class DiscountCouponProductDataExtension extends DataExtension
     /**
      * @param float $price
      *
-     * @return float|null
+     * @return null|float
      */
     public function updateCalculatedPrice(?float $price = null)
     {
@@ -96,33 +97,37 @@ class DiscountCouponProductDataExtension extends DataExtension
                     if ($priceWithPercentageDiscount < $priceWithAbsoluteDiscount) {
                         return $priceWithPercentageDiscount;
                     }
+
                     return $priceWithAbsoluteDiscount;
                 }
             }
         }
+
         return null;
     }
 
     public function DirectlyApplicableDiscountCoupons()
     {
         return $this->owner->ApplicableDiscountCoupons()
-            ->filter(['ApplyPercentageToApplicableProducts' => 1, 'ApplyEvenWithoutCode' => 1]);
+            ->filter(['ApplyPercentageToApplicableProducts' => 1, 'ApplyEvenWithoutCode' => 1])
+        ;
     }
 
     public function DiscountCouponAmount()
     {
-        if ($this->discountCouponAmount === null) {
+        if (null === $this->discountCouponAmount) {
             $this->discountCouponAmount = 0;
             $amount = floatval($this->owner->Price) - floatval($this->owner->CalculatedPrice());
             if ($amount > 1) {
                 $this->discountCouponAmount = $amount;
             }
         }
+
         return EcommerceCurrency::get_money_object_from_order_currency($this->discountCouponAmount);
     }
 
     /**
-     * @return \SilverStripe\ORM\FieldType\DBDate|null
+     * @return null|\SilverStripe\ORM\FieldType\DBDate
      */
     public function DiscountsAvailableUntil()
     {
@@ -147,6 +152,7 @@ class DiscountCouponProductDataExtension extends DataExtension
             /** @var DBDate $obj */
             $obj = DBField::create_field(DBDate::class, $next);
         }
+
         return $obj;
     }
 }

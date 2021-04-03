@@ -9,7 +9,6 @@ use SilverStripe\Forms\ReadonlyField;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\Validator;
 use Sunnysideup\Ecommerce\Model\OrderModifier;
-
 use Sunnysideup\Ecommerce\Pages\Product;
 use Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption;
 
@@ -28,7 +27,8 @@ class DiscountCouponModifier extends OrderModifier
 
     /**
      * Used in calculations to work out how much we need.
-     * @var double|null
+     *
+     * @var null|float
      */
     protected $_actualDeductions;
 
@@ -37,7 +37,8 @@ class DiscountCouponModifier extends OrderModifier
     // ######################################## *** model defining static variables (e.g. $db, $has_one)
 
     /**
-     * standard SS Variable
+     * standard SS Variable.
+     *
      * @var string
      */
     private static $table_name = 'DiscountCouponModifier';
@@ -53,7 +54,8 @@ class DiscountCouponModifier extends OrderModifier
     ];
 
     /**
-     * standard SS Variable
+     * standard SS Variable.
+     *
      * @var array
      */
     private static $has_one = [
@@ -63,24 +65,28 @@ class DiscountCouponModifier extends OrderModifier
     /**
      * Should the discount be worked out over the the sub-total or
      * the Total Total?
-     * @var boolean
+     *
+     * @var bool
      */
     private static $include_modifiers_in_subtotal = false;
 
     /**
-     * If this method is present in the Buyable, the related order item will be excluded
-     * @var boolean
+     * If this method is present in the Buyable, the related order item will be excluded.
+     *
+     * @var bool
      */
     private static $exclude_buyable_method = 'ExcludeInDiscountCalculation';
 
     /**
-     * Standard SS Variable
+     * Standard SS Variable.
+     *
      * @var string
      */
     private static $singular_name = 'Discount Coupon Entry';
 
     /**
-     * Standard SS Variable
+     * Standard SS Variable.
+     *
      * @var string
      */
     private static $plural_name = 'Discount Coupon Entries';
@@ -102,7 +108,8 @@ class DiscountCouponModifier extends OrderModifier
     // ######################################## *** cms variables + functions (e.g. getCMSFields, $searchableFields)
 
     /**
-     * Standard SS Method
+     * Standard SS Method.
+     *
      * @return FieldList
      */
     public function getCMSFields()
@@ -127,6 +134,7 @@ class DiscountCouponModifier extends OrderModifier
                 $this->DebugString
             )
         );
+
         return $fields;
     }
 
@@ -134,7 +142,7 @@ class DiscountCouponModifier extends OrderModifier
     // ######################################## *** init and update functions
 
     /**
-     * updates all database fields
+     * updates all database fields.
      *
      * @param bool $force - run it, even if it has run already
      */
@@ -189,6 +197,7 @@ class DiscountCouponModifier extends OrderModifier
             $optionalValidator
         );
         $fields->fieldByName('DiscountCouponCode')->setValue($this->CouponCodeEntered);
+
         return $form;
     }
 
@@ -254,7 +263,8 @@ class DiscountCouponModifier extends OrderModifier
     {
         if ($this->DiscountCouponOptionID) {
             return true;
-        } elseif ($this->Order()->IsSubmitted()) {
+        }
+        if ($this->Order()->IsSubmitted()) {
             return false;
         }
         //we hide it with ajax if needed
@@ -295,6 +305,7 @@ class DiscountCouponModifier extends OrderModifier
     /**
      * some modifiers can be hidden after an ajax update (e.g. if someone enters a discount coupon and it does not exist).
      * There might be instances where ShowInTable (the starting point) is TRUE and HideInAjaxUpdate return false.
+     *
      * @return bool
      * */
     public function HideInAjaxUpdate()
@@ -320,7 +331,9 @@ class DiscountCouponModifier extends OrderModifier
 
     /**
      * Checks for extensions to make sure it is valid...
+     *
      * @param DiscountCouponOption $coupon
+     *
      * @return bool returns true if the coupon is valid
      */
     protected function isValidAdditional($coupon)
@@ -328,18 +341,19 @@ class DiscountCouponModifier extends OrderModifier
         $exclusions = $this->extend('checkForExclusions', $coupon);
         if (is_array($exclusions) && count($exclusions)) {
             foreach ($exclusions as $exclusion) {
-                if ($exclusion === true) {
+                if (true === $exclusion) {
                     return false;
                 }
             }
         }
+
         return true;
     }
 
     /**
      * returns the discount coupon, if any ...
      *
-     * @return DiscountCouponOption|null
+     * @return null|DiscountCouponOption
      */
     protected function myDiscountCouponOption()
     {
@@ -357,18 +371,21 @@ class DiscountCouponModifier extends OrderModifier
                 }
             }
         }
+
         return null;
     }
 
     /**
      * returns an Array of OrderItem IDs
-     * to which the coupon applies
+     * to which the coupon applies.
+     *
      * @param DiscountCouponOption $coupon
+     *
      * @return array
      */
     protected function applicableProductsArray($coupon)
     {
-        if (self::$_applicable_products_array === null) {
+        if (null === self::$_applicable_products_array) {
             self::$_applicable_products_array = [];
             $finalArray = [];
             $order = $this->Order();
@@ -404,6 +421,7 @@ class DiscountCouponModifier extends OrderModifier
             }
             self::$_applicable_products_array = $finalArray;
         }
+
         return self::$_applicable_products_array;
     }
 
@@ -418,9 +436,11 @@ class DiscountCouponModifier extends OrderModifier
         $coupon = $this->myDiscountCouponOption();
         if ($coupon) {
             return _t('DiscountCouponModifier.COUPON', 'Coupon') . " '" . $code . "' " . _t('DiscountCouponModifier.APPLIED', 'applied.');
-        } elseif ($code) {
+        }
+        if ($code) {
             return _t('DiscountCouponModifier.COUPON', 'Coupon') . " '" . $code . "' " . _t('DiscountCouponModifier.COULDNOTBEAPPLIED', 'could not be applied.');
         }
+
         return _t('DiscountCouponModifier.NOCOUPONENTERED', 'No (valid) coupon entered') . $code;
     }
 
@@ -463,6 +483,7 @@ class DiscountCouponModifier extends OrderModifier
 
             self::$subtotal = $subTotal;
         }
+
         return self::$subtotal;
     }
 
@@ -471,7 +492,7 @@ class DiscountCouponModifier extends OrderModifier
      * */
     protected function LiveCalculatedTotal()
     {
-        if ($this->_calculatedTotal === null) {
+        if (null === $this->_calculatedTotal) {
             $this->_calculatedTotal = 0;
             $this->_actualDeductions = 0;
             $this->DebugString = '';
@@ -506,6 +527,7 @@ class DiscountCouponModifier extends OrderModifier
 
             $this->_calculatedTotal = $this->_actualDeductions;
         }
+
         return $this->_calculatedTotal;
     }
 

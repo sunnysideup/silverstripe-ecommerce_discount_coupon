@@ -43,10 +43,12 @@ class DiscountCouponModifierForm extends OrderModifierForm
                 if ($modifier) {
                     list($message, $type) = $modifier->updateCouponCodeEntered(Convert::raw2sql($data['DiscountCouponCode']));
                     $form->sessionMessage($message, $type);
+
                     return ShoppingCart::singleton()->setMessageAndReturn($message, $type);
                 }
             }
         }
+
         return ShoppingCart::singleton()->setMessageAndReturn(_t('DiscountCouponModifier.NOTAPPLIED', 'Coupon could not be found.', 'bad'));
     }
 }
