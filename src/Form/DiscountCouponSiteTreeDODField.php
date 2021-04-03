@@ -8,7 +8,7 @@ use SilverStripe\ORM\DataObjectInterface;
 class DiscountCouponSiteTreeDODField extends TreeMultiselectField
 {
     /**
-     * TO DO: explain how this works or what it does.
+     * @todoexplain how this works or what it does.
      */
     public function saveInto(DataObjectInterface $record)
     {
