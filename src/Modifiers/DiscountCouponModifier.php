@@ -156,7 +156,7 @@ class DiscountCouponModifier extends OrderModifier
      * We always show it when there are items in the cart.
      * @return bool
      */
-    public function ShowForm()
+    public function ShowForm() : bool
     {
         $items = $this->Order()->Items();
         //-- START HACK
@@ -254,7 +254,7 @@ class DiscountCouponModifier extends OrderModifier
      *
      * @return bool
      */
-    public function ShowInTable()
+    public function ShowInTable() : bool
     {
         if ($this->DiscountCouponOptionID) {
             return true;
@@ -268,7 +268,7 @@ class DiscountCouponModifier extends OrderModifier
     /**
      * @return bool
      */
-    public function CanRemove()
+    public function CanRemove() : bool
     {
         return false;
     }

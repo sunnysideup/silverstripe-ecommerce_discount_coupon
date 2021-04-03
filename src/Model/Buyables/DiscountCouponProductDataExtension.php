@@ -122,7 +122,7 @@ class DiscountCouponProductDataExtension extends DataExtension
     }
 
     /**
-     * @return \SilverStripe\ORM\FieldType\DBDate
+     * @return \SilverStripe\ORM\FieldType\DBDate|null
      */
     public function DiscountsAvailableUntil()
     {
@@ -144,7 +144,9 @@ class DiscountCouponProductDataExtension extends DataExtension
             }
         }
         if ($next) {
+            /** @var DBDate $obj */
             $obj = DBField::create_field(DBDate::class, $next);
         }
+        return $obj;
     }
 }
