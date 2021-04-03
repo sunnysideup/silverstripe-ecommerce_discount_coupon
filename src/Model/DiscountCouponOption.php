@@ -326,7 +326,7 @@ class DiscountCouponOption extends DataObject
      *
      * @return bool
      */
-    public function canDelete($member = null, $context = [])
+    public function canDelete($member = null)
     {
         if ($this->UseCount()) {
             return false;
