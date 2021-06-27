@@ -384,7 +384,7 @@ class DiscountCouponOption extends DataObject
         $fields->addFieldToTab('Root.Main', new ReadonlyField('UseCount', self::$field_labels['UseCount']));
         $fields->addFieldToTab('Root.Main', new ReadonlyField('IsValidNice', self::$field_labels['IsValidNice']));
         if ($gridField1 = $fields->dataFieldByName('Products')) {
-            if ($this->ProductGroups()->count() || $this->ProductGroupsMustAlsoBePresentIn()->count()) {
+            if ($this->ProductGroups()->exists() || $this->ProductGroupsMustAlsoBePresentIn()->exists()) {
                 $gridField1->setConfig(GridFieldBasicPageRelationConfigNoAddExisting::create());
             } else {
                 $gridField1->setConfig(GridFieldBasicPageRelationConfig::create());
@@ -499,20 +499,20 @@ class DiscountCouponOption extends DataObject
         $productsArray = [0 => 0];
         $mustAlsoBePresentInProductsArray = [0 => 0];
         parent::onAfterWrite();
-        if (! $this->_productsCalculated && $this->ProductGroups()->count()) {
+        if (! $this->_productsCalculated && $this->ProductGroups()->exists()) {
             $this->_productsCalculated = true;
             $productGroups = $this->ProductGroups();
             $productsShowable = Product::get()->filter(['ID' => -1]);
             foreach ($productGroups as $productGroup) {
                 $productsShowable = $productGroup->currentInitialProducts(null, 'default');
-                if ($productsShowable && $productsShowable->count()) {
+                if ($productsShowable->exists()) {
                     $productsArray += $productsShowable->columnUnique();
                 }
             }
             $mustAlsoBePresentInGroups = $this->ProductGroupsMustAlsoBePresentIn();
             foreach ($mustAlsoBePresentInGroups as $mustAlsoBePresentInGroup) {
                 $mustAlsoBePresentInProducts = $mustAlsoBePresentInGroup->currentInitialProducts(null, 'default');
-                if ($mustAlsoBePresentInProducts && $mustAlsoBePresentInProducts->count()) {
+                if ($mustAlsoBePresentInProducts->exists()) {
                     $mustAlsoBePresentInProductsArray += $mustAlsoBePresentInProducts->columnUnique();
                 }
             }

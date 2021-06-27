@@ -51,7 +51,7 @@ class DiscountCouponSiteTreeDOD extends DataExtension
             $allowedPageIDs = explode(',', $this->owner->PageIDs);
             $checkPages = ArrayList::create([$page]);
             $alreadyCheckedPageIDs = [];
-            while ($checkPages->Count()) {
+            while ($checkPages->exists()) {
                 $page = $checkPages->First();
                 if (in_array($page->ID, $allowedPageIDs, true)) {
                     return true;

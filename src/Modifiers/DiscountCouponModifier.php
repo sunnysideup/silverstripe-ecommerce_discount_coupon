@@ -388,7 +388,7 @@ class DiscountCouponModifier extends OrderModifier
             $order = $this->Order();
             if ($order) {
                 $items = $order->Items();
-                if ($items && $items->count()) {
+                if ($items->exists()) {
                     //get a list of all the products in the cart
                     $arrayOfProductsInOrder = [];
                     foreach ($items as $item) {
