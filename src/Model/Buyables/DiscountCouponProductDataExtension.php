@@ -36,7 +36,7 @@ class DiscountCouponProductDataExtension extends DataExtension
             GridField::create(
                 'ApplicableDiscountCoupons',
                 'Discount Coupons',
-                $this->owner->ApplicableDiscountCoupons(),
+                $this->getOwner()->ApplicableDiscountCoupons(),
                 GridFieldConfig_RelationEditor::create()
             )
         );
@@ -57,14 +57,14 @@ class DiscountCouponProductDataExtension extends DataExtension
 
     public function setCanBeNotDiscounted()
     {
-        self::$buyable_to_be_excluded_from_discounts[$this->owner->ID] = $this->owner->ID;
+        self::$buyable_to_be_excluded_from_discounts[$this->getOwner()->ID] = $this->getOwner()->ID;
 
         return $this;
     }
 
     public function getCanBeDiscounted()
     {
-        return ! isset(self::$buyable_to_be_excluded_from_discounts[$this->owner->ID]);
+        return ! isset(self::$buyable_to_be_excluded_from_discounts[$this->getOwner()->ID]);
     }
 
     /**
@@ -76,7 +76,7 @@ class DiscountCouponProductDataExtension extends DataExtension
     {
         if ($this->getCanBeDiscounted()) {
             $hasDiscount = false;
-            $coupons = $this->owner->DirectlyApplicableDiscountCoupons();
+            $coupons = $this->getOwner()->DirectlyApplicableDiscountCoupons();
             if ($coupons->exists()) {
                 $discountPercentage = 0;
                 $discountAbsolute = 0;
@@ -108,7 +108,7 @@ class DiscountCouponProductDataExtension extends DataExtension
 
     public function DirectlyApplicableDiscountCoupons()
     {
-        return $this->owner->ApplicableDiscountCoupons()
+        return $this->getOwner()->ApplicableDiscountCoupons()
             ->filter(['ApplyPercentageToApplicableProducts' => 1, 'ApplyEvenWithoutCode' => 1])
         ;
     }
@@ -117,7 +117,7 @@ class DiscountCouponProductDataExtension extends DataExtension
     {
         if (null === $this->discountCouponAmount) {
             $this->discountCouponAmount = 0;
-            $amount = floatval($this->owner->Price) - floatval($this->owner->CalculatedPrice());
+            $amount = floatval($this->getOwner()->Price) - floatval($this->getOwner()->CalculatedPrice());
             if ($amount > 1) {
                 $this->discountCouponAmount = $amount;
             }

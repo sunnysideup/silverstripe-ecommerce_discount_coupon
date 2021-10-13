@@ -14,6 +14,6 @@ class DiscountCouponSiteTreeDODProductVariation extends DataExtension
     {
         $coupon = $modifier->DiscountCouponOption();
 
-        return ! $coupon->canBeDiscounted($this->owner->Product());
+        return ! $coupon->canBeDiscounted($this->getOwner()->Product());
     }
 }

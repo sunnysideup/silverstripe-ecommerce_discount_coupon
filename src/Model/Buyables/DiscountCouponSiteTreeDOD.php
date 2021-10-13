@@ -33,7 +33,7 @@ class DiscountCouponSiteTreeDOD extends DataExtension
             $labelField = 'MenuTitle'
         );
         // $filter = function ($o) use ($obj)  {
-        //     return (($obj instanceof ProductGroup || $obj instanceof Product) && ($obj->ParentID != ' . $this->owner->ID . '));
+        //     return (($obj instanceof ProductGroup || $obj instanceof Product) && ($obj->ParentID != ' . $this->getOwner()->ID . '));
         // };
         // $field->setFilterFunction($filter);
         $fields->addFieldToTab('Root.AppliesTo', $field);
@@ -47,8 +47,8 @@ class DiscountCouponSiteTreeDOD extends DataExtension
      */
     public function canBeDiscounted(SiteTree $page)
     {
-        if ($this->owner->PageIDs) {
-            $allowedPageIDs = explode(',', $this->owner->PageIDs);
+        if ($this->getOwner()->PageIDs) {
+            $allowedPageIDs = explode(',', $this->getOwner()->PageIDs);
             $checkPages = ArrayList::create([$page]);
             $alreadyCheckedPageIDs = [];
             while ($checkPages->exists()) {
