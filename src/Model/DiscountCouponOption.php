@@ -216,12 +216,12 @@ class DiscountCouponOption extends DataObject
      *
      * @return int
      */
-    public function UseCount()
+    public function UseCount() : int
     {
         return $this->getUseCount();
     }
 
-    public function getUseCount()
+    public function getUseCount() : int
     {
         if ($this->ID) {
             return DiscountCouponModifier::get()->filter(['DiscountCouponOptionID' => $this->ID])->count();
@@ -536,9 +536,9 @@ class DiscountCouponOption extends DataObject
      *
      * @return bool
      */
-    protected function thereAreCouponsWithTheSameCode()
+    protected function thereAreCouponsWithTheSameCode() : bool
     {
-        return (bool) DiscountCouponOption::get()->exclude(['ID' => $this->ID])->filter(['Code' => $this->Code])->count();
+        return (bool) DiscountCouponOption::get()->exclude(['ID' => $this->ID])->filter(['Code' => $this->Code])->exists();
     }
 
     /**
