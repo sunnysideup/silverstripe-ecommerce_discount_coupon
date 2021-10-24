@@ -65,8 +65,11 @@ class DiscountCouponSiteTreeDOD extends DataExtension
                 } else {
                     $parents = ArrayList::create();
                 }
-
-                $parent = $page->Parent();
+                if($page->hasMethod('ParentGroup')) {
+                    $parent = $page->ParentGroup();
+                } else {
+                    $parent = $page->Parent();
+                }
                 if ($parent && $parent->exists()) {
                     $parents->unshift($parent);
                 }
