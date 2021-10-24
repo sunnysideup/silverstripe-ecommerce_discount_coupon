@@ -213,15 +213,13 @@ class DiscountCouponOption extends DataObject
      * returns the number of times this coupon has been used.
      * Some of the used coupons are not submitted yet, but it should still
      * work on first come first served basis.
-     *
-     * @return int
      */
-    public function UseCount() : int
+    public function UseCount(): int
     {
         return $this->getUseCount();
     }
 
-    public function getUseCount() : int
+    public function getUseCount(): int
     {
         if ($this->ID) {
             return DiscountCouponModifier::get()->filter(['DiscountCouponOptionID' => $this->ID])->count();
@@ -533,10 +531,8 @@ class DiscountCouponOption extends DataObject
 
     /**
      * Checks if there are coupons with the same code as the current one.
-     *
-     * @return bool
      */
-    protected function thereAreCouponsWithTheSameCode() : bool
+    protected function thereAreCouponsWithTheSameCode(): bool
     {
         return (bool) DiscountCouponOption::get()->exclude(['ID' => $this->ID])->filter(['Code' => $this->Code])->exists();
     }
