@@ -355,7 +355,8 @@ class DiscountCouponModifier extends OrderModifier
     protected function myDiscountCouponOption()
     {
         $coupon = null;
-        if ($id = $this->LiveDiscountCouponOptionID()) {
+        $id = $this->LiveDiscountCouponOptionID();
+        if ($id) {
             $coupon = DiscountCouponOption::get()->byID($id);
             if ($coupon) {
                 if ($coupon->ApplyPercentageToApplicableProducts) {

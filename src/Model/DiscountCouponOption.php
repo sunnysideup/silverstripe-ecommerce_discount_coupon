@@ -381,7 +381,10 @@ class DiscountCouponOption extends DataObject
         }
         $fields->addFieldToTab('Root.Main', new ReadonlyField('UseCount', self::$field_labels['UseCount']));
         $fields->addFieldToTab('Root.Main', new ReadonlyField('IsValidNice', self::$field_labels['IsValidNice']));
-        if ($gridField1 = $fields->dataFieldByName('Products')) {
+        $gridField3 = $fields->dataFieldByName('ProductGroupsMustAlsoBePresentIn');
+        $gridField2 = $fields->dataFieldByName('ProductGroups');
+        $gridField1 = $fields->dataFieldByName('Products');
+        if ($gridField1) {
             if ($this->ProductGroups()->exists() || $this->ProductGroupsMustAlsoBePresentIn()->exists()) {
                 $gridField1->setConfig(GridFieldBasicPageRelationConfigNoAddExisting::create());
             } else {
@@ -389,12 +392,12 @@ class DiscountCouponOption extends DataObject
             }
             $fields->addFieldToTab('Root.AddProductsDirectly', $gridField1);
         }
-        if ($gridField2 = $fields->dataFieldByName('ProductGroups')) {
+        if ($gridField2) {
             $gridField2->setConfig(GridFieldBasicPageRelationConfig::create());
             $fields->addFieldToTab('Root.AddProductsUsingCategories', $gridField2);
         }
 
-        if ($gridField3 = $fields->dataFieldByName('ProductGroupsMustAlsoBePresentIn')) {
+        if ($gridField3) {
             $gridField3->setConfig(GridFieldBasicPageRelationConfig::create());
             $fields->addFieldToTab('Root.AddProductsUsingCategories', $gridField3);
         }
