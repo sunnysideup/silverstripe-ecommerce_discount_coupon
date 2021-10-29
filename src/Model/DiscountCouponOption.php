@@ -381,6 +381,7 @@ class DiscountCouponOption extends DataObject
         }
         $fields->addFieldToTab('Root.Main', new ReadonlyField('UseCount', self::$field_labels['UseCount']));
         $fields->addFieldToTab('Root.Main', new ReadonlyField('IsValidNice', self::$field_labels['IsValidNice']));
+
         $gridField1 = $fields->dataFieldByName('Products');
         if ($gridField1) {
             if ($this->ProductGroups()->exists() || $this->ProductGroupsMustAlsoBePresentIn()->exists()) {
