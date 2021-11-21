@@ -393,7 +393,7 @@ class DiscountCouponModifier extends OrderModifier
                     //get a list of all the products in the cart
                     $arrayOfProductsInOrder = [];
                     foreach ($items as $item) {
-                        $buyable = $item->Buyable();
+                        $buyable = $item->getBuyableCached();
                         $buyable = $buyable->Product();
                         $arrayOfProductsInOrder[$item->ID] = $buyable->ID;
                     }
@@ -468,7 +468,7 @@ class DiscountCouponModifier extends OrderModifier
                 $function = $this->Config()->get('exclude_buyable_method');
                 if ($items) {
                     foreach ($items as $item) {
-                        $buyable = $item->Buyable();
+                        $buyable = $item->getBuyableCached();
                         if ($buyable && $buyable->hasMethod($function) && $buyable->{$function}($this)) {
                             $subTotal -= $item->Total();
                         }
