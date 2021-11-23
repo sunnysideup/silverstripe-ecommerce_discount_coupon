@@ -1,7 +1,8 @@
 <?php
 
 namespace Sunnysideup\EcommerceDiscountCoupon\Model;
-
+use Sunnysideup\Ecommerce\Forms\Gridfield\Configs\GridFieldConfigForProductGroups;
+use Sunnysideup\Ecommerce\Forms\Gridfield\Configs\GridFieldConfigForProducts;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\ReadonlyField;
@@ -387,20 +388,20 @@ class DiscountCouponOption extends DataObject
             if ($this->ProductGroups()->exists() || $this->ProductGroupsMustAlsoBePresentIn()->exists()) {
                 $gridField1->setConfig(GridFieldBasicPageRelationConfigNoAddExisting::create());
             } else {
-                $gridField1->setConfig(GridFieldBasicPageRelationConfig::create());
+                $gridField1->setConfig(GridFieldConfigForProducts::create());
             }
             $fields->addFieldToTab('Root.AddProductsDirectly', $gridField1);
         }
 
         $gridField2 = $fields->dataFieldByName('ProductGroups');
         if ($gridField2) {
-            $gridField2->setConfig(GridFieldBasicPageRelationConfig::create());
+            $gridField2->setConfig(GridFieldConfigForProductGroups::create());
             $fields->addFieldToTab('Root.AddProductsUsingCategories', $gridField2);
         }
 
         $gridField3 = $fields->dataFieldByName('ProductGroupsMustAlsoBePresentIn');
         if ($gridField3) {
-            $gridField3->setConfig(GridFieldBasicPageRelationConfig::create());
+            $gridField3->setConfig(GridFieldConfigForProductGroups::create());
             $fields->addFieldToTab('Root.AddProductsUsingCategories', $gridField3);
         }
         $fields->removeFieldFromTab('Root', 'Products');
