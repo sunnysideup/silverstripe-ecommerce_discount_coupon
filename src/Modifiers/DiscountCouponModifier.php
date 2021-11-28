@@ -164,7 +164,7 @@ class DiscountCouponModifier extends OrderModifier
      */
     public function ShowForm(): bool
     {
-        $items = $this->orderCached()->Items();
+        $items = $this->getOrderCached()->Items();
         //-- START HACK
         return (bool) $items;
     }
@@ -265,7 +265,7 @@ class DiscountCouponModifier extends OrderModifier
             return true;
         }
         //we hide it with ajax if needed
-        return ! $this->Order()->IsSubmitted();
+        return ! $this->getOrderCached()->IsSubmitted();
     }
 
     public function CanRemove(): bool
@@ -386,7 +386,7 @@ class DiscountCouponModifier extends OrderModifier
         if (null === self::$_applicable_products_array) {
             self::$_applicable_products_array = [];
             $finalArray = [];
-            $order = $this->Order();
+            $order = $this->getOrderCached();
             if ($order) {
                 $items = $order->Items();
                 if ($items->exists()) {
@@ -448,7 +448,7 @@ class DiscountCouponModifier extends OrderModifier
     protected function LiveSubTotalAmount()
     {
         if (! self::$subtotal) {
-            $order = $this->Order();
+            $order = $this->getOrderCached();
             $items = $order->Items();
             $coupon = $this->myDiscountCouponOption();
             if ($coupon && $coupon->ApplyPercentageToApplicableProducts) {
