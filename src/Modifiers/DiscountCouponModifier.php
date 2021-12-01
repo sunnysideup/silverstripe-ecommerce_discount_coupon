@@ -357,7 +357,7 @@ class DiscountCouponModifier extends OrderModifier
         $coupon = null;
         $id = $this->LiveDiscountCouponOptionID();
         if ($id) {
-            $coupon = DiscountCouponOption::get()->byID($id);
+            $coupon = DiscountCouponOption::get_by_id($id);
             if ($coupon) {
                 if ($coupon->ApplyPercentageToApplicableProducts) {
                     $arrayOfOrderItemsToWhichThisCouponApplies = $this->applicableProductsArray($coupon);
