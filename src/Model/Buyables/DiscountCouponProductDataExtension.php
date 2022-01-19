@@ -32,7 +32,7 @@ class DiscountCouponProductDataExtension extends DataExtension
     public function updateCMSFields(FieldList $fields)
     {
         $fields->addFieldsToTab(
-            'Root.Discount',
+            'Root.Price',
             GridField::create(
                 'ApplicableDiscountCoupons',
                 'Discount Coupons',
