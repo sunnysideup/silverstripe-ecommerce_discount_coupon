@@ -22,7 +22,8 @@ class DiscountCouponModifierForm extends OrderModifierForm
     {
         parent::__construct($optionalController, $name, $fields, $actions, $optionalValidator);
         Requirements::javascript('https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js');
-        Requirements::javascript('silverstripe/admin: thirdparty/jquery-form/jquery.form.js');
+        // Requirements::javascript('silverstripe/admin: thirdparty/jquery-form/jquery.form.js');
+        Requirements::block('silverstripe/admin: thirdparty/jquery-form/jquery.form.js');
         //Requirements::block(THIRDPARTY_DIR."/jquery/jquery.js");
         //Requirements::javascript(Director::protocol()."ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js");
         $jsRequirements = $this->Config()->get('custom_javascript_files');

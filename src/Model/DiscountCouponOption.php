@@ -473,7 +473,7 @@ class DiscountCouponOption extends DataObject
             $this->Code = $this->createRandomCode();
         }
         $this->Code = preg_replace('#[^a-z0-9]#i', ' ', $this->Code);
-        $this->Code = trim(preg_replace('#\s+#', '', $this->Code));
+        $this->Code = trim(preg_replace('#\s+#', '', (string) $this->Code));
 
         $i = 1;
         while ($this->thereAreCouponsWithTheSameCode() && $i < 100) {
