@@ -249,13 +249,13 @@ class DiscountCouponOption extends DataObject
             return false;
         }
         $now = strtotime('now');
-        $startDate = strtotime($this->StartDate);
+        $startDate = strtotime((string) $this->StartDate);
         if ($now < $startDate) {
             return false;
         }
         //include the end date itself.
         if ($this->EndDate) {
-            $endDate = strtotime($this->EndDate) + (60 * 60 * 24);
+            $endDate = strtotime((string) $this->EndDate) + (60 * 60 * 24);
             if ($now > $endDate) {
                 return false;
             }
@@ -426,24 +426,24 @@ class DiscountCouponOption extends DataObject
                 $validator->addError(_t('DiscountCouponOption.CODEALREADYEXISTS', 'This code already exists - please use another code.'));
             }
             if (isset($_REQUEST['StartDate'])) {
-                $this->StartDate = date('Y-m-d', strtotime($_REQUEST['StartDate']));
+                $this->StartDate = date('Y-m-d', strtotime((string) $_REQUEST['StartDate']));
             }
             if (isset($_REQUEST['EndDate'])) {
-                $this->EndDate = date('Y-m-d', strtotime($_REQUEST['EndDate']));
+                $this->EndDate = date('Y-m-d', strtotime((string) $_REQUEST['EndDate']));
             }
-            if (strtotime($this->StartDate) < strtotime('-12 years')) {
+            if (strtotime((string) $this->StartDate) < strtotime('-12 years')) {
                 $validator->addFieldError(
                     'StartDate',
                     _t('DiscountCouponOption.NOSTARTDATE', 'Please enter a start date')
                 );
             }
-            if (strtotime($this->EndDate) < strtotime('-12 years')) {
+            if (strtotime((string) $this->EndDate) < strtotime('-12 years')) {
                 $validator->addFieldError(
                     'EndDate',
                     _t('DiscountCouponOption.NOENDDATE', 'Please enter an end date')
                 );
             }
-            if (strtotime($this->EndDate) < strtotime($this->StartDate)) {
+            if (strtotime((string) $this->EndDate) < strtotime((string) $this->StartDate)) {
                 $validator->addError(_t('DiscountCouponOption.ENDDATETOOEARLY', 'The end date should be after the start date'));
             }
             if ($this->DiscountPercentage < 0 || $this->DiscountPercentage > 99.999) {
