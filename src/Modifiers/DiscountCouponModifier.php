@@ -144,16 +144,16 @@ class DiscountCouponModifier extends OrderModifier
     /**
      * updates all database fields.
      *
-     * @param bool $force - run it, even if it has run already
+     * @param bool $recalculate - run it, even if it has run already
      */
-    public function runUpdate($force = false)
+    public function runUpdate($recalculate = false)
     {
         if (! $this->IsRemoved()) {
             $this->checkField('SubTotalAmount');
             $this->checkField('CouponCodeEntered');
             $this->checkField('DiscountCouponOptionID');
         }
-        parent::runUpdate($force);
+        parent::runUpdate($recalculate);
     }
 
     // ######################################## *** form functions (e. g. showform and getform)
