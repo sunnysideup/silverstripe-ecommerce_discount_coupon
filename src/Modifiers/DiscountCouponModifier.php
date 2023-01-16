@@ -149,9 +149,9 @@ class DiscountCouponModifier extends OrderModifier
     public function runUpdate($recalculate = false)
     {
         if (! $this->IsRemoved()) {
-            $this->checkField('SubTotalAmount');
-            $this->checkField('CouponCodeEntered');
-            $this->checkField('DiscountCouponOptionID');
+            $this->checkField('SubTotalAmount', $recalculate);
+            $this->checkField('CouponCodeEntered', $recalculate);
+            $this->checkField('DiscountCouponOptionID', $recalculate);
         }
         parent::runUpdate($recalculate);
     }
