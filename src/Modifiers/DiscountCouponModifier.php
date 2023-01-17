@@ -164,9 +164,8 @@ class DiscountCouponModifier extends OrderModifier
      */
     public function ShowForm(): bool
     {
-        $items = $this->getOrderCached()->Items();
-        //-- START HACK
-        return (bool) $items;
+        $order = $this->getOrderCached();
+        return $order && $order->getTotalItems() ? true : false;
     }
 
     /**
