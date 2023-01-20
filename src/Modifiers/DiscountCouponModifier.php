@@ -264,7 +264,11 @@ class DiscountCouponModifier extends OrderModifier
             return true;
         }
         //we hide it with ajax if needed
-        return ! $this->getOrderCached()->IsSubmitted();
+        $order = $this->getOrderCached();
+        if($order) {
+            return ! $order->IsSubmitted();
+        }
+        return false;
     }
 
     public function CanRemove(): bool
