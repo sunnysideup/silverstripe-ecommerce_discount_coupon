@@ -451,34 +451,36 @@ class DiscountCouponModifier extends OrderModifier
     protected function LiveSubTotalAmount()
     {
         if (! self::$subtotal) {
+            $subTotal = 0;
             $order = $this->getOrderCached();
-            $items = $order->Items();
-            $coupon = $this->myDiscountCouponOption();
-            if ($coupon && $coupon->ApplyPercentageToApplicableProducts) {
-                $array = $this->applicableProductsArray($coupon);
-                $subTotal = 0;
-                if (count($array)) {
-                    if ($items) {
-                        foreach ($items as $item) {
-                            if (in_array($item->ID, $array, true)) {
-                                $subTotal += $item->Total();
+            if($order) {
+                $items = $order->Items();
+                $coupon = $this->myDiscountCouponOption();
+                if ($coupon && $coupon->ApplyPercentageToApplicableProducts) {
+                    $array = $this->applicableProductsArray($coupon);
+                    if (count($array)) {
+                        if ($items) {
+                            foreach ($items as $item) {
+                                if (in_array($item->ID, $array, true)) {
+                                    $subTotal += $item->Total();
+                                }
                             }
                         }
                     }
-                }
-            } else {
-                $subTotal = $order->SubTotal();
-                $function = $this->Config()->get('exclude_buyable_method');
-                if ($items) {
-                    foreach ($items as $item) {
-                        $buyable = $item->getBuyableCached();
-                        if ($buyable && $buyable->hasMethod($function) && $buyable->{$function}($this)) {
-                            $subTotal -= $item->Total();
+                } else {
+                    $subTotal = $order->SubTotal();
+                    $function = $this->Config()->get('exclude_buyable_method');
+                    if ($items) {
+                        foreach ($items as $item) {
+                            $buyable = $item->getBuyableCached();
+                            if ($buyable && $buyable->hasMethod($function) && $buyable->{$function}($this)) {
+                                $subTotal -= $item->Total();
+                            }
                         }
                     }
-                }
-                if ($this->Config()->get('include_modifiers_in_subtotal')) {
-                    $subTotal += $order->ModifiersSubTotal([static::class]);
+                    if ($this->Config()->get('include_modifiers_in_subtotal')) {
+                        $subTotal += $order->ModifiersSubTotal([static::class]);
+                    }
                 }
             }
 
