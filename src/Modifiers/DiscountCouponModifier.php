@@ -13,13 +13,13 @@ use Sunnysideup\Ecommerce\Pages\Product;
 use Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption;
 
 /**
- * @author Nicolaas [at] sunnysideup.co.nz
- * @author Romain [at] sunnysideup.co.nz
- * @package: ecommerce
- * @sub-package: ecommerce_delivery
- * @description: Shipping calculation scheme based on SimpleShippingModifier.
- * It lets you set fixed shipping costs, or a fixed
- * cost for each region you're delivering to.
+ * Class \Sunnysideup\EcommerceDiscountCoupon\Modifiers\DiscountCouponModifier
+ *
+ * @property string $DebugString
+ * @property float $SubTotalAmount
+ * @property string $CouponCodeEntered
+ * @property int $DiscountCouponOptionID
+ * @method \Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption DiscountCouponOption()
  */
 class DiscountCouponModifier extends OrderModifier
 {

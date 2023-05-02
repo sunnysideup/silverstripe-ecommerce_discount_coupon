@@ -11,6 +11,12 @@ use SilverStripe\ORM\FieldType\DBField;
 use Sunnysideup\Ecommerce\Model\Money\EcommerceCurrency;
 use Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption;
 
+/**
+ * Class \Sunnysideup\EcommerceDiscountCoupon\Model\Buyables\DiscountCouponProductDataExtension
+ *
+ * @property \Sunnysideup\Ecommerce\Pages\Product|\Sunnysideup\EcommerceDiscountCoupon\Model\Buyables\DiscountCouponProductDataExtension $owner
+ * @method \SilverStripe\ORM\ManyManyList|\Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption[] ApplicableDiscountCoupons()
+ */
 class DiscountCouponProductDataExtension extends DataExtension
 {
     protected static $buyable_to_be_excluded_from_discounts = [];

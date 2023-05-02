@@ -18,7 +18,23 @@ use Sunnysideup\EcommerceDiscountCoupon\Modifiers\DiscountCouponModifier;
 use Sunnysideup\EcommerceDiscountCoupon\Search\DiscountCouponFilterForDate;
 
 /**
- *@author nicolaas [at] sunnysideup.co.nz
+ * Class \Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption
+ *
+ * @property bool $ImportedFromAPI
+ * @property bool $ApplyPercentageToApplicableProducts
+ * @property bool $ApplyEvenWithoutCode
+ * @property string $Title
+ * @property string $Code
+ * @property int $NumberOfTimesCouponCanBeUsed
+ * @property string $StartDate
+ * @property string $EndDate
+ * @property float $MaximumDiscount
+ * @property float $DiscountAbsolute
+ * @property float $DiscountPercentage
+ * @property float $MinimumOrderSubTotalValue
+ * @method \SilverStripe\ORM\ManyManyList|\Sunnysideup\Ecommerce\Pages\Product[] Products()
+ * @method \SilverStripe\ORM\ManyManyList|\Sunnysideup\Ecommerce\Pages\ProductGroup[] ProductGroups()
+ * @method \SilverStripe\ORM\ManyManyList|\Sunnysideup\Ecommerce\Pages\ProductGroup[] ProductGroupsMustAlsoBePresentIn()
  */
 class DiscountCouponOption extends DataObject
 {
@@ -551,9 +567,9 @@ class DiscountCouponOption extends DataObject
      */
     protected function createRandomCode($length = 5, $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890'): string
     {
-        $chars_length = strlen( (string) $chars) - 1;
+        $chars_length = strlen((string) $chars) - 1;
         $string = $chars[rand(0, $chars_length)];
-        for ($i = 1; $i < $length; $i = strlen( (string) $string)) {
+        for ($i = 1; $i < $length; $i = strlen((string) $string)) {
             $r = $chars[rand(0, $chars_length)];
             if ($r !== $string[$i - 1]) {
                 $string .= $r;

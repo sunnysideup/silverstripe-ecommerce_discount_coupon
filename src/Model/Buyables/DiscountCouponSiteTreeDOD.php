@@ -10,6 +10,12 @@ use Sunnysideup\Ecommerce\Pages\Product;
 use Sunnysideup\Ecommerce\Pages\ProductGroup;
 use Sunnysideup\EcommerceDiscountCoupon\Form\DiscountCouponSiteTreeDODField;
 
+/**
+ * Class \Sunnysideup\EcommerceDiscountCoupon\Model\Buyables\DiscountCouponSiteTreeDOD
+ *
+ * @property \Sunnysideup\EcommerceDiscountCoupon\Model\Buyables\DiscountCouponSiteTreeDOD $owner
+ * @property string $PageIDs
+ */
 class DiscountCouponSiteTreeDOD extends DataExtension
 {
     private static $db = [
