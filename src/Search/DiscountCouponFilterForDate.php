@@ -6,11 +6,11 @@ use SilverStripe\ORM\DataQuery;
 use SilverStripe\ORM\Filters\ExactMatchFilter;
 
 // Future one
- //0----------F--|-------|----------------3000
- // Current One
- //0------------|--C-----|----------------3000
- // Past One
- //0------------|-------|---P-------------3000
+//0----------F--|-------|---------------- the year 3000
+// Current One
+//0------------|--C-----|---------------- the year 3000
+// Past One
+//0------------|-------|---P------------- the year 3000
 
 class DiscountCouponFilterForDate extends ExactMatchFilter
 {

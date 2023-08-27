@@ -39,12 +39,14 @@ class DiscountCouponProductDataExtension extends DataExtension
     {
         $fields->addFieldsToTab(
             'Root.Price',
-            GridField::create(
-                'ApplicableDiscountCoupons',
-                'Discount Coupons',
-                $this->getOwner()->ApplicableDiscountCoupons(),
-                GridFieldConfig_RelationEditor::create()
-            )
+            [
+                GridField::create(
+                    'ApplicableDiscountCoupons',
+                    'Discount Coupons',
+                    $this->getOwner()->ApplicableDiscountCoupons(),
+                    GridFieldConfig_RelationEditor::create()
+                )
+            ]
         );
     }
 
