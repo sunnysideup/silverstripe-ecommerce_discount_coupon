@@ -488,7 +488,7 @@ class DiscountCouponOption extends DataObject
         if (! $this->Code) {
             $this->Code = $this->createRandomCode();
         }
-        $this->Code = preg_replace('#[^a-z0-9]#i', ' ', $this->Code);
+        $this->Code = preg_replace('#[^a-z0-9]#i', ' ', (string) $this->Code);
         $this->Code = trim(preg_replace('#\s+#', '', (string) $this->Code));
 
         $i = 1;
@@ -496,7 +496,7 @@ class DiscountCouponOption extends DataObject
             ++$i;
             $this->Code .= '_' . $i;
         }
-        if (strlen(trim($this->Title)) < 1) {
+        if (strlen(trim((string) $this->Title)) < 1) {
             $this->Title = $this->Code;
         }
         if ($this->ApplyEvenWithoutCode) {
