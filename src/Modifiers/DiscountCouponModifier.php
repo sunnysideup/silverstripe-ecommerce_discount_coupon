@@ -148,7 +148,7 @@ class DiscountCouponModifier extends OrderModifier
      */
     public function runUpdate($recalculate = false)
     {
-        if (! $this->IsRemoved()) {
+        if (!$this->IsRemoved()) {
             $this->checkField('SubTotalAmount', $recalculate);
             $this->checkField('CouponCodeEntered', $recalculate);
             $this->checkField('DiscountCouponOptionID', $recalculate);
@@ -266,7 +266,7 @@ class DiscountCouponModifier extends OrderModifier
         //we hide it with ajax if needed
         $order = $this->getOrderCached();
         if($order) {
-            return ! $order->IsSubmitted();
+            return !$order->IsSubmitted();
         }
         return false;
     }
@@ -316,7 +316,7 @@ class DiscountCouponModifier extends OrderModifier
             return true;
         }
         // we do NOT hide it if values have been entered
-        return ! $this->CouponCodeEntered;
+        return !$this->CouponCodeEntered;
     }
 
     /**
@@ -394,12 +394,7 @@ class DiscountCouponModifier extends OrderModifier
                 $items = $order->Items();
                 if ($items->exists()) {
                     //get a list of all the products in the cart
-                    $arrayOfProductsInOrder = [];
-                    foreach ($items as $item) {
-                        $buyable = $item->getBuyableCached();
-                        $buyable = $buyable->Product();
-                        $arrayOfProductsInOrder[$item->ID] = $buyable->ID;
-                    }
+                    $arrayOfProductsInOrder = $order->ProductIds();
                     //if no products / product groups are specified then
                     //it applies
                     //get a list of all the products to which the coupon applies
@@ -450,7 +445,7 @@ class DiscountCouponModifier extends OrderModifier
      * */
     protected function LiveSubTotalAmount()
     {
-        if (! self::$subtotal) {
+        if (!self::$subtotal) {
             $subTotal = 0;
             $order = $this->getOrderCached();
             if($order) {
