@@ -4,7 +4,6 @@ namespace Sunnysideup\EcommerceDiscountCoupon\Model\Buyables;
 
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\GridField\GridField;
-use SilverStripe\Forms\GridField\GridFieldAddExistingAutocompleter;
 use SilverStripe\Forms\GridField\GridFieldConfig_RelationEditor;
 use SilverStripe\ORM\DataExtension;
 use SilverStripe\ORM\FieldType\DBDate;
@@ -46,7 +45,6 @@ class DiscountCouponProductDataExtension extends DataExtension
                     'Discount Coupons',
                     $this->getOwner()->ApplicableDiscountCoupons(),
                     GridFieldConfig_RelationEditor::create()
-                        ->removeComponentsByType(GridFieldAddExistingAutocompleter::class)
                 )
             ]
         );
@@ -74,7 +72,7 @@ class DiscountCouponProductDataExtension extends DataExtension
 
     public function getCanBeDiscounted()
     {
-        return !isset(self::$buyable_to_be_excluded_from_discounts[$this->getOwner()->ID]);
+        return ! isset(self::$buyable_to_be_excluded_from_discounts[$this->getOwner()->ID]);
     }
 
     /**
