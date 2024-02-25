@@ -86,7 +86,7 @@ class DiscountCouponProductDataExtension extends DataExtension
         if ($this->getCanBeDiscounted()) {
             $hasDiscount = false;
             $coupons = $owner->ValidCoupons();
-            if ($coupons->exists()) {
+            if ($coupons && $coupons->exists()) {
                 $discountPercentage = 0;
                 $discountAbsolute = 0;
                 foreach ($coupons as $coupon) {
@@ -170,7 +170,7 @@ class DiscountCouponProductDataExtension extends DataExtension
         $coupons = $this->ValidCoupons();
         $next = strtotime('+100 years');
         $obj = null;
-        if ($coupons->exists()) {
+        if ($coupons && $coupons->exists()) {
             $discount = 0;
             foreach ($coupons as $coupon) {
                 if ($coupon->EndDate && $coupon->DiscountAbsolute > $discount) {
