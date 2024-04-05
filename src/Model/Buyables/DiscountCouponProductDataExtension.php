@@ -168,7 +168,7 @@ class DiscountCouponProductDataExtension extends DataExtension
             return self::$discount_availble_until_cache[$owner->ID];
         }
         $coupons = $this->ValidCoupons();
-        $next = strtotime('+100 years');
+        $next = strtotime('+7 days');
         $obj = null;
         if ($coupons && $coupons->exists()) {
             $discount = 0;
