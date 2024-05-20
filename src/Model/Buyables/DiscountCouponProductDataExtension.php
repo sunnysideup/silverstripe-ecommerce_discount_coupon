@@ -168,19 +168,26 @@ class DiscountCouponProductDataExtension extends DataExtension
             return self::$discount_availble_until_cache[$owner->ID];
         }
         $coupons = $this->ValidCoupons();
-        $next = strtotime('+7 days');
+        $maxDateSet = false;
         $obj = null;
+        $next = null;
         if ($coupons && $coupons->exists()) {
             $discount = 0;
             foreach ($coupons as $coupon) {
                 if ($coupon->EndDate && $coupon->DiscountAbsolute > $discount) {
                     $discount = $coupon->DiscountAbsolute;
                     $maxDate = strtotime((string) $coupon->EndDate);
-                    if ($maxDate < $next) {
+                    if ($next === null || $maxDate < $next) {
                         $next = $maxDate;
+                        $maxDateSet = true;
                     }
                 }
             }
+        }
+        if($next && $maxDateSet) {
+            // do nothing
+        } else {
+            $next = strtotime('now +7 days');
         }
         if ($next) {
             /** @var DBDate $obj */
