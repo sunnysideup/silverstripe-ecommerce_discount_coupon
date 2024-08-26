@@ -524,14 +524,14 @@ class DiscountCouponOption extends DataObject
             $productGroups = $this->ProductGroups();
             $productsShowable = Product::get()->filter(['ID' => -1]);
             foreach ($productGroups as $productGroup) {
-                $productsShowable = $productGroup->currentInitialProducts(null, 'default');
+                $productsShowable = $productGroup->getProducts();
                 if ($productsShowable->exists()) {
                     $productsArray += $productsShowable->columnUnique();
                 }
             }
             $mustAlsoBePresentInGroups = $this->ProductGroupsMustAlsoBePresentIn();
             foreach ($mustAlsoBePresentInGroups as $mustAlsoBePresentInGroup) {
-                $mustAlsoBePresentInProducts = $mustAlsoBePresentInGroup->currentInitialProducts(null, 'default');
+                $mustAlsoBePresentInProducts = $mustAlsoBePresentInGroup->getProducts();
                 if ($mustAlsoBePresentInProducts->exists()) {
                     $mustAlsoBePresentInProductsArray += $mustAlsoBePresentInProducts->columnUnique();
                 }
