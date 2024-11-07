@@ -9,6 +9,7 @@ use SilverStripe\ORM\DataExtension;
 use SilverStripe\ORM\FieldType\DBDate;
 use SilverStripe\ORM\FieldType\DBField;
 use Sunnysideup\Ecommerce\Model\Money\EcommerceCurrency;
+use Sunnysideup\Ecommerce\Model\Order;
 use Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption;
 
 /**
@@ -19,7 +20,14 @@ use Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption;
  */
 class DiscountCouponProductDataExtension extends DataExtension
 {
-    protected static $buyable_to_be_excluded_from_discounts = [];
+    private static $min_discount_amount = 0.1;
+    private static $default_end_date_description = 'now +7 days';
+    protected static array $buyableToBeExcludedFromDiscounts = [];
+    protected static array $discountCoupontAmount = [];
+
+    protected static array $couponPriceArrayCache = [];
+
+    protected static array $discountAvailbleUntilCache = [];
 
     /**
      * stadard SS declaration.
@@ -30,7 +38,6 @@ class DiscountCouponProductDataExtension extends DataExtension
         'ApplicableDiscountCoupons' => DiscountCouponOption::class,
     ];
 
-    private $discountCouponAmount;
 
     /**
      * Update Fields.
@@ -50,7 +57,7 @@ class DiscountCouponProductDataExtension extends DataExtension
         );
     }
 
-    public static function add_buyable_to_be_excluded($buyableOrBuyableID)
+    public static function add_buyable_to_be_excluded($buyableOrBuyableID): void
     {
         $id = 0;
 
@@ -60,19 +67,19 @@ class DiscountCouponProductDataExtension extends DataExtension
             $id = (int) $buyableOrBuyableID;
         }
 
-        self::$buyable_to_be_excluded_from_discounts[$id] = $id;
+        self::$buyableToBeExcludedFromDiscounts[$id] = $id;
     }
 
-    public function setCanBeNotDiscounted()
+    public function setCanBeNotDiscounted(): static
     {
-        self::$buyable_to_be_excluded_from_discounts[$this->getOwner()->ID] = $this->getOwner()->ID;
+        self::$buyableToBeExcludedFromDiscounts[$this->getOwner()->ID] = $this->getOwner()->ID;
 
         return $this;
     }
 
     public function getCanBeDiscounted()
     {
-        return ! isset(self::$buyable_to_be_excluded_from_discounts[$this->getOwner()->ID]);
+        return ! isset(self::$buyableToBeExcludedFromDiscounts[$this->getOwner()->ID]);
     }
 
     /**
@@ -80,39 +87,74 @@ class DiscountCouponProductDataExtension extends DataExtension
      *
      * @return null|float
      */
-    public function updateCalculatedPrice(?float $price = null)
+    public function updateCalculatedPrice(?float $price = null): ?float
+    {
+        if ($this->getCanBeDiscounted()) {
+            $prices = $this->applicableCouponsAndPrice($price);
+            if (!empty($prices)) {
+                return $prices[0]['Price'];
+            }
+        }
+
+        return null;
+    }
+
+    public function applicableCouponsAndPrice(?float $price): ?array
     {
         $owner = $this->getOwner();
-        if ($this->getCanBeDiscounted()) {
-            $hasDiscount = false;
-            $coupons = $owner->ValidCoupons();
+        if (! isset(self::$couponPriceArrayCache[$owner->ID])) {
+            self::$couponPriceArrayCache[$owner->ID] = null;
+            $coupons = $owner->DirectlyApplicableDiscountCoupons();
             if ($coupons && $coupons->exists()) {
-                $discountPercentage = 0;
-                $discountAbsolute = 0;
+                $couponPriceArray = [];
                 foreach ($coupons as $coupon) {
                     if ($coupon->isValid()) {
-                        $hasDiscount = true;
+                        $discountPercentage = 0;
+                        $discountAbsolute = 0;
+                        $discountPrice = 0;
+                        if ($coupon->DiscountPrice > $discountPrice) {
+                            $discountPrice = $coupon->DiscountPrice;
+                        }
                         if ($coupon->DiscountPercentage > $discountPercentage) {
                             $discountPercentage = $coupon->DiscountPercentage;
                         }
                         if ($coupon->DiscountAbsolute > $discountAbsolute) {
                             $discountAbsolute = $coupon->DiscountAbsolute;
                         }
-                    }
-                }
-                if ($hasDiscount && $price) {
-                    $priceWithPercentageDiscount = $price - ($price * ($discountPercentage / 100));
-                    $priceWithAbsoluteDiscount = $price - $discountAbsolute;
-                    if ($priceWithPercentageDiscount < $priceWithAbsoluteDiscount) {
-                        return $priceWithPercentageDiscount;
-                    }
+                        $priceWithPercentageDiscount = $price - ($price * ($discountPercentage / 100));
+                        $priceWithAbsoluteDiscount = $price - $discountAbsolute;
+                        // Filter values greater than $owner->config()->get('min_discount_amount')
+                        $filteredArray = array_filter(
+                            [
+                                $priceWithPercentageDiscount,
+                                $priceWithAbsoluteDiscount,
+                                $discountPrice
+                            ],
+                            function (float $value) use ($owner): bool {
+                                return $value > $owner->config()->get('min_discount_amount');
 
-                    return $priceWithAbsoluteDiscount;
+                            }
+                        );
+
+                        // Get the minimum value from the filtered array
+                        $bestPrice = !empty($filteredArray) ? min($filteredArray) : null;
+                        if ($bestPrice < $price && $bestPrice > 0) {
+                            $couponPriceArray[] = [
+                                'Price' => $bestPrice,
+                                'Coupon' => $coupon,
+                            ];
+                        }
+                    }
                 }
             }
+            if (!empty($couponPriceArray)) {
+                usort($couponPriceArray, function (array $a, array $b): int {
+                    return $a['Price'] <=> $b['Price'];
+                });
+                self::$couponPriceArrayCache[$owner->ID] = $couponPriceArray;
+            }
         }
-
-        return null;
+        return self::$couponPriceArrayCache[$owner->ID];
     }
 
     public function DirectlyApplicableDiscountCoupons()
@@ -124,39 +166,19 @@ class DiscountCouponProductDataExtension extends DataExtension
 
     public function DiscountCouponAmount()
     {
-        if (null === $this->discountCouponAmount) {
-            $this->discountCouponAmount = 0;
-            $amount = floatval($this->getOwner()->Price) - floatval($this->getOwner()->CalculatedPrice());
-            if ($amount > 1) {
-                $this->discountCouponAmount = $amount;
-            }
-        }
-
-        return EcommerceCurrency::get_money_object_from_order_currency($this->discountCouponAmount);
-    }
-
-    protected static $valid_coupons_cache = [];
-
-    public function ValidCoupons()
-    {
         $owner = $this->getOwner();
-        if (isset(self::$valid_coupons_cache[$owner->ID])) {
-            return self::$valid_coupons_cache[$owner->ID];
-        }
-        $validCoupons = $owner->DirectlyApplicableDiscountCoupons();
-        if ($validCoupons->exists()) {
-            foreach($validCoupons as $coupon) {
-                if (! $coupon->isValid()) {
-                    $validCoupons = $validCoupons->remove($coupon);
-                }
+        if (! isset(self::$discountCoupontAmount[$owner->ID])) {
+            self::$discountCoupontAmount[$owner->ID] = null;
+            $amount = floatval($this->getOwner()->Price) - floatval($owner->CalculatedPrice());
+            if ($amount > $owner->config()->get('min_discount_amount')) {
+                self::$discountCoupontAmount[$owner->ID] = $amount;
             }
+            self::$discountCoupontAmount[$owner->ID] = EcommerceCurrency::get_money_object_from_order_currency($amount);
         }
-        self::$valid_coupons_cache[$owner->ID] = $validCoupons;
-
-        return $validCoupons;
+        return self::$discountCoupontAmount[$owner->ID];
     }
 
-    protected static $discount_availble_until_cache = [];
+
 
     /**
      * @return null|\SilverStripe\ORM\FieldType\DBDate
@@ -164,37 +186,28 @@ class DiscountCouponProductDataExtension extends DataExtension
     public function DiscountsAvailableUntil(): ?DBDate
     {
         $owner = $this->getOwner();
-        if(isset(self::$discount_availble_until_cache[$owner->ID])) {
-            return self::$discount_availble_until_cache[$owner->ID];
+        // kickstart cache... using proper price.
+        if (!isset(self::$couponPriceArrayCache)) {
+            $this->getOwner()->CalculatedPrice();
         }
-        $coupons = $this->ValidCoupons();
-        $maxDateSet = false;
-        $obj = null;
-        $next = null;
-        if ($coupons && $coupons->exists()) {
-            $discount = 0;
-            foreach ($coupons as $coupon) {
-                if ($coupon->EndDate && $coupon->DiscountAbsolute > $discount) {
-                    $discount = $coupon->DiscountAbsolute;
-                    $maxDate = strtotime((string) $coupon->EndDate);
-                    if ($next === null || $maxDate < $next) {
-                        $next = $maxDate;
-                        $maxDateSet = true;
-                    }
+        if (!isset(self::$discountAvailbleUntilCache[$owner->ID])) {
+            self::$discountAvailbleUntilCache[$owner->ID] = null;
+            $availableCoupons = $this->applicableCouponsAndPrice($this->getOwner()->Price);
+            if ($availableCoupons) {
+                $coupon = $availableCoupons[0]['Coupon'] ?? null;
+                if ($coupon) {
+                    $next = strtotime($coupon->EndDate);
+                }
+                if (! $next) {
+                    $next = strtotime($owner->config()->get('default_end_date_description'));
+                }
+                if ($next) {
+                    /** @var DBDate $obj */
+                    self::$discountAvailbleUntilCache[$owner->ID] = DBDate::create_field(DBDate::class, $next);
                 }
             }
         }
-        if($next && $maxDateSet) {
-            // do nothing
-        } else {
-            $next = strtotime('now +7 days');
-        }
-        if ($next) {
-            /** @var DBDate $obj */
-            $obj = DBDate::create_field(DBDate::class, $next);
-        }
-        self::$discount_availble_until_cache[$owner->ID] = $obj;
-
-        return $obj;
+        return self::$discountAvailbleUntilCache[$owner->ID];
     }
+
 }

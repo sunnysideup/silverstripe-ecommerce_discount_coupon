@@ -5,9 +5,12 @@ namespace Sunnysideup\EcommerceDiscountCoupon\Model;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\ReadonlyField;
+use SilverStripe\Forms\Tab;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DB;
+use SilverStripe\Security\Member;
 use SilverStripe\Security\Permission;
+use Sunnysideup\CmsEditLinkField\Api\CMSEditLinkAPI;
 use Sunnysideup\Ecommerce\Forms\Gridfield\Configs\GridFieldBasicPageRelationConfigNoAddExisting;
 use Sunnysideup\Ecommerce\Forms\Gridfield\Configs\GridFieldConfigForProductGroups;
 use Sunnysideup\Ecommerce\Forms\Gridfield\Configs\GridFieldConfigForProducts;
@@ -62,6 +65,7 @@ class DiscountCouponOption extends DataObject
         'EndDate' => 'Date',
         'MaximumDiscount' => 'Currency',
         'DiscountAbsolute' => 'Currency',
+        'DiscountPrice' => 'Currency',
         'DiscountPercentage' => 'Decimal(4,2)',
         'MinimumOrderSubTotalValue' => 'Currency',
     ];
@@ -81,6 +85,7 @@ class DiscountCouponOption extends DataObject
         'StartDate' => true,
         'EndDate' => true,
     ];
+
 
     /**
      * standard SS variable.
@@ -104,7 +109,9 @@ class DiscountCouponOption extends DataObject
         'ApplyEvenWithoutCode' => 'ExactMatchFilter',
         'DiscountAbsolute' => 'ExactMatchFilter',
         'DiscountPercentage' => 'ExactMatchFilter',
+        'DiscountPrice' => 'ExactMatchFilter',
     ];
+
 
     /**
      * standard SS variable.
@@ -136,7 +143,8 @@ class DiscountCouponOption extends DataObject
         'Code' => 'The code that the customer enters to get their discount.',
         'StartDate' => 'First date the coupon can be used.',
         'EndDate' => 'Last day the coupon can be used.',
-        'MaximumDiscount' => 'This is the total amount of discount that can ever be applied - no matter waht. Set to zero to ignore.',
+        'MaximumDiscount' => 'This is the total amount of discount that can ever be applied - no matter what. Set to zero to ignore.',
+        'DiscountPrice' => 'New (discounted) price of the product. Set to zero to ignore.',
         'DiscountAbsolute' => 'Absolute reduction. For example, 10 = -$10.00 off. Set this value to zero to ignore.',
         'DiscountPercentage' => 'Percentage Discount.  For example, 10 = -10% discount Set this value to zero to ignore.',
         'MinimumOrderSubTotalValue' => 'Minimum sub-total of total order to make coupon applicable. For example, order must be at least $100 before the customer gets a discount.',
@@ -176,6 +184,14 @@ class DiscountCouponOption extends DataObject
      */
     private static $plural_name = 'Discount Coupons';
 
+    /**
+     *  default number of days that a coupon will be valid for
+     *  used to set value of EndDate in getCMSFields
+     *  set to -1 to disable.
+     *
+     *  @var int
+     */
+    private static $default_valid_length_in_days = 7;
     /**
      * standard SS variable.
      */
@@ -279,7 +295,7 @@ class DiscountCouponOption extends DataObject
         $additionalChecks = $this->extend('checkForAdditionalValidity');
         if (is_array($additionalChecks) && count($additionalChecks)) {
             foreach ($additionalChecks as $additionalCheck) {
-                if (! $additionalCheck) {
+                if (!($additionalCheck || $additionalCheck === null)) {
                     return false;
                 }
             }
@@ -396,6 +412,7 @@ class DiscountCouponOption extends DataObject
                 ]
             );
         }
+
         $fields->addFieldToTab('Root.Main', new ReadonlyField('UseCount', self::$field_labels['UseCount']));
         $fields->addFieldToTab('Root.Main', new ReadonlyField('IsValidNice', self::$field_labels['IsValidNice']));
 
@@ -427,6 +444,19 @@ class DiscountCouponOption extends DataObject
             $fields->removeFieldFromTab('Root.Main', 'ApplyEvenWithoutCode');
         }
 
+        $fields->insertBefore(
+            'AddProductsDirectly',
+            new Tab('Price', 'Price'),
+        );
+
+        $fields->addFieldsToTab(
+            'Root.Price',
+            [
+                $fields->dataFieldByName('DiscountPrice'),
+                $fields->dataFieldByName('DiscountAbsolute'),
+                $fields->dataFieldByName('DiscountPercentage'),
+            ]
+        );
         return $fields;
     }
 
@@ -509,6 +539,14 @@ class DiscountCouponOption extends DataObject
         } else {
             $this->ApplyEvenWithoutCode = 0;
         }
+        if (! $this->StartDate) {
+            $this->StartDate = date('Y-m-d');
+        }
+
+        if (! $this->EndDate) {
+            $validLength = $this->config()->get('default_valid_length_in_days');
+            $this->EndDate = date('Y-m-d', strtotime(date('Y-m-d') . $validLength . 'days'));
+        }
     }
 
     /**
@@ -523,6 +561,7 @@ class DiscountCouponOption extends DataObject
             $this->_productsCalculated = true;
             $productGroups = $this->ProductGroups();
             $productsShowable = Product::get()->filter(['ID' => -1]);
+            /** @var ProductGroup $productGroup */
             foreach ($productGroups as $productGroup) {
                 $productsShowable = $productGroup->getProducts();
                 if ($productsShowable->exists()) {
@@ -530,6 +569,7 @@ class DiscountCouponOption extends DataObject
                 }
             }
             $mustAlsoBePresentInGroups = $this->ProductGroupsMustAlsoBePresentIn();
+            /** @var ProductGroup $mustAlsoBePresentInGroup */
             foreach ($mustAlsoBePresentInGroups as $mustAlsoBePresentInGroup) {
                 $mustAlsoBePresentInProducts = $mustAlsoBePresentInGroup->getProducts();
                 if ($mustAlsoBePresentInProducts->exists()) {
@@ -577,5 +617,9 @@ class DiscountCouponOption extends DataObject
         }
 
         return $string;
+    }
+    public function CMSEditLink($action = null): string
+    {
+        return CMSEditLinkAPI::find_edit_link_for_object($this, $action);
     }
 }
