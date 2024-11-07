@@ -444,10 +444,12 @@ class DiscountCouponOption extends DataObject
             $fields->removeFieldFromTab('Root.Main', 'ApplyEvenWithoutCode');
         }
 
-        $fields->insertBefore(
-            'AddProductsDirectly',
-            new Tab('Price', 'Price'),
-        );
+        if ($this->exists()) {
+            $fields->insertBefore(
+                'AddProductsDirectly',
+                new Tab('Price', 'Price'),
+            );
+        }
 
         $fields->addFieldsToTab(
             'Root.Price',
