@@ -19,12 +19,7 @@ if (
 
     availableCountries: new Array(),
 
-    EcomCart: null,
-
     init: function () {
-      //webpack route
-      // var EcomCart = require("./EcomCart");
-      DiscountCoupon.EcomCart = EcomCart
       var options = {
         beforeSubmit: DiscountCoupon.showRequest, // pre-submit callback
         success: DiscountCoupon.showResponse, // post-submit callback
@@ -50,7 +45,7 @@ if (
       //jQuery(DiscountCoupon.updatedDivID).css("height", "auto");
       jQuery(DiscountCoupon.formID).removeClass(DiscountCoupon.loadingClass)
       jQuery(DiscountCoupon.generalActionsClass).show()
-      DiscountCoupon.EcomCart.setChanges(responseText)
+      EcomCart.setChanges(responseText)
     }
   }
 
