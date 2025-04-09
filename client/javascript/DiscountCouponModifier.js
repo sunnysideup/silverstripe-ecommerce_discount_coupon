@@ -1,3 +1,5 @@
+import EcomCart from './../../../ecommerce/client/javascript/EcomCart'
+
 if (
   document.getElementById('DiscountCouponModifierForm_DiscountCouponModifier')
 ) {
@@ -17,17 +19,12 @@ if (
 
     availableCountries: new Array(),
 
-    EcomCart: {},
+    EcomCart: null,
 
     init: function () {
-      if (typeof window.EcomCart === 'undefined') {
-        //webpack route
-        // var EcomCart = require("./EcomCart");
-        DiscountCoupon.EcomCart = EcomCart.EcomCart
-      } else {
-        //alternative route
-        DiscountCoupon.EcomCart = window.EcomCart
-      }
+      //webpack route
+      // var EcomCart = require("./EcomCart");
+      DiscountCoupon.EcomCart = EcomCart
       var options = {
         beforeSubmit: DiscountCoupon.showRequest, // pre-submit callback
         success: DiscountCoupon.showResponse, // post-submit callback
