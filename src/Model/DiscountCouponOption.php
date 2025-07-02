@@ -473,12 +473,6 @@ class DiscountCouponOption extends DataObject
             if ($this->thereAreCouponsWithTheSameCode()) {
                 $validator->addError(_t('DiscountCouponOption.CODEALREADYEXISTS', 'This code already exists - please use another code.'));
             }
-            if (isset($_REQUEST['StartDate'])) {
-                $this->StartDate = date('Y-m-d', strtotime((string) $_REQUEST['StartDate']));
-            }
-            if (isset($_REQUEST['EndDate'])) {
-                $this->EndDate = date('Y-m-d', strtotime((string) $_REQUEST['EndDate']));
-            }
             if (strtotime((string) $this->StartDate) < strtotime('-12 years')) {
                 $validator->addFieldError(
                     'StartDate',

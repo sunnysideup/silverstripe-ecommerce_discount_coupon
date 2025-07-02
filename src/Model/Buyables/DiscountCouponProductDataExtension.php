@@ -132,7 +132,6 @@ class DiscountCouponProductDataExtension extends DataExtension
                             ],
                             function (float $value) use ($owner): bool {
                                 return $value > $owner->config()->get('min_discount_amount');
-
                             }
                         );
 
@@ -159,9 +158,14 @@ class DiscountCouponProductDataExtension extends DataExtension
 
     public function DirectlyApplicableDiscountCoupons()
     {
+        $date = date('Y-m-d');
         return $this->getOwner()->ApplicableDiscountCoupons()
-            ->filter(['ApplyPercentageToApplicableProducts' => 1, 'ApplyEvenWithoutCode' => 1])
-        ;
+            ->filter([
+                'ApplyPercentageToApplicableProducts' => 1,
+                'ApplyEvenWithoutCode' => 1,
+                'StartDate:LessThanOrEqual' => $date,
+                'EndDate:GreaterThanOrEqual' => $date
+            ]);
     }
 
     public function DiscountCouponAmount()
@@ -209,5 +213,4 @@ class DiscountCouponProductDataExtension extends DataExtension
         }
         return self::$discountAvailbleUntilCache[$owner->ID];
     }
-
 }
