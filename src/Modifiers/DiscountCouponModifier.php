@@ -265,7 +265,7 @@ class DiscountCouponModifier extends OrderModifier
         }
         //we hide it with ajax if needed
         $order = $this->getOrderCached();
-        if($order) {
+        if ($order) {
             return !$order->IsSubmitted();
         }
         return false;
@@ -448,7 +448,7 @@ class DiscountCouponModifier extends OrderModifier
         if (!self::$subtotal) {
             $subTotal = 0;
             $order = $this->getOrderCached();
-            if($order) {
+            if ($order) {
                 $items = $order->Items();
                 $coupon = $this->myDiscountCouponOption();
                 if ($coupon && $coupon->ApplyPercentageToApplicableProducts) {
