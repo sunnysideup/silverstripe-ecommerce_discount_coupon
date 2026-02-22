@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sunnysideup\EcommerceDiscountCoupon\Model;
 
 use SilverStripe\Core\Config\Config;
@@ -8,7 +10,6 @@ use SilverStripe\Forms\ReadonlyField;
 use SilverStripe\Forms\Tab;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DB;
-use SilverStripe\Security\Member;
 use SilverStripe\Security\Permission;
 use Sunnysideup\CmsEditLinkField\Api\CMSEditLinkAPI;
 use Sunnysideup\Ecommerce\Forms\Gridfield\Configs\GridFieldBasicPageRelationConfigNoAddExisting;
@@ -17,6 +18,8 @@ use Sunnysideup\Ecommerce\Forms\Gridfield\Configs\GridFieldConfigForProducts;
 use Sunnysideup\Ecommerce\Model\Extensions\EcommerceRole;
 use Sunnysideup\Ecommerce\Pages\Product;
 use Sunnysideup\Ecommerce\Pages\ProductGroup;
+use Sunnysideup\EcommerceCustomProductLists\Model\CustomProductList;
+use Sunnysideup\EcommerceCustomProductLists\Model\CustomProductLists;
 use Sunnysideup\EcommerceDiscountCoupon\Modifiers\DiscountCouponModifier;
 use Sunnysideup\EcommerceDiscountCoupon\Search\DiscountCouponFilterForDate;
 
@@ -41,22 +44,24 @@ use Sunnysideup\EcommerceDiscountCoupon\Search\DiscountCouponFilterForDate;
  */
 class DiscountCouponOption extends DataObject
 {
+
     /**
      * @var bool
      */
-    protected $isNew = false;
+    protected bool $isNew = false;
 
-    protected $_productsCalculated = false;
+    protected bool $_productsCalculated = false;
 
     /**
      * standard SS Variable.
      *
      * @var string
      */
-    private static $table_name = 'DiscountCouponOption';
+    private static array $table_name = 'DiscountCouponOption';
 
-    private static $db = [
+    private static array $db = [
         'ApplyPercentageToApplicableProducts' => 'Boolean',
+        'RequiresProductCombinationInOrder' => 'Boolean',
         'ApplyEvenWithoutCode' => 'Boolean',
         'Title' => 'Varchar(255)',
         'Code' => 'Varchar(32)',
@@ -70,16 +75,21 @@ class DiscountCouponOption extends DataObject
         'MinimumOrderSubTotalValue' => 'Currency',
     ];
 
-    private static $many_many = [
+    private static array $many_many = [
         'Products' => Product::class,
         'ProductGroups' => ProductGroup::class,
+        'CustomProductLists' => CustomProductList::class,
         'ProductGroupsMustAlsoBePresentIn' => ProductGroup::class,
+        'CustomProductListsMustAlsoBePresentIn' => CustomProductList::class,
+        'OtherProductInOrderProducts' => Product::class,
+        'OtherProductInOrderProductGroups' => ProductGroup::class,
+        'OtherProductInOrderCustomProductLists' => CustomProductList::class,
     ];
 
     /**
      * standard SS variable.
      */
-    private static $indexes = [
+    private static array $indexes = [
         'Title' => true,
         'Code' => true,
         'StartDate' => true,
@@ -90,7 +100,7 @@ class DiscountCouponOption extends DataObject
     /**
      * standard SS variable.
      */
-    private static $casting = [
+    private static array $casting = [
         'UseCount' => 'Int',
         'IsValid' => 'Boolean',
         'IsValidNice' => 'Varchar',
@@ -99,24 +109,36 @@ class DiscountCouponOption extends DataObject
     /**
      * standard SS variable.
      */
-    private static $searchable_fields = [
+    private static array $searchable_fields = [
         'StartDate' => [
             'filter' => DiscountCouponFilterForDate::class,
         ],
         'Title' => 'PartialMatchFilter',
         'Code' => 'PartialMatchFilter',
         'ApplyPercentageToApplicableProducts' => 'ExactMatchFilter',
+        'RequiresProductCombinationInOrder' => 'ExactMatchFilter',
         'ApplyEvenWithoutCode' => 'ExactMatchFilter',
         'DiscountAbsolute' => 'ExactMatchFilter',
         'DiscountPercentage' => 'ExactMatchFilter',
         'DiscountPrice' => 'ExactMatchFilter',
     ];
 
+    private static array $cascade_deletes = [
+        'Products',
+        'ProductGroups',
+        'CustomProductLists',
+        'ProductGroupsMustAlsoBePresentIn',
+        'CustomProductListsMustAlsoBePresentIn',
+        'OtherProductInOrderProducts',
+        'OtherProductInOrderProductGroups',
+        'OtherProductInOrderCustomProductLists',
+    ];
+
 
     /**
      * standard SS variable.
      */
-    private static $field_labels = [
+    private static array $field_labels = [
         'StartDate' => 'Start Date',
         'EndDate' => 'Last Day',
         'Title' => 'Name',
@@ -124,21 +146,30 @@ class DiscountCouponOption extends DataObject
         'DiscountAbsolute' => 'Absolute Discount',
         'DiscountPercentage' => 'Percentage Discount',
         'ApplyPercentageToApplicableProducts' => 'Applicable products only',
+        'RequiresProductCombinationInOrder' => 'Only applies if a combination of products is in the order',
         'NumberOfTimesCouponCanBeUsed' => 'Availability count',
         'UseCount' => 'Count of usage thus far',
         'IsValidNice' => 'Current validity',
         'ApplyEvenWithoutCode' => 'Automatically applied',
         'Products' => 'Applicable products',
         'ProductGroups' => 'Applicable Categories',
-        'ProductGroupsMustAlsoBePresentIn' => 'Products must also be listed in ... ',
+        'CustomProductLists' => 'Applicable Custom Product Lists',
+        // also in ...
+        'ProductGroupsMustAlsoBePresentIn' => 'Products must also be listed in this list of product groups ... ',
+        'CustomProductListsMustAlsoBePresentIn' => 'Products must also be listed in this list of custom product lists ... ',
+        // another product in Order in ...
+        'OtherProductInOrderProducts' => 'Other Products in the Order must be in this list of products ... ',
+        'OtherProductInOrderProductGroups' => 'Other Products in the Order must be listed in this list of product groups ... ',
+        'OtherProductInOrderCustomProductLists' => 'Other Products in the Order must be listed in this list of custom product lists ... ',
     ];
 
     /**
      * standard SS variable.
      */
-    private static $field_labels_right = [
+    private static array $field_labels_right = [
         'ApplyEvenWithoutCode' => 'Discount is automatically applied: the user does not have to enter the coupon at all. ',
         'ApplyPercentageToApplicableProducts' => 'Rather than applying it to the order, the discount is directly applied to selected products (you must select products).',
+        'RequiresProductCombinationInOrder' => 'E.g. Customer much have a product from category A and a product from category B in the order to get the discount.   ',
         'Title' => 'The name of the coupon is for internal use only.  This name is not exposed to the customer but can be used to find a particular coupon.',
         'Code' => 'The code that the customer enters to get their discount.',
         'StartDate' => 'First date the coupon can be used.',
@@ -151,15 +182,21 @@ class DiscountCouponOption extends DataObject
         'NumberOfTimesCouponCanBeUsed' => 'Set to zero to disallow usage, set to 999,999 to allow unlimited usage.',
         'UseCount' => 'number of times this coupon has been used',
         'IsValidNice' => 'coupon is currently valid',
-        'Products' => "This is the final list of products to which the coupon applies. To edit this list directly, please remove all product groups selections in the 'Add Products Using Categories' tab.",
+        'Products' => "This is the final list of products to which the coupon applies. To edit this list directly, please remove all product groups and custom list selections in the 'Add Products Using Categories' tab.",
         'ProductGroups' => 'Adding product categories helps you to select a large number of products at once. Please select categories above.  The products in each category selected will be added to the list.',
+        'CustomProductLists' => 'Adding custom lists helps you to select a large number of products at once. Please select custom lists above.  The products in each list selected will be added to the list.',
         'ProductGroupsMustAlsoBePresentIn' => 'Select cross-reference listing products (listed in both categories) - e.g. products that are in the Large Items category and Expensive Items category will have a discount.',
+        'CustomProductListsMustAlsoBePresentIn' => 'Select cross-reference listing custom product lists - e.g. products that are in the Large Items category and Expensive Items category will have a discount.',
+        // another product in Order in ...
+        'OtherProductInOrderProducts' => 'Other Products in the Order must be in this list of products. To edit this list directly, please remove all product groups and custom list selections in the \'Other Products in Order\' tab.',
+        'OtherProductInOrderProductGroups' => 'Other Products in the Order must be listed in this list of product groups. ',
+        'OtherProductInOrderCustomProductLists' => 'Other Products in the Order must be listed in this list of custom product lists. ',
     ];
 
     /**
      * standard SS variable.
      */
-    private static $summary_fields = [
+    private static array $summary_fields = [
         'Title' => 'Name',
         'Code' => 'Code',
         'StartDate.Full' => 'From',
@@ -170,19 +207,19 @@ class DiscountCouponOption extends DataObject
     /**
      * standard SS variable.
      */
-    private static $defaults = [
+    private static array $defaults = [
         'NumberOfTimesCouponCanBeUsed' => '999999',
     ];
 
     /**
      * standard SS variable.
      */
-    private static $singular_name = 'Discount Coupon';
+    private static string $singular_name = 'Discount Coupon';
 
     /**
      * standard SS variable.
      */
-    private static $plural_name = 'Discount Coupons';
+    private static string $plural_name = 'Discount Coupons';
 
     /**
      *  default number of days that a coupon will be valid for
@@ -191,11 +228,11 @@ class DiscountCouponOption extends DataObject
      *
      *  @var int
      */
-    private static $default_valid_length_in_days = 7;
+    private static int $default_valid_length_in_days = 7;
     /**
      * standard SS variable.
      */
-    private static $default_sort = [
+    private static array $default_sort = [
         'EndDate' => 'DESC',
         'StartDate' => 'DESC',
         'ID' => 'ASC',
@@ -220,12 +257,12 @@ class DiscountCouponOption extends DataObject
         return $fields;
     }
 
-    public function i18n_singular_name()
+    public function i18n_singular_name(): string
     {
         return _t('DiscountCouponOption.SINGULAR_NAME', 'Discount Coupon');
     }
 
-    public function i18n_plural_name()
+    public function i18n_plural_name(): string
     {
         return _t('DiscountCouponOption.PLURAL_NAME', 'Discount Coupons');
     }
@@ -233,7 +270,7 @@ class DiscountCouponOption extends DataObject
     /**
      * standard SS method.
      */
-    public function populateDefaults()
+    public function populateDefaults(): static
     {
         $this->Code = $this->createRandomCode();
         $this->isNew = true;
@@ -266,7 +303,7 @@ class DiscountCouponOption extends DataObject
      *
      * @return bool
      */
-    public function IsValid()
+    public function IsValid(): bool
     {
         return $this->getIsValid();
     }
@@ -309,12 +346,12 @@ class DiscountCouponOption extends DataObject
      *
      * @return string
      */
-    public function IsValidNice()
+    public function IsValidNice(): string
     {
         return $this->getIsValidNice();
     }
 
-    public function getIsValidNice()
+    public function getIsValidNice(): string
     {
         return $this->IsValid() ? 'yes' : 'no';
     }
@@ -407,46 +444,97 @@ class DiscountCouponOption extends DataObject
                 'Root.Main',
                 [
                     'Code',
-                    'MaximumDiscount',
-                    'MinimumOrderSubTotalValue',
                 ]
             );
         }
 
-        $fields->addFieldToTab('Root.Main', new ReadonlyField('UseCount', self::$field_labels['UseCount']));
-        $fields->addFieldToTab('Root.Main', new ReadonlyField('IsValidNice', self::$field_labels['IsValidNice']));
+        $fields->addFieldsToTab(
+            'Root.Main',
+            [
+                new ReadonlyField('UseCount', self::$field_labels['UseCount']),
+                new ReadonlyField('IsValidNice', self::$field_labels['IsValidNice'])
+            ]
+        );
 
         $gridField1 = $fields->dataFieldByName('Products');
         if ($gridField1) {
-            if ($this->ProductGroups()->exists() || $this->ProductGroupsMustAlsoBePresentIn()->exists()) {
+            if ($this->ProductsAddedThroughLists()) {
                 $gridField1->setConfig(GridFieldBasicPageRelationConfigNoAddExisting::create());
             } else {
                 $gridField1->setConfig(GridFieldConfigForProducts::create());
             }
-            $fields->addFieldToTab('Root.AddProductsDirectly', $gridField1);
+            $fields->addFieldToTab('Root.ProductSelection', $gridField1);
         }
 
         $gridField2 = $fields->dataFieldByName('ProductGroups');
         if ($gridField2) {
             $gridField2->setConfig(GridFieldConfigForProductGroups::create());
-            $fields->addFieldToTab('Root.AddProductsUsingCategories', $gridField2);
+            $fields->addFieldToTab('Root.ProductSelection', $gridField2);
         }
 
-        $gridField3 = $fields->dataFieldByName('ProductGroupsMustAlsoBePresentIn');
+        $gridField3 = $fields->dataFieldByName('CustomProductLists');
         if ($gridField3) {
-            $gridField3->setConfig(GridFieldConfigForProductGroups::create());
-            $fields->addFieldToTab('Root.AddProductsUsingCategories', $gridField3);
+            $fields->addFieldToTab('Root.ProductSelection', $gridField3);
         }
+
+        $gridField4 = $fields->dataFieldByName('ProductGroupsMustAlsoBePresentIn');
+        if ($gridField4) {
+            $gridField4->setConfig(GridFieldConfigForProductGroups::create());
+            $fields->addFieldToTab('Root.ProductSelection', $gridField4);
+        }
+
+
+        $gridField5 = $fields->dataFieldByName('CustomProductListsMustAlsoBePresentIn');
+        if ($gridField5) {
+            $fields->addFieldToTab('Root.ProductSelection', $gridField5);
+        }
+
+        if ($this->RequiresProductCombinationInOrder) {
+            $gridField6 = $fields->dataFieldByName('OtherProductInOrderProducts');
+            if ($gridField6) {
+                if ($this->OtherProductsAddedThroughLists()) {
+                    $gridField6->setConfig(GridFieldBasicPageRelationConfigNoAddExisting::create());
+                } else {
+                    $gridField6->setConfig(GridFieldConfigForProducts::create());
+                }
+                $fields->addFieldToTab('Root.OtherProductsInOrder', $gridField6);
+            }
+            $gridField7 = $fields->dataFieldByName('OtherProductInOrderProductGroups');
+            if ($gridField7) {
+                $gridField7->setConfig(GridFieldConfigForProductGroups::create());
+                $fields->addFieldToTab('Root.OtherProductsInOrder', $gridField7);
+            }
+
+            $gridField8 = $fields->dataFieldByName('OtherProductInOrderCustomProductLists');
+            if ($gridField8) {
+                $fields->addFieldToTab('Root.OtherProductsInOrder', $gridField8);
+            }
+        } else {
+            $fields->removeFieldFromTab('Root', 'OtherProductInOrderProducts');
+            $fields->removeFieldFromTab('Root', 'OtherProductInOrderProductGroups');
+            $fields->removeFieldFromTab('Root', 'OtherProductInOrderCustomProductLists');
+        }
+
         $fields->removeFieldFromTab('Root', 'Products');
         $fields->removeFieldFromTab('Root', 'ProductGroups');
+        $fields->removeFieldFromTab('Root', 'CustomProductLists');
         $fields->removeFieldFromTab('Root', 'ProductGroupsMustAlsoBePresentIn');
-        if (! $this->ApplyPercentageToApplicableProducts) {
-            $fields->removeFieldFromTab('Root.Main', 'ApplyEvenWithoutCode');
-        }
+        $fields->removeFieldFromTab('Root', 'CustomProductListsMustAlsoBePresentIn');
+        $fields->removeFieldFromTab('Root', 'OtherProductInOrderProducts');
+        $fields->removeFieldFromTab('Root', 'OtherProductInOrderProductGroups');
+        $fields->removeFieldFromTab('Root', 'OtherProductInOrderCustomProductLists');
+
+        // if (! $this->ApplyPercentageToApplicableProducts) {
+        //     /*
+        //      * if the discount is for the whole order
+        //      * then
+        //      **/
+        //     $fields->removeFieldFromTab('Root.Main', 'ApplyEvenWithoutCode');
+        // }
 
         if ($this->exists()) {
             $fields->insertBefore(
-                'AddProductsDirectly',
+                'ProductSelection',
                 new Tab('Price', 'Price'),
             );
         }
@@ -460,6 +548,18 @@ class DiscountCouponOption extends DataObject
             ]
         );
         return $fields;
+    }
+
+    protected function ProductsAddedThroughLists(): bool
+    {
+        return $this->ProductGroups()->exists() || $this->CustomProductLists()->exists();
+    }
+
+    protected function OtherProductsAddedThroughLists(): bool
+    {
+        return
+            $this->OtherProductInOrderProductGroups()->exists() ||
+            $this->OtherProductInOrderCustomProductLists()->exists();
     }
 
     /**
@@ -526,6 +626,7 @@ class DiscountCouponOption extends DataObject
             $this->Title = $this->Code;
         }
         if ($this->ApplyEvenWithoutCode) {
+            //@todo - why this?
             $this->MaximumDiscount = 0;
             $this->MinimumOrderSubTotalValue = 0;
         }
@@ -551,41 +652,99 @@ class DiscountCouponOption extends DataObject
     protected function onAfterWrite()
     {
         $productsArray = [0 => 0];
-        $mustAlsoBePresentInProductsArray = [0 => 0];
         parent::onAfterWrite();
-        if (! $this->_productsCalculated && $this->ProductGroups()->exists()) {
+        if (! $this->_productsCalculated) {
             $this->_productsCalculated = true;
+
+
             $productGroups = $this->ProductGroups();
-            $productsShowable = Product::get()->filter(['ID' => -1]);
-            /** @var ProductGroup $productGroup */
-            foreach ($productGroups as $productGroup) {
-                $productsShowable = $productGroup->getProducts();
-                if ($productsShowable->exists()) {
-                    $productsArray += $productsShowable->columnUnique();
+            if ($productGroups->exists()) {
+
+                /** @var ProductGroup $productGroup */
+                foreach ($productGroups as $productGroup) {
+                    $productsShowable = $productGroup->getProducts();
+                    if ($productsShowable->exists()) {
+                        $productsArray += array_merge($productsArray, $productsShowable->columnUnique() ?? []);
+                    }
                 }
             }
+
+            $customLists = $this->CustomProductLists();
+            if ($customLists->exists()) {
+
+                /** @var CustomProductList $customProductList */
+                foreach ($customLists as $customProductList) {
+                    $productsShowable = $customProductList->Products();
+                    if ($productsShowable->exists()) {
+                        $productsArray += array_merge($productsArray, $productsShowable->columnUnique() ?? []);
+                    }
+                }
+            }
+            if (empty($productsArray)) {
+                $productsArray = $this->Products()->columnUnique() ?? [];
+            }
+
+            // calculated additional rules for products to be included in the discount coupon
+            $mustAlsoBePresentInProductsArray = [];
             $mustAlsoBePresentInGroups = $this->ProductGroupsMustAlsoBePresentIn();
             /** @var ProductGroup $mustAlsoBePresentInGroup */
             foreach ($mustAlsoBePresentInGroups as $mustAlsoBePresentInGroup) {
                 $mustAlsoBePresentInProducts = $mustAlsoBePresentInGroup->getProducts();
                 if ($mustAlsoBePresentInProducts->exists()) {
-                    $mustAlsoBePresentInProductsArray += $mustAlsoBePresentInProducts->columnUnique();
+                    $mustAlsoBePresentInProductsArray = array_merge($mustAlsoBePresentInProductsArray, $mustAlsoBePresentInProducts->columnUnique());
                 }
             }
-            if (count($mustAlsoBePresentInProductsArray) > 1) {
+            $mustAlsoBePresentInCustomProductLists = $this->CustomProductListsMustAlsoBePresentIn();
+            /** @var CustomProductList $mustAlsoBePresentInCustomProductList */
+            foreach ($mustAlsoBePresentInCustomProductLists as $mustAlsoBePresentInCustomProductList) {
+                $mustAlsoBePresentInProducts = $mustAlsoBePresentInCustomProductList->Products();
+                if ($mustAlsoBePresentInProducts->exists()) {
+                    $mustAlsoBePresentInProductsArray = array_merge($mustAlsoBePresentInProductsArray, $mustAlsoBePresentInProducts->columnUnique());
+                }
+            }
+            if (! empty($mustAlsoBePresentInProductsArray)) {
+                $mustAlsoBePresentInProductsArray = array_unique($mustAlsoBePresentInProductsArray);
                 $productsArray = array_intersect_key($mustAlsoBePresentInProductsArray, $productsArray);
             }
-            $this->Products()->removeAll();
-            $this->Products()->addMany($productsArray);
+
+            // put it all together - leading to a final list of products that are applicable for the discount coupon
+            if (!empty($productsArray)) {
+                $this->Products()->setByIDList($productsArray);
+            }
+
+            $otherProductsArray = [];
+            $productGroups = $this->OtherProductInOrderProductGroups();
+            if ($productGroups->exists()) {
+
+                /** @var ProductGroup $productGroup */
+                foreach ($productGroups as $productGroup) {
+                    $otherProductsRequired = $productGroup->getProducts();
+                    if ($otherProductsRequired->exists()) {
+                        $otherProductsArray += array_merge($otherProductsArray, $otherProductsRequired->columnUnique() ?? []);
+                    }
+                }
+            }
+
+            $customLists = $this->OtherProductInOrderCustomProductLists();
+            if ($customLists->exists()) {
+
+                /** @var CustomProductList $customProductList */
+                foreach ($customLists as $customProductList) {
+                    $otherProductsRequired = $customProductList->Products();
+                    if ($otherProductsRequired->exists()) {
+                        $otherProductsArray += array_merge($otherProductsArray, $otherProductsRequired->columnUnique() ?? []);
+                    }
+                }
+            }
+            if (! empty($otherProductsArray)) {
+                $otherProductsArray = array_unique($otherProductsArray);
+                $this->OtherProductInOrderProducts()->setByIDList($otherProductsArray);
+            }
+
             $this->write();
         }
     }
 
-    protected function onBeforeDelete()
-    {
-        parent::onBeforeDelete();
-        DB::query('DELETE FROM "DiscountCouponOption_Products" WHERE "DiscountCouponOptionID" = ' . $this->ID);
-    }
 
     /**
      * Checks if there are coupons with the same code as the current one.

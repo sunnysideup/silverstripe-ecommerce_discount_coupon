@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sunnysideup\EcommerceDiscountCoupon\Model\Buyables;
 
 use SilverStripe\ORM\DataExtension;
@@ -15,7 +17,7 @@ class DiscountCouponSiteTreeDODProductVariation extends DataExtension
     /**
      * @return bool
      */
-    public function ExcludeInDiscountCalculation(DiscountCouponModifier $modifier)
+    public function ExcludeInDiscountCalculation(DiscountCouponModifier $modifier): bool
     {
         $coupon = $modifier->DiscountCouponOption();
 

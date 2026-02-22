@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sunnysideup\EcommerceDiscountCoupon\Modifiers;
 
 use SilverStripe\Core\Convert;
@@ -25,7 +27,6 @@ class DiscountCouponModifierForm extends OrderModifierForm
         // Requirements::javascript('silverstripe/admin: thirdparty/jquery-form/jquery.form.js');
         Requirements::block('silverstripe/admin: thirdparty/jquery-form/jquery.form.js');
         //Requirements::block(THIRDPARTY_DIR."/jquery/jquery.js");
-        //Requirements::javascript(Director::protocol()."ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js");
         $jsRequirements = $this->Config()->get('custom_javascript_files');
         if ($jsRequirements) {
             foreach ($jsRequirements as $js) {

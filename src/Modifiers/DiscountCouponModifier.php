@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sunnysideup\EcommerceDiscountCoupon\Modifiers;
 
 use SilverStripe\Control\Controller;
@@ -9,154 +11,116 @@ use SilverStripe\Forms\ReadonlyField;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\Validator;
 use Sunnysideup\Ecommerce\Model\OrderModifier;
-use Sunnysideup\Ecommerce\Pages\Product;
 use Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption;
 
 /**
- * Class \Sunnysideup\EcommerceDiscountCoupon\Modifiers\DiscountCouponModifier
- *
  * @property string $DebugString
- * @property float $SubTotalAmount
  * @property string $CouponCodeEntered
  * @property int $DiscountCouponOptionID
- * @method \Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption DiscountCouponOption()
+ * @method DiscountCouponOption DiscountCouponOption()
  */
 class DiscountCouponModifier extends OrderModifier
 {
-    // ######################################## *** other (non) static variables (e.g. private static $special_name_for_something, protected $order)
-
     /**
      * Used in calculations to work out how much we need.
-     *
-     * @var float
      */
-    protected $_actualDeductions;
+    protected ?float $actualDeductions = null;
 
-    protected $_calculatedTotal;
-
-    // ######################################## *** model defining static variables (e.g. $db, $has_one)
+    protected ?float $calculatedTotal = null;
 
     /**
-     * standard SS Variable.
+     * Cache of applicable order item IDs keyed by coupon ID.
      *
-     * @var string
+     * @var array<int, array<int, int>>
      */
+    protected array $applicableProductsByCouponId = [];
+
+    /**
+     * Cache of subtotals keyed by coupon ID.
+     *
+     * @var array<int, float>
+     */
+    protected array $subTotalsByCouponId = [];
+
     private static $table_name = 'DiscountCouponModifier';
 
     private static $db = [
         'DebugString' => 'HTMLText',
-        'SubTotalAmount' => 'Currency',
         'CouponCodeEntered' => 'Varchar(25)',
     ];
 
-    private static $defauls = [
+    private static $defaults = [
         'Type' => 'Discount',
     ];
 
-    /**
-     * standard SS Variable.
-     *
-     * @var array
-     */
     private static $has_one = [
         'DiscountCouponOption' => DiscountCouponOption::class,
     ];
 
+    private static $many_many = [
+        'OtherApplicableDiscountCouponOptions' => DiscountCouponOption::class,
+    ];
+
     /**
-     * Should the discount be worked out over the the sub-total or
-     * the Total Total?
-     *
-     * @var bool
+     * Should the discount be worked out over the sub-total or
+     * the total total?
      */
-    private static $include_modifiers_in_subtotal = false;
+    private static bool $include_modifiers_in_subtotal = false;
 
     /**
      * If this method is present in the Buyable, the related order item will be excluded.
-     *
-     * @var bool
      */
-    private static $exclude_buyable_method = 'ExcludeInDiscountCalculation';
+    private static string $exclude_buyable_method = 'ExcludeInDiscountCalculation';
 
-    /**
-     * Standard SS Variable.
-     *
-     * @var string
-     */
     private static $singular_name = 'Discount Coupon Entry';
 
-    /**
-     * Standard SS Variable.
-     *
-     * @var string
-     */
     private static $plural_name = 'Discount Coupon Entries';
 
-    private static $_applicable_products_array;
-
-    private static $subtotal = 0;
-
-    public function i18n_singular_name()
+    public function i18n_singular_name(): string
     {
         return _t('DiscountCouponModifier.SINGULAR_NAME', 'Discount Coupon Entry');
     }
 
-    public function i18n_plural_name()
+    public function i18n_plural_name(): string
     {
         return _t('DiscountCouponModifier.PLURAL_NAME', 'Discount Coupon Entries');
     }
 
-    // ######################################## *** cms variables + functions (e.g. getCMSFields, $searchableFields)
-
-    /**
-     * Standard SS Method.
-     *
-     * @return FieldList
-     */
-    public function getCMSFields()
+    public function getCMSFields(): FieldList
     {
         $fields = parent::getCMSFields();
-        $fields->removeByName('DebugString');
-        $fields->removeByName('SubTotalAmount');
         $fields->removeByName('OrderCoupon');
-        $fields->addFieldToTab(
-            'Root.Debug',
-            new ReadonlyField(
-                'SubTotalAmountShown',
-                _t('DiscountCouponModifier.SUB_TOTAL_AMOUNT', 'sub-total amount'),
-                $this->SubTotalAmount
-            )
-        );
-        $fields->addFieldToTab(
-            'Root.Debug',
-            new ReadonlyField(
-                'DebugStringShown',
-                _t('DiscountCouponModifier.DEBUG_STRING', 'debug string'),
-                $this->DebugString
-            )
-        );
+        $fields->removeByName('OtherApplicableDiscountCouponOptions');
+
+        if ((bool) $this->config()->get('debug')) {
+            $fields->addFieldToTab(
+                'Root.Debug',
+                new ReadonlyField(
+                    'DebugStringShown',
+                    _t('DiscountCouponModifier.DEBUG_STRING', 'debug string'),
+                    $this->DebugString
+                )
+            );
+        } else {
+            $fields->removeByName('DebugString');
+        }
 
         return $fields;
     }
 
-    // ######################################## *** CRUD functions (e.g. canEdit)
-    // ######################################## *** init and update functions
-
     /**
-     * updates all database fields.
-     *
-     * @param bool $recalculate - run it, even if it has run already
+     * Updates all database fields.
      */
     public function runUpdate($recalculate = false)
     {
-        if (!$this->IsRemoved()) {
-            $this->checkField('SubTotalAmount', $recalculate);
-            $this->checkField('CouponCodeEntered', $recalculate);
+        if (! $this->IsRemoved()) {
+            $this->checkField('OtherApplicableDiscountCouponOptions', $recalculate);
             $this->checkField('DiscountCouponOptionID', $recalculate);
+            $this->checkField('CouponCodeEntered', $recalculate);
         }
+
         parent::runUpdate($recalculate);
     }
-
-    // ######################################## *** form functions (e. g. showform and getform)
 
     /**
      * Show the form?
@@ -165,13 +129,14 @@ class DiscountCouponModifier extends OrderModifier
     public function ShowForm(): bool
     {
         $order = $this->getOrderCached();
-        return $order && $order->getTotalItems() ? true : false;
+
+        return $order !== null && (bool) $order->getTotalItems();
     }
 
     /**
      * @return DiscountCouponModifierForm
      */
-    public function getModifierForm(Controller $optionalController = null, Validator $optionalValidator = null)
+    public function getModifierForm(?Controller $optionalController = null, ?Validator $optionalValidator = null)
     {
         $fields = new FieldList(
             $this->headingField(),
@@ -182,12 +147,14 @@ class DiscountCouponModifier extends OrderModifier
                 $this->LiveCouponCodeEntered()
             )
         );
+
         $actions = new FieldList(
             new FormAction(
                 'submit',
                 _t('DiscountCouponModifier.APPLY', 'Apply Coupon')
             )
         );
+
         $form = new DiscountCouponModifierForm(
             $optionalController,
             'DiscountCouponModifier',
@@ -195,79 +162,97 @@ class DiscountCouponModifier extends OrderModifier
             $actions,
             $optionalValidator
         );
-        $fields->fieldByName('DiscountCouponCode')->setValue($this->CouponCodeEntered);
+
+        $couponField = $fields->fieldByName('DiscountCouponCode');
+        if ($couponField) {
+            $couponField->setValue($this->CouponCodeEntered);
+        }
 
         return $form;
     }
 
     /**
-     * @param string $code - code that has been entered
-     *
-     * @return array
-     * */
-    public function updateCouponCodeEntered($code)
+     * @return array{message:string,type:string}
+     */
+    public function updateCouponCodeEntered(string $code): array
     {
-        //set to new value ....
+        $code = trim($code);
         $this->CouponCodeEntered = $code;
+
+        /** @var ?DiscountCouponOption $coupon */
         $coupon = DiscountCouponOption::get()
-            ->filter(['Code' => $code])->first();
-        //apply valid discount coupong
-        if ($coupon) {
+            ->filter(['Code' => $code])
+            ->first();
+
+        if ($coupon !== null) {
             if ($coupon->IsValid() && $this->isValidAdditional($coupon)) {
                 $this->setCoupon($coupon);
-                $messages = [_t('DiscountCouponModifier.APPLIED', 'Coupon applied'), 'good'];
-            } else {
-                $messages = [_t('DiscountCouponModifier.NOT_VALID', 'Coupon is no longer available'), 'bad'];
-                $this->DiscountCouponOptionID = 0;
+
+                return [
+                    'message' => _t('DiscountCouponModifier.APPLIED', 'Coupon applied'),
+                    'type' => 'good',
+                ];
             }
-        } elseif ($code) {
-            $messages = [_t('DiscountCouponModifier.NOTFOUND', 'Coupon could not be found'), 'bad'];
-            if ($this->DiscountCouponOptionID) {
-                $this->DiscountCouponOptionID = 0;
-                $messages = [_t('DiscountCouponModifier.REMOVED', 'Existing coupon removed'), 'good'];
-            }
-        } else {
-            //to do: do we need to remove it again?
-            $messages = [_t('DiscountCouponModifier.NOT_ENTERED', 'No coupon was entered'), 'bad'];
+
+            $this->DiscountCouponOptionID = 0;
+            $this->write();
+
+            return [
+                'message' => _t('DiscountCouponModifier.NOT_VALID', 'Coupon is no longer available'),
+                'type' => 'bad',
+            ];
         }
+
+        if ($code === '') {
+            $this->write();
+
+            return [
+                'message' => _t('DiscountCouponModifier.NOT_ENTERED', 'No coupon code was entered'),
+                'type' => 'bad',
+            ];
+        }
+
+        if ((int) $this->DiscountCouponOptionID > 0) {
+            $this->DiscountCouponOptionID = 0;
+            $this->write();
+
+            return [
+                'message' => _t('DiscountCouponModifier.REMOVED', 'Existing coupon removed'),
+                'type' => 'good',
+            ];
+        }
+
         $this->write();
 
-        return $messages;
+        return [
+            'message' => _t('DiscountCouponModifier.NOTFOUND', 'Coupon could not be found'),
+            'type' => 'bad',
+        ];
     }
 
-    /**
-     * @param DiscountCouponOption $coupon
-     */
-    public function setCoupon($coupon)
+    public function setCoupon(DiscountCouponOption $coupon): static
     {
-        $this->DiscountCouponOptionID = $coupon->ID;
-        $this->write();
+        return $this->setCouponByID((int) $coupon->ID);
     }
 
-    /**
-     * @param int $couponID
-     */
-    public function setCouponByID($couponID)
+    public function setCouponByID(int $couponId): static
     {
-        $this->DiscountCouponOptionID = $couponID;
+        $this->DiscountCouponOptionID = $couponId;
         $this->write();
-    }
 
-    // ######################################## *** template functions (e.g. ShowInTable, TableTitle, etc...) ... USES DB VALUES
+        return $this;
+    }
 
     /**
      * @see self::HideInAjaxUpdate
      */
     public function ShowInTable(): bool
     {
-        if ($this->DiscountCouponOptionID) {
-            return true;
-        }
-        //we hide it with ajax if needed
         $order = $this->getOrderCached();
         if ($order) {
-            return !$order->IsSubmitted();
+            return ! $order->IsSubmitted();
         }
+
         return false;
     }
 
@@ -276,72 +261,54 @@ class DiscountCouponModifier extends OrderModifier
         return false;
     }
 
-    /**
-     * @return float
-     */
-    public function CartValue()
+    public function CartValue(): float
     {
         return $this->getCartValue();
     }
 
-    public function getCartValue()
+    public function getCartValue(): float
     {
-        return $this->TableValue;
+        return (float) $this->TableValue;
     }
 
-    // ######################################## *** Type Functions (IsChargeable, IsDeductable, IsNoChange, IsRemoved)
-
-    /**
-     * @return bool
-     * */
-    public function IsDeductable()
+    public function IsDeductable(): bool
     {
         return true;
     }
 
-    // ######################################## *** standard database related functions (e.g. onBeforeWrite, onAfterWrite, etc...)
-    // ######################################## *** AJAX related functions
-
     /**
-     * some modifiers can be hidden after an ajax update (e.g. if someone enters a discount coupon and it does not exist).
-     * There might be instances where ShowInTable (the starting point) is TRUE and HideInAjaxUpdate return false.
-     *
-     * @return bool
-     * */
-    public function HideInAjaxUpdate()
+     * Some modifiers can be hidden after an ajax update.
+     */
+    public function HideInAjaxUpdate(): bool
     {
-        //we check if the parent wants to hide it...
-        //we need to do this first in case it is being removed.
         if (parent::HideInAjaxUpdate()) {
             return true;
         }
-        // we do NOT hide it if values have been entered
-        return !$this->CouponCodeEntered;
+
+        $mustShow = (
+            (string) $this->CouponCodeEntered !== ''
+            || (int) $this->DiscountCouponOptionID > 0
+            || $this->OtherApplicableDiscountCouponOptions()->exists()
+        );
+
+        return ! $mustShow;
     }
 
-    /**
-     * @return float
-     * */
-    protected function LiveTableValue()
+    protected function LiveTableValue(): float
     {
         return $this->LiveCalculatedTotal();
     }
 
-    // ######################################## ***  inner calculations.... USES CALCULATED VALUES
-
     /**
-     * Checks for extensions to make sure it is valid...
-     *
-     * @param DiscountCouponOption $coupon
-     *
-     * @return bool returns true if the coupon is valid
+     * Checks for extensions to make sure it is valid.
      */
-    protected function isValidAdditional($coupon)
+    protected function isValidAdditional(DiscountCouponOption $coupon): bool
     {
         $exclusions = $this->extend('checkForExclusions', $coupon);
+
         if (is_array($exclusions) && count($exclusions)) {
             foreach ($exclusions as $exclusion) {
-                if (true === $exclusion) {
+                if ($exclusion === true) {
                     return false;
                 }
             }
@@ -351,212 +318,343 @@ class DiscountCouponModifier extends OrderModifier
     }
 
     /**
-     * returns the discount coupon, if any ...
+     * Returns the coupons that are applicable to the order item.
      *
-     * @return null|DiscountCouponOption
+     * @return array<int, DiscountCouponOption>
      */
-    protected function myDiscountCouponOption()
+    protected function myDiscountCouponOptions(): array
     {
-        $coupon = null;
-        $id = $this->LiveDiscountCouponOptionID();
-        if ($id) {
-            $coupon = DiscountCouponOption::get_by_id($id);
-            if ($coupon) {
-                if ($coupon->ApplyPercentageToApplicableProducts) {
-                    $arrayOfOrderItemsToWhichThisCouponApplies = $this->applicableProductsArray($coupon);
-                    if (count($arrayOfOrderItemsToWhichThisCouponApplies)) {
-                        return $coupon;
-                    }
-                } else {
-                    return $coupon;
-                }
+        $array = [];
+
+        foreach ($this->AllApplicableCoupons() as $id) {
+            if (! $id) {
+                continue;
             }
+
+            /** @var ?DiscountCouponOption $coupon */
+            $coupon = DiscountCouponOption::get()->byID((int) $id);
+            if (! $coupon) {
+                continue;
+            }
+
+            if (! $coupon->IsValid() || ! $this->isValidAdditional($coupon)) {
+                continue;
+            }
+
+            if ($coupon->ApplyPercentageToApplicableProducts) {
+                $arrayOfOrderItemsToWhichThisCouponApplies = $this->applicableProductsArray($coupon);
+                if (count($arrayOfOrderItemsToWhichThisCouponApplies) > 0) {
+                    $array[] = $coupon;
+                }
+
+                continue;
+            }
+
+            $array[] = $coupon;
         }
 
-        return null;
+        return $array;
     }
 
     /**
-     * returns an Array of OrderItem IDs
-     * to which the coupon applies.
-     *
-     * @param DiscountCouponOption $coupon
-     *
-     * @return array
+     * @return array<int, int|string>
      */
-    protected function applicableProductsArray($coupon)
+    protected function AllApplicableCoupons(): array
     {
-        if (null === self::$_applicable_products_array) {
-            self::$_applicable_products_array = [];
-            $finalArray = [];
-            $order = $this->getOrderCached();
-            if ($order) {
-                $items = $order->Items();
-                if ($items->exists()) {
-                    //get a list of all the products in the cart
-                    $arrayOfProductsInOrder = $order->ProductIds();
-                    //if no products / product groups are specified then
-                    //it applies
-                    //get a list of all the products to which the coupon applies
-                    $productsArray = $coupon->Products()->columnUnique();
-                    if (count($productsArray)) {
-                        $matches = array_intersect($productsArray, $arrayOfProductsInOrder);
-                        foreach ($matches as $buyableID) {
-                            foreach ($arrayOfProductsInOrder as $itemID => $innerBuyableID) {
-                                if ($buyableID === $innerBuyableID) {
-                                    $finalArray[$itemID] = $itemID;
-                                }
-                            }
-                        }
-                    } else {
-                        foreach (array_keys($arrayOfProductsInOrder) as $itemID) {
-                            $finalArray[$itemID] = $itemID;
-                        }
-                    }
-                }
-            }
-            self::$_applicable_products_array = $finalArray;
-        }
-
-        return self::$_applicable_products_array;
-    }
-
-    // ######################################## *** calculate database fields: protected function Live[field name]  ... USES CALCULATED VALUES
-
-    /**
-     * @return int
-     * */
-    protected function LiveName()
-    {
-        $code = $this->LiveCouponCodeEntered();
-        $coupon = $this->myDiscountCouponOption();
-        if ($coupon) {
-            return _t('DiscountCouponModifier.COUPON', 'Coupon') . " '" . $code . "' " . _t('DiscountCouponModifier.APPLIED', 'applied.');
-        }
-        if ($code) {
-            return _t('DiscountCouponModifier.COUPON', 'Coupon') . " '" . $code . "' " . _t('DiscountCouponModifier.COULDNOTBEAPPLIED', 'could not be applied.');
-        }
-
-        return _t('DiscountCouponModifier.NOCOUPONENTERED', 'No (valid) coupon entered') . $code;
+        return array_values(
+            array_unique(
+                array_merge(
+                    [(int) $this->LiveDiscountCouponOptionID()],
+                    $this->LiveOtherApplicableDiscountCouponOptions()
+                )
+            )
+        );
     }
 
     /**
-     * @return float
-     * */
-    protected function LiveSubTotalAmount()
+     * Returns an array of OrderItem IDs to which the coupon applies.
+     *
+     * @return array<int, int>
+     */
+    protected function applicableProductsArray(DiscountCouponOption $coupon): array
     {
-        if (!self::$subtotal) {
-            $subTotal = 0;
-            $order = $this->getOrderCached();
-            if ($order) {
-                $items = $order->Items();
-                $coupon = $this->myDiscountCouponOption();
-                if ($coupon && $coupon->ApplyPercentageToApplicableProducts) {
-                    $array = $this->applicableProductsArray($coupon);
-                    if (count($array)) {
-                        if ($items) {
-                            foreach ($items as $item) {
-                                if (in_array($item->ID, $array, true)) {
-                                    $subTotal += $item->Total();
-                                }
+        $couponId = (int) $coupon->ID;
+
+        if (isset($this->applicableProductsByCouponId[$couponId])) {
+            return $this->applicableProductsByCouponId[$couponId];
+        }
+
+        $finalArray = [];
+        $order = $this->getOrderCached();
+
+        if ($order) {
+            $items = $order->Items();
+            if ($items->exists()) {
+                $arrayOfProductsInOrder = $order->ProductIds();
+
+                $productsArray = $coupon->Products()->columnUnique();
+
+                if (count($productsArray) > 0) {
+                    $matches = array_intersect($productsArray, $arrayOfProductsInOrder);
+                    foreach ($matches as $buyableId) {
+                        foreach ($arrayOfProductsInOrder as $itemId => $innerBuyableId) {
+                            if ((string) $buyableId === (string) $innerBuyableId) {
+                                $finalArray[(int) $itemId] = (int) $itemId;
                             }
                         }
                     }
                 } else {
-                    $subTotal = $order->SubTotal();
-                    $function = $this->Config()->get('exclude_buyable_method');
-                    if ($items) {
-                        foreach ($items as $item) {
-                            $buyable = $item->getBuyableCached();
-                            if ($buyable && $buyable->hasMethod($function) && $buyable->{$function}($this)) {
-                                $subTotal -= $item->Total();
-                            }
+                    foreach (array_keys($arrayOfProductsInOrder) as $itemId) {
+                        $finalArray[(int) $itemId] = (int) $itemId;
+                    }
+                }
+            }
+        }
+
+        $this->applicableProductsByCouponId[$couponId] = $finalArray;
+
+        return $finalArray;
+    }
+
+    protected function LiveName(): string
+    {
+        $code = trim((string) $this->LiveCouponCodeEntered());
+        $coupons = $this->myDiscountCouponOptions();
+        $messages = [];
+
+        if (count($coupons) > 0) {
+            foreach ($coupons as $coupon) {
+                if ($coupon) {
+                    $messages[] =
+                        _t('DiscountCouponModifier.COUPON', 'Coupon')
+                        . ' \''
+                        . $code
+                        . '\' '
+                        . _t('DiscountCouponModifier.APPLIED', 'applied.');
+                }
+            }
+
+            return implode('<br />', $messages);
+        }
+
+        if ($code !== '') {
+            return
+                _t('DiscountCouponModifier.COUPON', 'Coupon')
+                . ' \''
+                . $code
+                . '\' '
+                . _t('DiscountCouponModifier.COULDNOTBEAPPLIED', 'could not be applied.');
+        }
+
+        return _t('DiscountCouponModifier.NOCOUPONENTERED', 'No (valid) coupon entered');
+    }
+
+    /**
+     * This refers to the subtotal amount from the order to which the amount is applied.
+     *
+     * @return array<int, float>
+     */
+    protected function LiveSubTotalAmountsInner(): array
+    {
+        if ($this->subTotalsByCouponId !== []) {
+            return $this->subTotalsByCouponId;
+        }
+
+        $order = $this->getOrderCached();
+        if (! $order) {
+            return [];
+        }
+
+        $items = $order->Items();
+        $coupons = $this->myDiscountCouponOptions();
+
+        foreach ($coupons as $coupon) {
+            if (! $coupon) {
+                continue;
+            }
+
+            $subTotal = 0.0;
+
+            if ($coupon->ApplyPercentageToApplicableProducts) {
+                $applicableItemIds = $this->applicableProductsArray($coupon);
+
+                if (count($applicableItemIds) > 0 && $items) {
+                    foreach ($items as $item) {
+                        if (in_array((int) $item->ID, $applicableItemIds, true)) {
+                            $subTotal += (float) $item->Total();
                         }
                     }
-                    if ($this->Config()->get('include_modifiers_in_subtotal')) {
-                        $subTotal += $order->ModifiersSubTotal([static::class]);
+                }
+            } else {
+                $subTotal = (float) $order->SubTotal();
+                $function = (string) $this->config()->get('exclude_buyable_method');
+
+                if ($items) {
+                    foreach ($items as $item) {
+                        $buyable = $item->getBuyableCached();
+                        if ($buyable && $buyable->hasMethod($function) && $buyable->{$function}($this)) {
+                            $subTotal -= (float) $item->Total();
+                        }
                     }
+                }
+
+                if ((bool) $this->config()->get('include_modifiers_in_subtotal')) {
+                    $subTotal += (float) $order->ModifiersSubTotal([static::class]);
                 }
             }
 
-            self::$subtotal = $subTotal;
+            $this->subTotalsByCouponId[(int) $coupon->ID] = max(0.0, $subTotal);
         }
 
-        return self::$subtotal;
+        return $this->subTotalsByCouponId;
     }
 
-    /**
-     * @return float
-     * */
-    protected function LiveCalculatedTotal()
+    protected function LiveCalculatedTotal(): float
     {
-        if (null === $this->_calculatedTotal) {
-            $this->_calculatedTotal = 0;
-            $this->_actualDeductions = 0;
-            $this->DebugString = '';
-            $subTotal = $this->LiveSubTotalAmount();
-            $coupon = $this->myDiscountCouponOption();
-            if ($coupon && $this->isValidAdditional($coupon)) {
-                if ($coupon->MinimumOrderSubTotalValue > 0 && $subTotal < $coupon->MinimumOrderSubTotalValue) {
-                    $this->_actualDeductions = 0;
-                    $this->DebugString .= '<hr />sub-total is too low to offer any discount: ' . $this->_actualDeductions;
-                } else {
-                    if ($coupon->DiscountAbsolute > 0) {
-                        $this->_actualDeductions += $coupon->DiscountAbsolute;
-                        $this->DebugString .= '<hr />using absolutes for coupon discount: ' . $this->_actualDeductions;
-                    }
-                    if ($coupon->DiscountPercentage > 0) {
-                        $this->_actualDeductions += ($coupon->DiscountPercentage / 100) * $subTotal;
-                        $this->DebugString .= '<hr />using percentages for coupon discount: ' . $this->_actualDeductions;
-                    }
-                }
-                if ($coupon->MaximumDiscount > 0) {
-                    if ($this->_actualDeductions > $coupon->MaximumDiscount) {
-                        $this->DebugString .= '<hr />actual deductions (' . $this->_actualDeductions . ') are greater than maximum discount (' . $coupon->MaximumDiscount . '): ';
-                        $this->_actualDeductions = $coupon->MaximumDiscount;
-                    }
-                }
-            }
-            if ($subTotal < $this->_actualDeductions) {
-                $this->_actualDeductions = $subTotal;
-            }
-            $this->DebugString .= '<hr />final score: ' . $this->_actualDeductions;
-            $this->_actualDeductions = -1 * $this->_actualDeductions;
-
-            $this->_calculatedTotal = $this->_actualDeductions;
+        if ($this->calculatedTotal !== null) {
+            return $this->calculatedTotal;
         }
 
-        return $this->_calculatedTotal;
+        $this->calculatedTotal = 0.0;
+        $this->actualDeductions = 0.0;
+
+        $this->recordDebug('starting score: ' . $this->actualDeductions, true);
+
+        $order = $this->getOrderCached();
+        if (! $order) {
+            return 0.0;
+        }
+
+        $subTotals = $this->LiveSubTotalAmountsInner();
+        $orderSubTotal = (float) $order->SubTotal();
+
+        foreach ($subTotals as $couponId => $subTotal) {
+            $perCouponDeductions = 0.0;
+
+            /** @var ?DiscountCouponOption $coupon */
+            $coupon = DiscountCouponOption::get()->byID((int) $couponId);
+            if (! $coupon) {
+                continue;
+            }
+
+            if ($coupon->MinimumOrderSubTotalValue > 0 && $orderSubTotal < (float) $coupon->MinimumOrderSubTotalValue) {
+                $this->recordDebug('Order sub-total is too low to offer any discount');
+            } else {
+                if ($coupon->DiscountAbsolute > 0) {
+                    $perCouponDeductions += (float) $coupon->DiscountAbsolute;
+                    $this->recordDebug('using absolutes for coupon discount: ' . $perCouponDeductions);
+                }
+
+                if ($coupon->DiscountPercentage > 0) {
+                    $perCouponDeductions += (((float) $coupon->DiscountPercentage) / 100) * (float) $subTotal;
+                    $this->recordDebug('using percentages for coupon discount: ' . $perCouponDeductions);
+                }
+            }
+
+            if ($coupon->MaximumDiscount > 0 && $perCouponDeductions > (float) $coupon->MaximumDiscount) {
+                $this->recordDebug(
+                    'actual deductions (' . $perCouponDeductions . ') are greater than maximum discount (' . $coupon->MaximumDiscount . '): '
+                );
+                $perCouponDeductions = (float) $coupon->MaximumDiscount;
+            }
+
+            $this->actualDeductions += $perCouponDeductions;
+        }
+
+        // Cannot discount below zero (using order subtotal as safety cap).
+        if ($orderSubTotal < $this->actualDeductions) {
+            $this->actualDeductions = $orderSubTotal;
+            $this->recordDebug('Below zero: ' . $this->actualDeductions);
+        }
+
+        $this->recordDebug('final score: ' . $this->actualDeductions);
+
+        $this->actualDeductions = -1.0 * $this->actualDeductions;
+        $this->calculatedTotal = $this->actualDeductions;
+
+        return $this->calculatedTotal;
+    }
+
+    protected function LiveDebugString(): string
+    {
+        return (string) $this->DebugString;
+    }
+
+    protected function LiveCouponCodeEntered(): string
+    {
+        return (string) $this->CouponCodeEntered;
+    }
+
+    protected function LiveDiscountCouponOptionID(): int
+    {
+        return (int) $this->DiscountCouponOptionID;
     }
 
     /**
-     * @return string
-     * */
-    protected function LiveDebugString()
+     * @return array<int, int>
+     */
+    protected function LiveOtherApplicableDiscountCouponOptions(): array
     {
-        return $this->DebugString;
+        $order = $this->getOrderCached();
+        $newData = [];
+
+        if (! $order) {
+            return $newData;
+        }
+
+        $items = $order->Items();
+        if (! $items->exists()) {
+            return $newData;
+        }
+
+        $productsInOrder = $order->ProductIds();
+
+        foreach ($items as $item) {
+            $buyable = $item->getBuyableCached();
+            if (! $buyable || ! $buyable->hasMethod('ConditionallyApplicableDiscountCoupons')) {
+                continue;
+            }
+
+            $coupons = $buyable->ConditionallyApplicableDiscountCoupons();
+            if (! $coupons || ! $coupons->exists()) {
+                continue;
+            }
+
+            foreach ($coupons as $coupon) {
+                if ((int) $coupon->ID === (int) $this->DiscountCouponOptionID) {
+                    continue;
+                }
+
+                $mustExists = $coupon->AnotherProductInOrderMustBeInProducts()->columnUnique();
+                if (count(array_intersect($mustExists, $productsInOrder)) > 0) {
+                    $newData[(int) $coupon->ID] = (int) $coupon->ID;
+                }
+            }
+        }
+
+        // Preserving original behaviour (side effect), but ideally move this write out of Live* methods.
+        $this->OtherApplicableDiscountCouponOptions()->setByIDList($newData);
+
+        return $newData;
     }
 
-    /**
-     * @return string
-     * */
-    protected function LiveCouponCodeEntered()
-    {
-        return $this->CouponCodeEntered;
-    }
-
-    /**
-     * @return int
-     * */
-    protected function LiveDiscountCouponOptionID()
-    {
-        return $this->DiscountCouponOptionID;
-    }
-
-    protected function LiveType()
+    protected function LiveType(): string
     {
         return 'Discount';
     }
 
-    // ######################################## *** debug functions
+    protected function recordDebug(string $message, bool $reset = false): void
+    {
+        if ((bool) $this->config()->get('debug')) {
+            if ($reset) {
+                $this->DebugString = '';
+            }
+
+            $this->DebugString .= '<hr />' . $message;
+
+            return;
+        }
+
+        $this->DebugString = null;
+    }
 }

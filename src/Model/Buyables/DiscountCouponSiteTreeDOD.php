@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Sunnysideup\EcommerceDiscountCoupon\Model\Buyables;
 
 use SilverStripe\CMS\Model\SiteTree;
