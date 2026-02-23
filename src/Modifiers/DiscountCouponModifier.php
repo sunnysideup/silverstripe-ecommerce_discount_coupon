@@ -390,23 +390,18 @@ class DiscountCouponModifier extends OrderModifier
         if ($order) {
             $items = $order->Items();
             if ($items->exists()) {
-                $arrayOfProductsInOrder = $order->ProductIds();
-
+                $arrayOfProductsInOrder = $order->ProductIds(true);
                 $productsArray = $coupon->Products()->columnUnique();
 
                 if (count($productsArray) > 0) {
-                    $matches = array_intersect($productsArray, $arrayOfProductsInOrder);
-                    foreach ($matches as $buyableId) {
-                        foreach ($arrayOfProductsInOrder as $itemId => $innerBuyableId) {
-                            if ((string) $buyableId === (string) $innerBuyableId) {
-                                $finalArray[(int) $itemId] = (int) $itemId;
-                            }
+                    $finalArray = array_filter(
+                        $arrayOfProductsInOrder,
+                        function (int $value) use ($productsArray): bool {
+                            return in_array($value, $productsArray, true);
                         }
-                    }
+                    );
                 } else {
-                    foreach (array_keys($arrayOfProductsInOrder) as $itemId) {
-                        $finalArray[(int) $itemId] = (int) $itemId;
-                    }
+                    $finalArray = $arrayOfProductsInOrder;
                 }
             }
         }
@@ -427,9 +422,7 @@ class DiscountCouponModifier extends OrderModifier
                 if ($coupon) {
                     $messages[] =
                         _t('DiscountCouponModifier.COUPON', 'Coupon')
-                        . ' \''
-                        . $code
-                        . '\' '
+                        . ' ' . $coupon->Title . ' '
                         . _t('DiscountCouponModifier.APPLIED', 'applied.');
                 }
             }
@@ -456,6 +449,7 @@ class DiscountCouponModifier extends OrderModifier
      */
     protected function LiveSubTotalAmountsInner(): array
     {
+        // cached values?
         if ($this->subTotalsByCouponId !== []) {
             return $this->subTotalsByCouponId;
         }
@@ -464,8 +458,8 @@ class DiscountCouponModifier extends OrderModifier
         if (! $order) {
             return [];
         }
-
         $items = $order->Items();
+
         $coupons = $this->myDiscountCouponOptions();
 
         foreach ($coupons as $coupon) {
@@ -480,7 +474,7 @@ class DiscountCouponModifier extends OrderModifier
 
                 if (count($applicableItemIds) > 0 && $items) {
                     foreach ($items as $item) {
-                        if (in_array((int) $item->ID, $applicableItemIds, true)) {
+                        if (isset($applicableItemIds[(int) $item->ID])) {
                             $subTotal += (float) $item->Total();
                         }
                     }
@@ -502,6 +496,7 @@ class DiscountCouponModifier extends OrderModifier
                     $subTotal += (float) $order->ModifiersSubTotal([static::class]);
                 }
             }
+
 
             $this->subTotalsByCouponId[(int) $coupon->ID] = max(0.0, $subTotal);
         }
@@ -527,7 +522,6 @@ class DiscountCouponModifier extends OrderModifier
 
         $subTotals = $this->LiveSubTotalAmountsInner();
         $orderSubTotal = (float) $order->SubTotal();
-
         foreach ($subTotals as $couponId => $subTotal) {
             $perCouponDeductions = 0.0;
 
@@ -625,7 +619,7 @@ class DiscountCouponModifier extends OrderModifier
                     continue;
                 }
 
-                $mustExists = $coupon->AnotherProductInOrderMustBeInProducts()->columnUnique();
+                $mustExists = $coupon->OtherProductInOrderProducts()->columnUnique();
                 if (count(array_intersect($mustExists, $productsInOrder)) > 0) {
                     $newData[(int) $coupon->ID] = (int) $coupon->ID;
                 }

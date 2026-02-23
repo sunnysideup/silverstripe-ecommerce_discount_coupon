@@ -57,22 +57,23 @@ class DiscountCouponOption extends DataObject
      *
      * @var string
      */
-    private static array $table_name = 'DiscountCouponOption';
+    private static $table_name = 'DiscountCouponOption';
 
     private static array $db = [
         'ApplyPercentageToApplicableProducts' => 'Boolean',
         'RequiresProductCombinationInOrder' => 'Boolean',
+        'ProductCombinationRatio' => 'Int',
         'ApplyEvenWithoutCode' => 'Boolean',
         'Title' => 'Varchar(255)',
         'Code' => 'Varchar(32)',
         'NumberOfTimesCouponCanBeUsed' => 'Int',
         'StartDate' => 'Date',
         'EndDate' => 'Date',
+        'MinimumOrderSubTotalValue' => 'Currency',
         'MaximumDiscount' => 'Currency',
         'DiscountAbsolute' => 'Currency',
         'DiscountPrice' => 'Currency',
         'DiscountPercentage' => 'Decimal(4,2)',
-        'MinimumOrderSubTotalValue' => 'Currency',
     ];
 
     private static array $many_many = [
