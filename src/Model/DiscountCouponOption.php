@@ -159,6 +159,7 @@ class DiscountCouponOption extends DataObject
         'ProductGroupsMustAlsoBePresentIn' => 'Products must also be listed in this list of product groups ... ',
         'CustomProductListsMustAlsoBePresentIn' => 'Products must also be listed in this list of custom product lists ... ',
         // another product in Order in ...
+        'ProductCombinationRatio' => 'Ratio between the discounted and required product.',
         'OtherProductInOrderProducts' => 'Other Products in the Order must be in this list of products ... ',
         'OtherProductInOrderProductGroups' => 'Other Products in the Order must be listed in this list of product groups ... ',
         'OtherProductInOrderCustomProductLists' => 'Other Products in the Order must be listed in this list of custom product lists ... ',
@@ -183,12 +184,15 @@ class DiscountCouponOption extends DataObject
         'NumberOfTimesCouponCanBeUsed' => 'Set to zero to disallow usage, set to 999,999 to allow unlimited usage.',
         'UseCount' => 'number of times this coupon has been used',
         'IsValidNice' => 'coupon is currently valid',
+        // product selection
         'Products' => "This is the final list of products to which the coupon applies. To edit this list directly, please remove all product groups and custom list selections in the 'Add Products Using Categories' tab.",
         'ProductGroups' => 'Adding product categories helps you to select a large number of products at once. Please select categories above.  The products in each category selected will be added to the list.',
         'CustomProductLists' => 'Adding custom lists helps you to select a large number of products at once. Please select custom lists above.  The products in each list selected will be added to the list.',
+        // cross reference selection
         'ProductGroupsMustAlsoBePresentIn' => 'Select cross-reference listing products (listed in both categories) - e.g. products that are in the Large Items category and Expensive Items category will have a discount.',
         'CustomProductListsMustAlsoBePresentIn' => 'Select cross-reference listing custom product lists - e.g. products that are in the Large Items category and Expensive Items category will have a discount.',
         // another product in Order in ...
+        'ProductCombinationRatio' => 'For example, if the ratio is 2, then for every 2 products in the Discounted Products list, there must be 1 product in the "Other Products in Order" list. If the ratio is 1, then for every 1 product in the "Products" list, there must be 1 product in the "Other Products in Order" list. If the ratio is 0, then the ratio is unlimited. ',
         'OtherProductInOrderProducts' => 'Other Products in the Order must be in this list of products. To edit this list directly, please remove all product groups and custom list selections in the \'Other Products in Order\' tab.',
         'OtherProductInOrderProductGroups' => 'Other Products in the Order must be listed in this list of product groups. ',
         'OtherProductInOrderCustomProductLists' => 'Other Products in the Order must be listed in this list of custom product lists. ',
@@ -491,6 +495,21 @@ class DiscountCouponOption extends DataObject
         }
 
         if ($this->RequiresProductCombinationInOrder) {
+            $fields->addFieldsToTab('Root.OtherProductsInOrder', [
+                $fields->dataFieldByName('RequiresProductCombinationInOrder'),
+                new DropdownField(
+                    'ProductCombinationRatio',
+                    $this->config()->get('field_labels')['ProductCombinationRatio'],
+                    [
+                        0 => 'unlimited',
+                        1 => '1:1',
+                        2 => '2:1',
+                        3 => '3:1',
+                        4 => '4:1',
+                        5 => '5:1',
+                    ]
+                )
+            ]);
             $gridField6 = $fields->dataFieldByName('OtherProductInOrderProducts');
             if ($gridField6) {
                 if ($this->OtherProductsAddedThroughLists()) {
@@ -511,9 +530,9 @@ class DiscountCouponOption extends DataObject
                 $fields->addFieldToTab('Root.OtherProductsInOrder', $gridField8);
             }
         } else {
-            $fields->removeFieldFromTab('Root', 'OtherProductInOrderProducts');
-            $fields->removeFieldFromTab('Root', 'OtherProductInOrderProductGroups');
-            $fields->removeFieldFromTab('Root', 'OtherProductInOrderCustomProductLists');
+            $fields->addFieldsToTab('Root.OtherProductsInOrder', [
+                $fields->dataFieldByName('RequiresProductCombinationInOrder'),
+            ]);
         }
 
         $fields->removeFieldFromTab('Root', 'Products');
@@ -524,7 +543,6 @@ class DiscountCouponOption extends DataObject
         $fields->removeFieldFromTab('Root', 'OtherProductInOrderProducts');
         $fields->removeFieldFromTab('Root', 'OtherProductInOrderProductGroups');
         $fields->removeFieldFromTab('Root', 'OtherProductInOrderCustomProductLists');
-
         // if (! $this->ApplyPercentageToApplicableProducts) {
         //     /*
         //      * if the discount is for the whole order
