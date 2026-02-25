@@ -6,13 +6,14 @@ namespace Sunnysideup\EcommerceDiscountCoupon\Model;
 
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Forms\DropdownField;
+use SilverStripe\Forms\HeaderField;
 use SilverStripe\Forms\ReadonlyField;
 use SilverStripe\Forms\Tab;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\ORM\DB;
 use SilverStripe\Security\Permission;
 use Sunnysideup\CmsEditLinkField\Api\CMSEditLinkAPI;
 use Sunnysideup\Ecommerce\Forms\Gridfield\Configs\GridFieldBasicPageRelationConfigNoAddExisting;
+use Sunnysideup\Ecommerce\Forms\Gridfield\Configs\GridFieldConfigForCustomLists;
 use Sunnysideup\Ecommerce\Forms\Gridfield\Configs\GridFieldConfigForProductGroups;
 use Sunnysideup\Ecommerce\Forms\Gridfield\Configs\GridFieldConfigForProducts;
 use Sunnysideup\Ecommerce\Model\Extensions\EcommerceRole;
@@ -60,10 +61,10 @@ class DiscountCouponOption extends DataObject
     private static $table_name = 'DiscountCouponOption';
 
     private static array $db = [
-        'ApplyPercentageToApplicableProducts' => 'Boolean',
+        'ApplyEvenWithoutCode(1)' => 'Boolean',
+        'ApplyPercentageToApplicableProducts(1)' => 'Boolean',
         'RequiresProductCombinationInOrder' => 'Boolean',
         'ProductCombinationRatio' => 'Int',
-        'ApplyEvenWithoutCode' => 'Boolean',
         'Title' => 'Varchar(255)',
         'Code' => 'Varchar(32)',
         'NumberOfTimesCouponCanBeUsed' => 'Int',
@@ -180,12 +181,12 @@ class DiscountCouponOption extends DataObject
         'DiscountPrice' => 'New (discounted) price of the product. Set to zero to ignore.',
         'DiscountAbsolute' => 'Absolute reduction. For example, 10 = -$10.00 off. Set this value to zero to ignore.',
         'DiscountPercentage' => 'Percentage Discount.  For example, 10 = -10% discount Set this value to zero to ignore.',
-        'MinimumOrderSubTotalValue' => 'Minimum sub-total of total order to make coupon applicable. For example, order must be at least $100 before the customer gets a discount.',
+        'MinimumOrderSubTotalValue' => 'Minimum sub-total of total order to make coupon applicable. For example, order must be at least $100 before the customer gets a discount. This only applies if the discount is for the whole order (i.e. not for specific products). Set this value to zero to ignore.',
         'NumberOfTimesCouponCanBeUsed' => 'Set to zero to disallow usage, set to 999,999 to allow unlimited usage.',
         'UseCount' => 'number of times this coupon has been used',
         'IsValidNice' => 'coupon is currently valid',
         // product selection
-        'Products' => "This is the final list of products to which the coupon applies. To edit this list directly, please remove all product groups and custom list selections in the 'Add Products Using Categories' tab.",
+        'Products' => "This is the final list of products to which the coupon applies. To edit this list directly, please remove all selections below.",
         'ProductGroups' => 'Adding product categories helps you to select a large number of products at once. Please select categories above.  The products in each category selected will be added to the list.',
         'CustomProductLists' => 'Adding custom lists helps you to select a large number of products at once. Please select custom lists above.  The products in each list selected will be added to the list.',
         // cross reference selection
@@ -465,6 +466,7 @@ class DiscountCouponOption extends DataObject
         if ($gridField1) {
             if ($this->ProductsAddedThroughLists()) {
                 $gridField1->setConfig(GridFieldBasicPageRelationConfigNoAddExisting::create());
+                $gridField1->setReadonly(true);
             } else {
                 $gridField1->setConfig(GridFieldConfigForProducts::create());
             }
@@ -476,24 +478,39 @@ class DiscountCouponOption extends DataObject
             $gridField2->setConfig(GridFieldConfigForProductGroups::create());
             $fields->addFieldToTab('Root.ProductSelection', $gridField2);
         }
-
         $gridField3 = $fields->dataFieldByName('CustomProductLists');
         if ($gridField3) {
+            $gridField3->setConfig(GridFieldConfigForCustomLists::create());
             $fields->addFieldToTab('Root.ProductSelection', $gridField3);
         }
 
-        $gridField4 = $fields->dataFieldByName('ProductGroupsMustAlsoBePresentIn');
-        if ($gridField4) {
-            $gridField4->setConfig(GridFieldConfigForProductGroups::create());
-            $fields->addFieldToTab('Root.ProductSelection', $gridField4);
+        if ($this->ProductsAddedThroughLists()) {
+            $fields->addFieldsToTab(
+                'Root.ProductSelection',
+                [
+                    HeaderField::create(
+                        'Limit Product Selection',
+                        _t('DiscountCouponOption.LIMIT_PRODUCT_SELECTION', 'Limit Product Selection'),
+                        1
+                    )
+                ]
+            );
+            $gridField4 = $fields->dataFieldByName('ProductGroupsMustAlsoBePresentIn');
+            if ($gridField4) {
+                $gridField4->setConfig(GridFieldConfigForProductGroups::create());
+                $fields->addFieldToTab('Root.ProductSelection', $gridField4);
+            }
+
+
+            $gridField5 = $fields->dataFieldByName('CustomProductListsMustAlsoBePresentIn');
+            if ($gridField5) {
+                $gridField5->setConfig(GridFieldConfigForCustomLists::create());
+                $fields->addFieldToTab('Root.ProductSelection', $gridField5);
+            }
+        } else {
+            $fields->removeByName('ProductGroupsMustAlsoBePresentIn');
+            $fields->removeByName('CustomProductListsMustAlsoBePresentIn');
         }
-
-
-        $gridField5 = $fields->dataFieldByName('CustomProductListsMustAlsoBePresentIn');
-        if ($gridField5) {
-            $fields->addFieldToTab('Root.ProductSelection', $gridField5);
-        }
-
         if ($this->RequiresProductCombinationInOrder) {
             $fields->addFieldsToTab('Root.OtherProductsInOrder', [
                 $fields->dataFieldByName('RequiresProductCombinationInOrder'),
@@ -533,6 +550,7 @@ class DiscountCouponOption extends DataObject
             $fields->addFieldsToTab('Root.OtherProductsInOrder', [
                 $fields->dataFieldByName('RequiresProductCombinationInOrder'),
             ]);
+            $fields->removeByName('ProductCombinationRatio');
         }
 
         $fields->removeFieldFromTab('Root', 'Products');
@@ -571,7 +589,9 @@ class DiscountCouponOption extends DataObject
 
     protected function ProductsAddedThroughLists(): bool
     {
-        return $this->ProductGroups()->exists() || $this->CustomProductLists()->exists();
+        return $this->ProductGroups()->exists()
+            || $this->CustomProductLists()->exists()
+            || $this->OtherProductsAddedThroughLists();
     }
 
     protected function OtherProductsAddedThroughLists(): bool
@@ -644,11 +664,6 @@ class DiscountCouponOption extends DataObject
         if (strlen(trim((string) $this->Title)) < 1) {
             $this->Title = $this->Code;
         }
-        if ($this->ApplyEvenWithoutCode) {
-            //@todo - why this?
-            $this->MaximumDiscount = 0;
-            $this->MinimumOrderSubTotalValue = 0;
-        }
         if ($this->ApplyPercentageToApplicableProducts) {
             //we have removed this!
             //$this->DiscountAbsolute = 0;
@@ -663,6 +678,7 @@ class DiscountCouponOption extends DataObject
             $validLength = $this->config()->get('default_valid_length_in_days');
             $this->EndDate = date('Y-m-d', strtotime(date('Y-m-d') . $validLength . 'days'));
         }
+        $this->LastEdited = date('Y-m-d H:i:s');
     }
 
     /**
@@ -705,9 +721,11 @@ class DiscountCouponOption extends DataObject
 
             // calculated additional rules for products to be included in the discount coupon
             $mustAlsoBePresentInProductsArray = [];
+            $isLimited = false;
             $mustAlsoBePresentInGroups = $this->ProductGroupsMustAlsoBePresentIn();
             /** @var ProductGroup $mustAlsoBePresentInGroup */
             foreach ($mustAlsoBePresentInGroups as $mustAlsoBePresentInGroup) {
+                $isLimited = true;
                 $mustAlsoBePresentInProducts = $mustAlsoBePresentInGroup->getProducts();
                 if ($mustAlsoBePresentInProducts->exists()) {
                     $mustAlsoBePresentInProductsArray = array_merge($mustAlsoBePresentInProductsArray, $mustAlsoBePresentInProducts->columnUnique());
@@ -716,14 +734,18 @@ class DiscountCouponOption extends DataObject
             $mustAlsoBePresentInCustomProductLists = $this->CustomProductListsMustAlsoBePresentIn();
             /** @var CustomProductList $mustAlsoBePresentInCustomProductList */
             foreach ($mustAlsoBePresentInCustomProductLists as $mustAlsoBePresentInCustomProductList) {
+                $isLimited = true;
                 $mustAlsoBePresentInProducts = $mustAlsoBePresentInCustomProductList->Products();
                 if ($mustAlsoBePresentInProducts->exists()) {
-                    $mustAlsoBePresentInProductsArray = array_merge($mustAlsoBePresentInProductsArray, $mustAlsoBePresentInProducts->columnUnique());
+                    $mustAlsoBePresentInProductsArray = array_intersect($mustAlsoBePresentInProductsArray, $mustAlsoBePresentInProducts->columnUnique());
                 }
             }
-            if (! empty($mustAlsoBePresentInProductsArray)) {
+            if ($isLimited) {
                 $mustAlsoBePresentInProductsArray = array_unique($mustAlsoBePresentInProductsArray);
-                $productsArray = array_intersect_key($mustAlsoBePresentInProductsArray, $productsArray);
+                $productsArray = array_intersect($mustAlsoBePresentInProductsArray, $productsArray);
+                if (empty($productsArray)) {
+                    $productsArray = [-1 => 1];
+                }
             }
 
             // put it all together - leading to a final list of products that are applicable for the discount coupon
