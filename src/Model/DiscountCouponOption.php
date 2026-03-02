@@ -561,13 +561,15 @@ class DiscountCouponOption extends DataObject
         $fields->removeFieldFromTab('Root', 'OtherProductInOrderProducts');
         $fields->removeFieldFromTab('Root', 'OtherProductInOrderProductGroups');
         $fields->removeFieldFromTab('Root', 'OtherProductInOrderCustomProductLists');
-        // if (! $this->ApplyPercentageToApplicableProducts) {
-        //     /*
-        //      * if the discount is for the whole order
-        //      * then
-        //      **/
-        //     $fields->removeFieldFromTab('Root.Main', 'ApplyEvenWithoutCode');
-        // }
+        if ($this->ApplyPercentageToApplicableProducts) {
+            $fields->removeByName('MinimumOrderSubTotalValue');
+        } else {
+            /*
+             * if the discount is for the whole order
+             * then
+             **/
+            $fields->removeFieldFromTab('Root.Main', 'ApplyEvenWithoutCode');
+        }
 
         if ($this->exists()) {
             $fields->insertBefore(

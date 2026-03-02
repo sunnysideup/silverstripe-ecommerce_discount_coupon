@@ -508,7 +508,7 @@ class DiscountCouponModifier extends OrderModifier
                 continue;
             }
 
-            if ($coupon->MinimumOrderSubTotalValue > 0 && $orderSubTotal < (float) $coupon->MinimumOrderSubTotalValue) {
+            if (! $coupon->ApplyPercentageToApplicableProducts && $coupon->MinimumOrderSubTotalValue > 0 && (float) $orderSubTotal < (float) $coupon->MinimumOrderSubTotalValue) {
                 $this->recordDebug('Order sub-total is too low to offer any discount');
             } else {
                 if ($coupon->DiscountAbsolute > 0) {
@@ -810,7 +810,7 @@ class DiscountCouponModifier extends OrderModifier
                     continue;
                 }
 
-                $subTotal += (float) $item->Total();
+                $subTotal += (float) $item->TotalForDiscount();
             }
 
             return max(0.0, $subTotal);
