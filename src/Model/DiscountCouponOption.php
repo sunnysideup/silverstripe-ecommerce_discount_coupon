@@ -461,96 +461,116 @@ class DiscountCouponOption extends DataObject
                 new ReadonlyField('IsValidNice', self::$field_labels['IsValidNice'])
             ]
         );
+        if ($this->ApplyPercentageToApplicableProducts) {
+            $fields->removeByName('MinimumOrderSubTotalValue');
 
-        $gridField1 = $fields->dataFieldByName('Products');
-        if ($gridField1) {
+            $gridField1 = $fields->dataFieldByName('Products');
+            if ($gridField1) {
+                if ($this->ProductsAddedThroughLists()) {
+                    $gridField1->setConfig(GridFieldBasicPageRelationConfigNoAddExisting::create());
+                    $gridField1->setReadonly(true);
+                } else {
+                    $gridField1->setConfig(GridFieldConfigForProducts::create());
+                }
+                $fields->addFieldToTab('Root.ProductSelection', $gridField1);
+            }
+
+            $gridField2 = $fields->dataFieldByName('ProductGroups');
+            if ($gridField2) {
+                $gridField2->setConfig(GridFieldConfigForProductGroups::create());
+                $fields->addFieldToTab('Root.ProductSelection', $gridField2);
+            }
+            $gridField3 = $fields->dataFieldByName('CustomProductLists');
+            if ($gridField3) {
+                $gridField3->setConfig(GridFieldConfigForCustomLists::create());
+                $fields->addFieldToTab('Root.ProductSelection', $gridField3);
+            }
             if ($this->ProductsAddedThroughLists()) {
-                $gridField1->setConfig(GridFieldBasicPageRelationConfigNoAddExisting::create());
-                $gridField1->setReadonly(true);
+                $fields->addFieldsToTab(
+                    'Root.ProductSelection',
+                    [
+                        HeaderField::create(
+                            'Limit Product Selection',
+                            _t('DiscountCouponOption.LIMIT_PRODUCT_SELECTION', 'Limit Product Selection'),
+                            1
+                        )
+                    ]
+                );
+                $gridField4 = $fields->dataFieldByName('ProductGroupsMustAlsoBePresentIn');
+                if ($gridField4) {
+                    $gridField4->setConfig(GridFieldConfigForProductGroups::create());
+                    $fields->addFieldToTab('Root.ProductSelection', $gridField4);
+                }
+
+
+                $gridField5 = $fields->dataFieldByName('CustomProductListsMustAlsoBePresentIn');
+                if ($gridField5) {
+                    $gridField5->setConfig(GridFieldConfigForCustomLists::create());
+                    $fields->addFieldToTab('Root.ProductSelection', $gridField5);
+                }
             } else {
-                $gridField1->setConfig(GridFieldConfigForProducts::create());
+                $fields->removeByName('ProductGroupsMustAlsoBePresentIn');
+                $fields->removeByName('CustomProductListsMustAlsoBePresentIn');
             }
-            $fields->addFieldToTab('Root.ProductSelection', $gridField1);
-        }
-
-        $gridField2 = $fields->dataFieldByName('ProductGroups');
-        if ($gridField2) {
-            $gridField2->setConfig(GridFieldConfigForProductGroups::create());
-            $fields->addFieldToTab('Root.ProductSelection', $gridField2);
-        }
-        $gridField3 = $fields->dataFieldByName('CustomProductLists');
-        if ($gridField3) {
-            $gridField3->setConfig(GridFieldConfigForCustomLists::create());
-            $fields->addFieldToTab('Root.ProductSelection', $gridField3);
-        }
-
-        if ($this->ProductsAddedThroughLists()) {
-            $fields->addFieldsToTab(
-                'Root.ProductSelection',
-                [
-                    HeaderField::create(
-                        'Limit Product Selection',
-                        _t('DiscountCouponOption.LIMIT_PRODUCT_SELECTION', 'Limit Product Selection'),
-                        1
+            if ($this->RequiresProductCombinationInOrder) {
+                $fields->addFieldsToTab('Root.OtherProductsInOrder', [
+                    $fields->dataFieldByName('RequiresProductCombinationInOrder'),
+                    new DropdownField(
+                        'ProductCombinationRatio',
+                        $this->config()->get('field_labels')['ProductCombinationRatio'],
+                        [
+                            0 => 'unlimited',
+                            1 => '1:1',
+                            2 => '2:1',
+                            3 => '3:1',
+                            4 => '4:1',
+                            5 => '5:1',
+                        ]
                     )
-                ]
-            );
-            $gridField4 = $fields->dataFieldByName('ProductGroupsMustAlsoBePresentIn');
-            if ($gridField4) {
-                $gridField4->setConfig(GridFieldConfigForProductGroups::create());
-                $fields->addFieldToTab('Root.ProductSelection', $gridField4);
+                ]);
+                $gridField6 = $fields->dataFieldByName('OtherProductInOrderProducts');
+                if ($gridField6) {
+                    if ($this->OtherProductsAddedThroughLists()) {
+                        $gridField6->setConfig(GridFieldBasicPageRelationConfigNoAddExisting::create());
+                    } else {
+                        $gridField6->setConfig(GridFieldConfigForProducts::create());
+                    }
+                    $fields->addFieldToTab('Root.OtherProductsInOrder', $gridField6);
+                }
+                $gridField7 = $fields->dataFieldByName('OtherProductInOrderProductGroups');
+                if ($gridField7) {
+                    $gridField7->setConfig(GridFieldConfigForProductGroups::create());
+                    $fields->addFieldToTab('Root.OtherProductsInOrder', $gridField7);
+                }
+
+                $gridField8 = $fields->dataFieldByName('OtherProductInOrderCustomProductLists');
+                if ($gridField8) {
+                    $fields->addFieldToTab('Root.OtherProductsInOrder', $gridField8);
+                }
+            } else {
+                $fields->addFieldsToTab('Root.OtherProductsInOrder', [
+                    $fields->dataFieldByName('RequiresProductCombinationInOrder'),
+                ]);
+                $fields->removeByName('ProductCombinationRatio');
             }
-
-
-            $gridField5 = $fields->dataFieldByName('CustomProductListsMustAlsoBePresentIn');
-            if ($gridField5) {
-                $gridField5->setConfig(GridFieldConfigForCustomLists::create());
-                $fields->addFieldToTab('Root.ProductSelection', $gridField5);
+            if ($this->exists()) {
+                $fields->insertBefore(
+                    'ProductSelection',
+                    new Tab('Price', 'Price'),
+                );
             }
         } else {
+            $fields->removeByName('Products');
+            $fields->removeByName('ProductGroups');
+            $fields->removeByName('CustomProductLists');
             $fields->removeByName('ProductGroupsMustAlsoBePresentIn');
             $fields->removeByName('CustomProductListsMustAlsoBePresentIn');
-        }
-        if ($this->RequiresProductCombinationInOrder) {
-            $fields->addFieldsToTab('Root.OtherProductsInOrder', [
-                $fields->dataFieldByName('RequiresProductCombinationInOrder'),
-                new DropdownField(
-                    'ProductCombinationRatio',
-                    $this->config()->get('field_labels')['ProductCombinationRatio'],
-                    [
-                        0 => 'unlimited',
-                        1 => '1:1',
-                        2 => '2:1',
-                        3 => '3:1',
-                        4 => '4:1',
-                        5 => '5:1',
-                    ]
-                )
-            ]);
-            $gridField6 = $fields->dataFieldByName('OtherProductInOrderProducts');
-            if ($gridField6) {
-                if ($this->OtherProductsAddedThroughLists()) {
-                    $gridField6->setConfig(GridFieldBasicPageRelationConfigNoAddExisting::create());
-                } else {
-                    $gridField6->setConfig(GridFieldConfigForProducts::create());
-                }
-                $fields->addFieldToTab('Root.OtherProductsInOrder', $gridField6);
-            }
-            $gridField7 = $fields->dataFieldByName('OtherProductInOrderProductGroups');
-            if ($gridField7) {
-                $gridField7->setConfig(GridFieldConfigForProductGroups::create());
-                $fields->addFieldToTab('Root.OtherProductsInOrder', $gridField7);
-            }
-
-            $gridField8 = $fields->dataFieldByName('OtherProductInOrderCustomProductLists');
-            if ($gridField8) {
-                $fields->addFieldToTab('Root.OtherProductsInOrder', $gridField8);
-            }
-        } else {
-            $fields->addFieldsToTab('Root.OtherProductsInOrder', [
-                $fields->dataFieldByName('RequiresProductCombinationInOrder'),
-            ]);
+            $fields->removeByName('RequiresProductCombinationInOrder');
             $fields->removeByName('ProductCombinationRatio');
+            $fields->removeByName('OtherProductInOrderProducts');
+            $fields->removeByName('OtherProductInOrderProductGroups');
+            $fields->removeByName('OtherProductInOrderCustomProductLists');
+            $fields->removeFieldFromTab('Root.Main', 'ApplyEvenWithoutCode');
         }
 
         $fields->removeFieldFromTab('Root', 'Products');
@@ -561,22 +581,7 @@ class DiscountCouponOption extends DataObject
         $fields->removeFieldFromTab('Root', 'OtherProductInOrderProducts');
         $fields->removeFieldFromTab('Root', 'OtherProductInOrderProductGroups');
         $fields->removeFieldFromTab('Root', 'OtherProductInOrderCustomProductLists');
-        if ($this->ApplyPercentageToApplicableProducts) {
-            $fields->removeByName('MinimumOrderSubTotalValue');
-        } else {
-            /*
-             * if the discount is for the whole order
-             * then
-             **/
-            $fields->removeFieldFromTab('Root.Main', 'ApplyEvenWithoutCode');
-        }
 
-        if ($this->exists()) {
-            $fields->insertBefore(
-                'ProductSelection',
-                new Tab('Price', 'Price'),
-            );
-        }
 
         $fields->addFieldsToTab(
             'Root.Price',
@@ -688,7 +693,7 @@ class DiscountCouponOption extends DataObject
      */
     protected function onAfterWrite()
     {
-        $productsArray = [0 => 0];
+        $productsArray = [];
         parent::onAfterWrite();
         if (! $this->_productsCalculated) {
             $this->_productsCalculated = true;
