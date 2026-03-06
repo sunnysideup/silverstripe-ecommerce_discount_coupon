@@ -11,6 +11,7 @@ use SilverStripe\Forms\ReadonlyField;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\Validator;
 use Sunnysideup\Ecommerce\Model\OrderModifier;
+use Sunnysideup\Ecommerce\Pages\Product;
 use Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption;
 
 /**
@@ -57,6 +58,7 @@ class DiscountCouponModifier extends OrderModifier
 
     private static array $many_many = [
         'OtherApplicableDiscountCouponOptions' => DiscountCouponOption::class,
+        'DiscountedProducts' => Product::class,
     ];
 
     private static bool $include_modifiers_in_subtotal = false;
