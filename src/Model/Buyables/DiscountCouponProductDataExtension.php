@@ -115,66 +115,6 @@ class DiscountCouponProductDataExtension extends DataExtension
         return self::$couponPriceArrayCache[$id];
     }
 
-    public function ComboCoupons(): ?array
-    {
-        return $this->resolveCouponList('couponCombos', 'ComboApplicableDiscountCoupons');
-    }
-
-    public function ComboCouponsInverse(?float $price): ?array
-    {
-        $this->resolveCouponList('couponCombosMustHave', 'MustHavesCoupons');
-        return self::$couponCombos[(int) $this->getOwner()->ID] ?? null;
-    }
-
-    private function resolveCouponList(string $cacheKey, string $method): ?array
-    {
-        $id = (int) $this->getOwner()->ID;
-        if ($id <= 0) return null;
-
-        $cache = &self::$$cacheKey;
-        if (!array_key_exists($id, $cache)) {
-            $cache[$id] = null;
-            $coupons = $this->getOwner()->{$method}();
-            if ($coupons?->exists()) {
-                foreach ($coupons as $coupon) {
-                    $cache[$id][] = $coupon;
-                }
-            }
-        }
-
-        return $cache[$id];
-    }
-
-    public function CurrentApplicableDiscountCoupons(): DataList
-    {
-        return $this->filteredCoupons('ApplicableDiscountCoupons');
-    }
-
-    public function ComboApplicableDiscountCouponsInverse(): DataList
-    {
-        return $this->filteredCoupons('MustHavesCoupons');
-    }
-
-    private function filteredCoupons(string $relation): DataList
-    {
-        $date = date('Y-m-d');
-        return $this->getOwner()->{$relation}()->filter([
-            'StartDate:LessThanOrEqual' => $date,
-            'EndDate:GreaterThanOrEqual' => $date,
-            'ApplyEvenWithoutCode' => 1,
-        ]);
-    }
-
-    public function DirectlyApplicableDiscountCoupons(): DataList
-    {
-        return $this->CurrentApplicableDiscountCoupons()->filter(['RequiresProductCombinationInOrder' => 0]);
-    }
-
-    public function ComboApplicableDiscountCoupons(): DataList
-    {
-        return $this->CurrentApplicableDiscountCoupons()->filter(['RequiresProductCombinationInOrder' => 1]);
-    }
-
 
     public function DiscountCouponAmount(): DBMoney
     {
@@ -213,5 +153,68 @@ class DiscountCouponProductDataExtension extends DataExtension
         }
 
         return self::$discountAvailableUntilCache[$id];
+    }
+
+    public function ComboCoupons(): ?array
+    {
+        return $this->cachedCouponList('couponCombos', 'ComboApplicableDiscountCoupons');
+    }
+
+    public function ComboCouponsInverse(?float $price): ?array
+    {
+        return $this->cachedCouponList('couponCombosMustHave', 'ComboApplicableDiscountCouponsInverse');
+    }
+
+
+
+
+    public function DirectlyApplicableDiscountCoupons(): DataList
+    {
+        return $this->CurrentApplicableDiscountCoupons()->filter(['RequiresProductCombinationInOrder' => 0]);
+    }
+
+    protected function ComboApplicableDiscountCoupons(): DataList
+    {
+        return $this->CurrentApplicableDiscountCoupons()->filter(['RequiresProductCombinationInOrder' => 1]);
+    }
+
+
+    protected function ComboApplicableDiscountCouponsInverse(): DataList
+    {
+        return $this->filteredCoupons('MustHavesCoupons');
+    }
+
+
+
+    protected function CurrentApplicableDiscountCoupons(): DataList
+    {
+        return $this->filteredCoupons('ApplicableDiscountCoupons');
+    }
+    protected function filteredCoupons(string $relation): DataList
+    {
+        $date = date('Y-m-d');
+        return $this->getOwner()->{$relation}()->filter([
+            'StartDate:LessThanOrEqual' => $date,
+            'EndDate:GreaterThanOrEqual' => $date,
+            'ApplyEvenWithoutCode' => 1,
+        ]);
+    }
+    private function cachedCouponList(string $cacheKey, string $method): ?array
+    {
+        $id = (int) $this->getOwner()->ID;
+        if ($id <= 0) return null;
+
+        $cache = &self::$$cacheKey;
+        if (!array_key_exists($id, $cache)) {
+            $cache[$id] = null;
+            $coupons = $this->getOwner()->{$method}();
+            if ($coupons?->exists()) {
+                foreach ($coupons as $coupon) {
+                    $cache[$id][] = $coupon;
+                }
+            }
+        }
+
+        return $cache[$id];
     }
 }
