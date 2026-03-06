@@ -23,34 +23,20 @@ use Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption;
 class DiscountCouponModifier extends OrderModifier
 {
     protected ?float $actualDeductions = null;
-
     protected ?float $calculatedTotal = null;
-
-    /**
-     * @var array<int, array<int, int>>
-     */
     protected array $applicableProductsByCouponId = [];
-
-    /**
-     * @var array<int, float>
-     */
     protected array $subTotalsByCouponId = [];
-
-    /**
-     * @var array<int, ?float>
-     */
     protected array $maximumDeductionCapsByCouponId = [];
+    protected array $discountedProductIds = [];
 
     private static $table_name = 'DiscountCouponModifier';
 
     private static array $db = [
-        'DebugString' => 'HTMLText',
+        'DebugString'       => 'HTMLText',
         'CouponCodeEntered' => 'Varchar(25)',
     ];
 
-    private static array $defaults = [
-        'Type' => 'Discount',
-    ];
+    private static array $defaults = ['Type' => 'Discount'];
 
     private static array $has_one = [
         'DiscountCouponOption' => DiscountCouponOption::class,
@@ -58,15 +44,12 @@ class DiscountCouponModifier extends OrderModifier
 
     private static array $many_many = [
         'OtherApplicableDiscountCouponOptions' => DiscountCouponOption::class,
-        'DiscountedProducts' => Product::class,
+        'DiscountedProducts'                   => Product::class,
     ];
 
     private static bool $include_modifiers_in_subtotal = false;
-
     private static string $exclude_buyable_method = 'ExcludeInDiscountCalculation';
-
     private static string $singular_name = 'Discount Coupon Entry';
-
     private static string $plural_name = 'Discount Coupon Entries';
 
     public function i18n_singular_name(): string
@@ -82,18 +65,14 @@ class DiscountCouponModifier extends OrderModifier
     public function getCMSFields(): FieldList
     {
         $fields = parent::getCMSFields();
-        $fields->removeByName('OrderCoupon');
-        $fields->removeByName('OtherApplicableDiscountCouponOptions');
+        $fields->removeByName(['OrderCoupon', 'OtherApplicableDiscountCouponOptions']);
 
         if ((bool) $this->config()->get('debug')) {
-            $fields->addFieldToTab(
-                'Root.Debug',
-                new ReadonlyField(
-                    'DebugStringShown',
-                    _t('DiscountCouponModifier.DEBUG_STRING', 'debug string'),
-                    $this->DebugString
-                )
-            );
+            $fields->addFieldToTab('Root.Debug', new ReadonlyField(
+                'DebugStringShown',
+                _t('DiscountCouponModifier.DEBUG_STRING', 'debug string'),
+                $this->DebugString
+            ));
         } else {
             $fields->removeByName('DebugString');
         }
@@ -103,7 +82,7 @@ class DiscountCouponModifier extends OrderModifier
 
     public function runUpdate($recalculate = false)
     {
-        if (! $this->IsRemoved()) {
+        if (!$this->IsRemoved()) {
             $this->checkField('OtherApplicableDiscountCouponOptions', $recalculate);
             $this->checkField('DiscountCouponOptionID', $recalculate);
             $this->checkField('CouponCodeEntered', $recalculate);
@@ -115,36 +94,22 @@ class DiscountCouponModifier extends OrderModifier
     public function ShowForm(): bool
     {
         $order = $this->getOrderCached();
-
         return $order !== null && (bool) $order->getTotalItems();
     }
 
-    /**
-     * @return DiscountCouponModifierForm
-     */
-    public function getModifierForm(?Controller $optionalController = null, ?Validator $optionalValidator = null)
+    public function getModifierForm(?Controller $optionalController = null, ?Validator $optionalValidator = null): DiscountCouponModifierForm
     {
         $fields = new FieldList(
             $this->headingField(),
             $this->descriptionField(),
-            new TextField(
-                'DiscountCouponCode',
-                _t('DiscountCouponModifier.COUPON', 'Coupon'),
-                $this->LiveCouponCodeEntered()
-            )
+            new TextField('DiscountCouponCode', _t('DiscountCouponModifier.COUPON', 'Coupon'), $this->LiveCouponCodeEntered())
         );
 
         $actions = new FieldList(
             new FormAction('submit', _t('DiscountCouponModifier.APPLY', 'Apply Coupon'))
         );
 
-        $form = new DiscountCouponModifierForm(
-            $optionalController,
-            'DiscountCouponModifier',
-            $fields,
-            $actions,
-            $optionalValidator
-        );
+        $form = new DiscountCouponModifierForm($optionalController, 'DiscountCouponModifier', $fields, $actions, $optionalValidator);
 
         $couponField = $fields->fieldByName('DiscountCouponCode');
         if ($couponField) {
@@ -154,61 +119,38 @@ class DiscountCouponModifier extends OrderModifier
         return $form;
     }
 
-    /**
-     * @return array{message:string,type:string}
-     */
+    /** @return array{message:string,type:string} */
     public function updateCouponCodeEntered(string $code): array
     {
         $code = trim($code);
         $this->CouponCodeEntered = $code;
 
-        /** @var ?DiscountCouponOption $coupon */
         $coupon = DiscountCouponOption::get()->filter(['Code' => $code])->first();
 
         if ($coupon !== null) {
             if ($coupon->IsValid() && $this->isValidAdditional($coupon)) {
                 $this->setCoupon($coupon);
-
-                return [
-                    'message' => _t('DiscountCouponModifier.APPLIED', 'Coupon applied'),
-                    'type' => 'good',
-                ];
+                return ['message' => _t('DiscountCouponModifier.APPLIED', 'Coupon applied'), 'type' => 'good'];
             }
 
             $this->DiscountCouponOptionID = 0;
             $this->write();
-
-            return [
-                'message' => _t('DiscountCouponModifier.NOT_VALID', 'Coupon is no longer available'),
-                'type' => 'bad',
-            ];
+            return ['message' => _t('DiscountCouponModifier.NOT_VALID', 'Coupon is no longer available'), 'type' => 'bad'];
         }
 
         if ($code === '') {
             $this->write();
-
-            return [
-                'message' => _t('DiscountCouponModifier.NOT_ENTERED', 'No coupon code was entered'),
-                'type' => 'bad',
-            ];
+            return ['message' => _t('DiscountCouponModifier.NOT_ENTERED', 'No coupon code was entered'), 'type' => 'bad'];
         }
 
         if ((int) $this->DiscountCouponOptionID > 0) {
             $this->DiscountCouponOptionID = 0;
             $this->write();
-
-            return [
-                'message' => _t('DiscountCouponModifier.REMOVED', 'Existing coupon removed'),
-                'type' => 'good',
-            ];
+            return ['message' => _t('DiscountCouponModifier.REMOVED', 'Existing coupon removed'), 'type' => 'good'];
         }
 
         $this->write();
-
-        return [
-            'message' => _t('DiscountCouponModifier.NOTFOUND', 'Coupon could not be found'),
-            'type' => 'bad',
-        ];
+        return ['message' => _t('DiscountCouponModifier.NOTFOUND', 'Coupon could not be found'), 'type' => 'bad'];
     }
 
     public function setCoupon(DiscountCouponOption $coupon): static
@@ -220,35 +162,27 @@ class DiscountCouponModifier extends OrderModifier
     {
         $this->DiscountCouponOptionID = $couponId;
         $this->write();
-
         return $this;
     }
 
     public function ShowInTable(): bool
     {
         $order = $this->getOrderCached();
-        if ($order) {
-            return ! $order->IsSubmitted();
-        }
-
-        return false;
+        return $order ? !$order->IsSubmitted() : false;
     }
 
     public function CanRemove(): bool
     {
         return false;
     }
-
     public function CartValue(): float
     {
         return $this->getCartValue();
     }
-
     public function getCartValue(): float
     {
         return (float) $this->TableValue;
     }
-
     public function IsDeductable(): bool
     {
         return true;
@@ -260,13 +194,11 @@ class DiscountCouponModifier extends OrderModifier
             return true;
         }
 
-        $mustShow = (
-            (string) $this->CouponCodeEntered !== ''
+        $mustShow = (string) $this->CouponCodeEntered !== ''
             || (int) $this->DiscountCouponOptionID > 0
-            || $this->OtherApplicableDiscountCouponOptions()->exists()
-        );
+            || $this->OtherApplicableDiscountCouponOptions()->exists();
 
-        return ! $mustShow;
+        return !$mustShow;
     }
 
     protected function LiveTableValue(): float
@@ -278,45 +210,30 @@ class DiscountCouponModifier extends OrderModifier
     {
         $exclusions = $this->extend('checkForExclusions', $coupon);
 
-        if (is_array($exclusions) && count($exclusions)) {
+        if (is_array($exclusions)) {
             foreach ($exclusions as $exclusion) {
-                if ($exclusion === true) {
-                    return false;
-                }
+                if ($exclusion === true) return false;
             }
         }
 
         return true;
     }
 
-    /**
-     * @return array<int, DiscountCouponOption>
-     */
+    /** @return array<int, DiscountCouponOption> */
     protected function myDiscountCouponOptions(): array
     {
         $array = [];
 
         foreach ($this->AllApplicableCoupons() as $id) {
-            if (! $id) {
-                continue;
-            }
+            if (!$id) continue;
 
-            /** @var ?DiscountCouponOption $coupon */
             $coupon = DiscountCouponOption::get()->byID((int) $id);
-            if (! $coupon) {
-                continue;
-            }
-
-            if (! $coupon->IsValid() || ! $this->isValidAdditional($coupon)) {
-                continue;
-            }
+            if (!$coupon || !$coupon->IsValid() || !$this->isValidAdditional($coupon)) continue;
 
             if ($coupon->ApplyPercentageToApplicableProducts) {
-                $targets = $this->applicableProductsArray($coupon);
-                if (count($targets) > 0) {
+                if (count($this->applicableProductsArray($coupon)) > 0) {
                     $array[] = $coupon;
                 }
-
                 continue;
             }
 
@@ -326,28 +243,16 @@ class DiscountCouponModifier extends OrderModifier
         return $array;
     }
 
-    /**
-     * @return array<int, int|string>
-     */
+    /** @return array<int, int|string> */
     protected function AllApplicableCoupons(): array
     {
-        return array_values(
-            array_unique(
-                array_merge(
-                    [(int) $this->LiveDiscountCouponOptionID()],
-                    $this->LiveOtherApplicableDiscountCouponOptions()
-                )
-            )
-        );
+        return array_values(array_unique(array_merge(
+            [(int) $this->LiveDiscountCouponOptionID()],
+            $this->LiveOtherApplicableDiscountCouponOptions()
+        )));
     }
 
-    /**
-     * Identifies exactly which products in the order are "targets" for the discount.
-     *
-     * Returns map: [OrderItemID => ProductID]
-     *
-     * @return array<int, int>
-     */
+    /** @return array<int, int> */
     protected function applicableProductsArray(DiscountCouponOption $coupon): array
     {
         $couponId = (int) $coupon->ID;
@@ -362,7 +267,6 @@ class DiscountCouponModifier extends OrderModifier
         if ($order) {
             $items = $order->Items();
             if ($items->exists()) {
-                /** @var array<int, int> $productIdsByItemId */
                 $productIdsByItemId = $order->ProductIds(true);
 
                 $explicitTargets = array_map(
@@ -375,18 +279,17 @@ class DiscountCouponModifier extends OrderModifier
                     $buyable = $item->getBuyableCached();
                     if ($buyable && $buyable->hasMethod('ConditionallyApplicableDiscountCoupons')) {
                         $coupons = $buyable->ConditionallyApplicableDiscountCoupons();
-                        if ($coupons && $coupons->exists() && $coupons->find('ID', $couponId)) {
+                        if ($coupons?->exists() && $coupons->find('ID', $couponId)) {
                             $conditionalTargetIds[] = (int) ($productIdsByItemId[(int) $item->ID] ?? 0);
                         }
                     }
                 }
 
-                $combinedTargetProducts = array_values(array_unique(array_merge($explicitTargets, $conditionalTargetIds)));
-                $combinedTargetProducts = array_values(array_filter($combinedTargetProducts));
+                $combinedTargets = array_values(array_filter(array_unique(array_merge($explicitTargets, $conditionalTargetIds))));
 
-                if (count($combinedTargetProducts) > 0) {
+                if (count($combinedTargets) > 0) {
                     foreach ($productIdsByItemId as $itemId => $productId) {
-                        if (in_array((int) $productId, $combinedTargetProducts, true)) {
+                        if (in_array((int) $productId, $combinedTargets, true)) {
                             $finalArray[(int) $itemId] = (int) $productId;
                         }
                     }
@@ -397,7 +300,6 @@ class DiscountCouponModifier extends OrderModifier
         }
 
         $this->applicableProductsByCouponId[$couponId] = $finalArray;
-
         return $finalArray;
     }
 
@@ -405,36 +307,24 @@ class DiscountCouponModifier extends OrderModifier
     {
         $code = trim((string) $this->LiveCouponCodeEntered());
         $coupons = $this->myDiscountCouponOptions();
-        $messages = [];
 
         if (count($coupons) > 0) {
-            foreach ($coupons as $coupon) {
-                $messages[] =
-                    _t('DiscountCouponModifier.COUPON', 'Coupon')
-                    . ' '
-                    . (string) $coupon->Title
-                    . ' '
-                    . _t('DiscountCouponModifier.APPLIED', 'applied.');
-            }
-
+            $messages = array_map(
+                fn($c) =>
+                _t('DiscountCouponModifier.COUPON', 'Coupon') . ' ' . $c->Title . ' ' . _t('DiscountCouponModifier.APPLIED', 'applied.'),
+                $coupons
+            );
             return implode('<br />', $messages);
         }
 
         if ($code !== '') {
-            return
-                _t('DiscountCouponModifier.COUPON', 'Coupon')
-                . ' \''
-                . $code
-                . '\' '
-                . _t('DiscountCouponModifier.COULDNOTBEAPPLIED', 'could not be applied.');
+            return _t('DiscountCouponModifier.COUPON', 'Coupon') . " '$code' " . _t('DiscountCouponModifier.COULDNOTBEAPPLIED', 'could not be applied.');
         }
 
         return _t('DiscountCouponModifier.NOCOUPONENTERED', 'No (valid) coupon entered');
     }
 
-    /**
-     * @return array<int, float>
-     */
+    /** @return array<int, float> */
     protected function LiveSubTotalAmountsInner(): array
     {
         if ($this->subTotalsByCouponId !== []) {
@@ -442,25 +332,19 @@ class DiscountCouponModifier extends OrderModifier
         }
 
         $order = $this->getOrderCached();
-        if (! $order) {
-            return [];
-        }
+        if (!$order) return [];
 
         $items = $order->Items();
-        $coupons = $this->myDiscountCouponOptions();
+        $function = (string) $this->config()->get('exclude_buyable_method');
 
-        foreach ($coupons as $coupon) {
-            $subTotal = 0.0;
-
+        foreach ($this->myDiscountCouponOptions() as $coupon) {
             if ($coupon->ApplyPercentageToApplicableProducts) {
                 $applicableItemIds = $this->applicableProductsArray($coupon);
-
-                if ($applicableItemIds !== [] && $items) {
-                    $subTotal = $this->subTotalForApplicableProductsWithRatio($coupon, $items, $applicableItemIds);
-                }
+                $subTotal = $applicableItemIds !== [] && $items
+                    ? $this->subTotalForApplicableProductsWithRatio($coupon, $items, $applicableItemIds)
+                    : 0.0;
             } else {
                 $subTotal = (float) $order->SubTotal();
-                $function = (string) $this->config()->get('exclude_buyable_method');
 
                 if ($items) {
                     foreach ($items as $item) {
@@ -490,34 +374,27 @@ class DiscountCouponModifier extends OrderModifier
 
         $this->calculatedTotal = 0.0;
         $this->actualDeductions = 0.0;
-
+        $this->discountedProductIds = [];
         $this->recordDebug('starting score: ' . $this->actualDeductions, true);
 
         $order = $this->getOrderCached();
-        if (! $order) {
-            return 0.0;
-        }
+        if (!$order) return 0.0;
 
-        $subTotals = $this->LiveSubTotalAmountsInner();
         $orderSubTotal = (float) $order->SubTotal();
 
-        foreach ($subTotals as $couponId => $subTotal) {
+        foreach ($this->LiveSubTotalAmountsInner() as $couponId => $subTotal) {
+            $coupon = DiscountCouponOption::get()->byID((int) $couponId);
+            if (!$coupon) continue;
+
             $perCouponDeductions = 0.0;
 
-            /** @var ?DiscountCouponOption $coupon */
-            $coupon = DiscountCouponOption::get()->byID((int) $couponId);
-            if (! $coupon) {
-                continue;
-            }
-
-            if (! $coupon->ApplyPercentageToApplicableProducts && $coupon->MinimumOrderSubTotalValue > 0 && (float) $orderSubTotal < (float) $coupon->MinimumOrderSubTotalValue) {
+            if (!$coupon->ApplyPercentageToApplicableProducts && $coupon->MinimumOrderSubTotalValue > 0 && $orderSubTotal < (float) $coupon->MinimumOrderSubTotalValue) {
                 $this->recordDebug('Order sub-total is too low to offer any discount');
             } else {
                 if ($coupon->DiscountAbsolute > 0) {
                     $applicableQty = $this->applicableQuantityForCoupon($coupon);
-
                     if ($applicableQty > 0) {
-                        $addedAbsolute = ((float) $coupon->DiscountAbsolute) * $applicableQty;
+                        $addedAbsolute = (float) $coupon->DiscountAbsolute * $applicableQty;
                         $perCouponDeductions += $addedAbsolute;
                         $this->recordDebug('using absolutes for coupon discount: ' . $addedAbsolute . ' (Qty: ' . $applicableQty . ')');
                     } else {
@@ -526,24 +403,24 @@ class DiscountCouponModifier extends OrderModifier
                 }
 
                 if ($coupon->DiscountPercentage > 0) {
-                    $addedPercentage = (((float) $coupon->DiscountPercentage) / 100) * (float) $subTotal;
+                    $addedPercentage = ((float) $coupon->DiscountPercentage / 100) * $subTotal;
                     $perCouponDeductions += $addedPercentage;
                     $this->recordDebug('using percentages for coupon discount: ' . $addedPercentage);
+                }
+
+                if ($perCouponDeductions > 0.0) {
+                    $this->collectDiscountedProductIds($coupon);
                 }
             }
 
             if ($coupon->MaximumDiscount > 0 && $perCouponDeductions > (float) $coupon->MaximumDiscount) {
-                $this->recordDebug(
-                    'actual deductions (' . $perCouponDeductions . ') are greater than maximum discount (' . $coupon->MaximumDiscount . ')'
-                );
+                $this->recordDebug('actual deductions (' . $perCouponDeductions . ') are greater than maximum discount (' . $coupon->MaximumDiscount . ')');
                 $perCouponDeductions = (float) $coupon->MaximumDiscount;
             }
 
             $ratioCap = $this->maximumDeductionCapForCoupon($coupon);
             if ($ratioCap !== null && $perCouponDeductions > $ratioCap) {
-                $this->recordDebug(
-                    'actual deductions (' . $perCouponDeductions . ') are greater than ratio-based cap (' . $ratioCap . ')'
-                );
+                $this->recordDebug('actual deductions (' . $perCouponDeductions . ') are greater than ratio-based cap (' . $ratioCap . ')');
                 $perCouponDeductions = $ratioCap;
             }
 
@@ -556,9 +433,9 @@ class DiscountCouponModifier extends OrderModifier
         }
 
         $this->recordDebug('final score: ' . $this->actualDeductions);
-
-        $this->actualDeductions = -1.0 * $this->actualDeductions;
+        $this->actualDeductions *= -1.0;
         $this->calculatedTotal = $this->actualDeductions;
+        $this->persistDiscountedProducts();
 
         return $this->calculatedTotal;
     }
@@ -567,51 +444,41 @@ class DiscountCouponModifier extends OrderModifier
     {
         return (string) $this->DebugString;
     }
-
     protected function LiveCouponCodeEntered(): string
     {
         return (string) $this->CouponCodeEntered;
     }
-
     protected function LiveDiscountCouponOptionID(): int
     {
         return (int) $this->DiscountCouponOptionID;
     }
+    protected function LiveType(): string
+    {
+        return 'Discount';
+    }
 
-    /**
-     * @return array<int, int>
-     */
+    /** @return array<int, int> */
     protected function LiveOtherApplicableDiscountCouponOptions(): array
     {
         $order = $this->getOrderCached();
         $newData = [];
 
-        if (! $order) {
-            return $newData;
-        }
+        if (!$order) return $newData;
 
         $items = $order->Items();
-        if (! $items->exists()) {
-            return $newData;
-        }
+        if (!$items->exists()) return $newData;
 
         $productsInOrder = $order->ProductIds();
 
         foreach ($items as $item) {
             $buyable = $item->getBuyableCached();
-            if (! $buyable || ! $buyable->hasMethod('ConditionallyApplicableDiscountCoupons')) {
-                continue;
-            }
+            if (!$buyable || !$buyable->hasMethod('ConditionallyApplicableDiscountCoupons')) continue;
 
             $coupons = $buyable->ConditionallyApplicableDiscountCoupons();
-            if (! $coupons || ! $coupons->exists()) {
-                continue;
-            }
+            if (!$coupons || !$coupons->exists()) continue;
 
             foreach ($coupons as $coupon) {
-                if ((int) $coupon->ID === (int) $this->DiscountCouponOptionID) {
-                    continue;
-                }
+                if ((int) $coupon->ID === (int) $this->DiscountCouponOptionID) continue;
 
                 $mustExists = $coupon->OtherProductInOrderProducts()->columnUnique();
                 if (count(array_intersect($mustExists, $productsInOrder)) > 0) {
@@ -621,38 +488,62 @@ class DiscountCouponModifier extends OrderModifier
         }
 
         $this->OtherApplicableDiscountCouponOptions()->setByIDList($newData);
-
         return $newData;
-    }
-
-    protected function LiveType(): string
-    {
-        return 'Discount';
     }
 
     protected function recordDebug(string $message, bool $reset = false): void
     {
-        if ((bool) $this->config()->get('debug')) {
-            if ($reset) {
-                $this->DebugString = '';
-            }
-
-            $this->DebugString .= '<hr />' . $message;
-
+        if (!(bool) $this->config()->get('debug')) {
+            $this->DebugString = null;
             return;
         }
 
-        $this->DebugString = null;
+        if ($reset) $this->DebugString = '';
+        $this->DebugString .= '<hr />' . $message;
+    }
+
+    protected function collectDiscountedProductIds(DiscountCouponOption $coupon): void
+    {
+        $order = $this->getOrderCached();
+        if (!$order) return;
+
+        $items = $order->Items();
+        if (!$items || !$items->exists()) return;
+
+        if ($coupon->ApplyPercentageToApplicableProducts) {
+            foreach ($this->applicableProductsArray($coupon) as $productId) {
+                if (($productId = (int) $productId) > 0) {
+                    $this->discountedProductIds[$productId] = $productId;
+                }
+            }
+            return;
+        }
+
+        $function = (string) $this->config()->get('exclude_buyable_method');
+        $productIdsByItemId = $order->ProductIds(true);
+
+        foreach ($items as $item) {
+            $buyable = $item->getBuyableCached();
+            if ($buyable && $buyable->hasMethod($function) && $buyable->{$function}($this)) continue;
+
+            $productId = (int) ($productIdsByItemId[(int) $item->ID] ?? 0);
+            if ($productId > 0) {
+                $this->discountedProductIds[$productId] = $productId;
+            }
+        }
+    }
+
+    protected function persistDiscountedProducts(): void
+    {
+        if ($this->isInDB()) {
+            $this->DiscountedProducts()->setByIDList($this->discountedProductIds);
+        }
     }
 
     /**
-     * Builds a list of applicable items and sorts by UNIT price DESC so that, when discount quantity is limited,
-     * we apply discount to the most expensive items first (max customer benefit).
-     *
      * @param iterable<mixed> $items
-     * @param array<int, int> $applicableItemIds Map of OrderItemID => ProductID
-     * @param array<int, int> $excludeProductIds ProductIDs that must NOT be discounted (e.g. prerequisites)
-     *
+     * @param array<int, int> $applicableItemIds
+     * @param array<int, int> $excludeProductIds
      * @return array<int, array{item:mixed,itemId:int,qty:int,lineTotal:float,unitPrice:float}>
      */
     protected function getApplicableItemsSortedByUnitPriceDesc(iterable $items, array $applicableItemIds, array $excludeProductIds): array
@@ -661,113 +552,63 @@ class DiscountCouponModifier extends OrderModifier
 
         foreach ($items as $item) {
             $itemId = (int) $item->ID;
-
-            if (! isset($applicableItemIds[$itemId])) {
-                continue;
-            }
+            if (!isset($applicableItemIds[$itemId])) continue;
 
             $productId = (int) ($applicableItemIds[$itemId] ?? 0);
-            if ($productId > 0 && in_array($productId, $excludeProductIds, true)) {
-                continue;
-            }
+            if ($productId > 0 && in_array($productId, $excludeProductIds, true)) continue;
 
             $qty = max(0, (int) $item->Quantity);
-            if ($qty <= 0) {
-                continue;
-            }
+            if ($qty <= 0) continue;
 
             $lineTotal = (float) $item->Total();
-            $unitPrice = $lineTotal / $qty;
-
             $rows[] = [
-                'item' => $item,
-                'itemId' => $itemId,
-                'qty' => $qty,
+                'item'      => $item,
+                'itemId'    => $itemId,
+                'qty'       => $qty,
                 'lineTotal' => $lineTotal,
-                'unitPrice' => $unitPrice,
+                'unitPrice' => $lineTotal / $qty,
             ];
         }
 
-        usort(
-            $rows,
-            static function (array $a, array $b): int {
-                return $b['unitPrice'] <=> $a['unitPrice'];
-            }
-        );
-
+        usort($rows, static fn($a, $b) => $b['unitPrice'] <=> $a['unitPrice']);
         return $rows;
     }
 
-    /**
-     * Calculates the total quantity of applicable products, respecting combination ratios.
-     * If discount quantity is limited, it allocates discounted units to the most expensive eligible units first.
-     */
     protected function applicableQuantityForCoupon(DiscountCouponOption $coupon): int
     {
         $order = $this->getOrderCached();
-        if (! $order) {
-            return 0;
-        }
+        if (!$order) return 0;
 
         $items = $order->Items();
-        if (! $items || ! $items->exists()) {
-            return 0;
-        }
+        if (!$items || !$items->exists()) return 0;
 
         $applicableItemIds = $this->applicableProductsArray($coupon);
-        if ($applicableItemIds === []) {
-            return 0;
-        }
+        if ($applicableItemIds === []) return 0;
 
         $ratio = (int) $coupon->ProductCombinationRatio;
-        $mustHaveProductIds = array_map(
-            static fn($id): int => (int) $id,
-            $coupon->OtherProductInOrderProducts()->columnUnique()
-        );
+        $mustHaveProductIds = array_map(static fn($id): int => (int) $id, $coupon->OtherProductInOrderProducts()->columnUnique());
+        $excludeProductIds = count($coupon->Products()->columnUnique()) === 0 ? $mustHaveProductIds : [];
 
-        $excludePrerequisites = count($coupon->Products()->columnUnique()) === 0;
-        $excludeProductIds = $excludePrerequisites ? $mustHaveProductIds : [];
-
-        // Unlimited or no prereq => all eligible quantities
         if ($ratio <= 0 || $mustHaveProductIds === []) {
             $qty = 0;
-
             foreach ($items as $item) {
                 $itemId = (int) $item->ID;
-                if (! isset($applicableItemIds[$itemId])) {
-                    continue;
-                }
-
+                if (!isset($applicableItemIds[$itemId])) continue;
                 $productId = (int) ($applicableItemIds[$itemId] ?? 0);
-                if ($productId > 0 && in_array($productId, $excludeProductIds, true)) {
-                    continue;
-                }
-
+                if ($productId > 0 && in_array($productId, $excludeProductIds, true)) continue;
                 $qty += max(0, (int) $item->Quantity);
             }
-
             return $qty;
         }
 
-        /** @var array<int, int> $productIdsByItemId */
         $productIdsByItemId = $order->ProductIds(true);
+        $remainingDiscountedQty = $this->quantityForProductIdsInItems($items, $mustHaveProductIds, $productIdsByItemId) * $ratio;
 
-        $requiredProductQty = $this->quantityForProductIdsInItems($items, $mustHaveProductIds, $productIdsByItemId);
-        $remainingDiscountedQty = $requiredProductQty * $ratio;
-
-        if ($remainingDiscountedQty <= 0) {
-            return 0;
-        }
-
-        $eligibleRows = $this->getApplicableItemsSortedByUnitPriceDesc($items, $applicableItemIds, $excludeProductIds);
+        if ($remainingDiscountedQty <= 0) return 0;
 
         $discountedQty = 0;
-
-        foreach ($eligibleRows as $row) {
-            if ($remainingDiscountedQty <= 0) {
-                break;
-            }
-
+        foreach ($this->getApplicableItemsSortedByUnitPriceDesc($items, $applicableItemIds, $excludeProductIds) as $row) {
+            if ($remainingDiscountedQty <= 0) break;
             $qtyToDiscount = min((int) $row['qty'], $remainingDiscountedQty);
             $discountedQty += $qtyToDiscount;
             $remainingDiscountedQty -= $qtyToDiscount;
@@ -777,77 +618,42 @@ class DiscountCouponModifier extends OrderModifier
     }
 
     /**
-     * Subtotal for percentage discount: if discount quantity is limited, we discount the most expensive eligible units first.
-     *
      * @param iterable<mixed> $items
-     * @param array<int, int> $applicableItemIds Map of OrderItemID => ProductID
+     * @param array<int, int> $applicableItemIds
      */
     protected function subTotalForApplicableProductsWithRatio(DiscountCouponOption $coupon, iterable $items, array $applicableItemIds): float
     {
-        if ($applicableItemIds === []) {
-            return 0.0;
-        }
+        if ($applicableItemIds === []) return 0.0;
 
         $ratio = (int) $coupon->ProductCombinationRatio;
-        $mustHaveProductIds = array_map(
-            static fn($id): int => (int) $id,
-            $coupon->OtherProductInOrderProducts()->columnUnique()
-        );
+        $mustHaveProductIds = array_map(static fn($id): int => (int) $id, $coupon->OtherProductInOrderProducts()->columnUnique());
+        $excludeProductIds = count($coupon->Products()->columnUnique()) === 0 ? $mustHaveProductIds : [];
 
-        $excludePrerequisites = count($coupon->Products()->columnUnique()) === 0;
-        $excludeProductIds = $excludePrerequisites ? $mustHaveProductIds : [];
-
-        // Unlimited or no prereq => sum all eligible totals
         if ($ratio <= 0 || $mustHaveProductIds === []) {
             $subTotal = 0.0;
-
             foreach ($items as $item) {
                 $itemId = (int) $item->ID;
-                if (! isset($applicableItemIds[$itemId])) {
-                    continue;
-                }
-
+                if (!isset($applicableItemIds[$itemId])) continue;
                 $productId = (int) ($applicableItemIds[$itemId] ?? 0);
-                if ($productId > 0 && in_array($productId, $excludeProductIds, true)) {
-                    continue;
-                }
-
+                if ($productId > 0 && in_array($productId, $excludeProductIds, true)) continue;
                 $subTotal += (float) $item->TotalForDiscount();
             }
-
             return max(0.0, $subTotal);
         }
 
         $order = $this->getOrderCached();
-        if (! $order) {
-            return 0.0;
-        }
+        if (!$order) return 0.0;
 
-        /** @var array<int, int> $productIdsByItemId */
         $productIdsByItemId = $order->ProductIds(true);
+        $remainingDiscountedQty = $this->quantityForProductIdsInItems($items, $mustHaveProductIds, $productIdsByItemId) * $ratio;
 
-        $requiredProductQty = $this->quantityForProductIdsInItems($items, $mustHaveProductIds, $productIdsByItemId);
-        $remainingDiscountedQty = $requiredProductQty * $ratio;
-
-        if ($remainingDiscountedQty <= 0) {
-            return 0.0;
-        }
-
-        $eligibleRows = $this->getApplicableItemsSortedByUnitPriceDesc($items, $applicableItemIds, $excludeProductIds);
+        if ($remainingDiscountedQty <= 0) return 0.0;
 
         $subTotal = 0.0;
-
-        foreach ($eligibleRows as $row) {
-            if ($remainingDiscountedQty <= 0) {
-                break;
-            }
-
-            $qty = (int) $row['qty'];
-            $lineTotal = (float) $row['lineTotal'];
-
-            $qtyToDiscount = min($qty, $remainingDiscountedQty);
-
-            $subTotal += $lineTotal * ($qtyToDiscount / $qty);
+        foreach ($this->getApplicableItemsSortedByUnitPriceDesc($items, $applicableItemIds, $excludeProductIds) as $row) {
+            if ($remainingDiscountedQty <= 0) break;
+            $qtyToDiscount = min((int) $row['qty'], $remainingDiscountedQty);
+            $subTotal += (float) $row['lineTotal'] * ($qtyToDiscount / (int) $row['qty']);
             $remainingDiscountedQty -= $qtyToDiscount;
         }
 
@@ -865,9 +671,7 @@ class DiscountCouponModifier extends OrderModifier
         $productIdsInt = array_map(static fn($id): int => (int) $id, $productIds);
 
         foreach ($items as $item) {
-            $itemId = (int) $item->ID;
-            $productId = (int) ($productIdsByItemId[$itemId] ?? 0);
-
+            $productId = (int) ($productIdsByItemId[(int) $item->ID] ?? 0);
             if ($productId > 0 && in_array($productId, $productIdsInt, true)) {
                 $totalQty += max(0, (int) $item->Quantity);
             }
@@ -885,37 +689,24 @@ class DiscountCouponModifier extends OrderModifier
         }
 
         $ratio = (int) $coupon->ProductCombinationRatio;
-        if ($ratio <= 0) {
-            $this->maximumDeductionCapsByCouponId[$couponId] = null;
-
-            return null;
-        }
-
         $mustHaveProductIds = $coupon->OtherProductInOrderProducts()->columnUnique();
-        if (count($mustHaveProductIds) === 0) {
-            $this->maximumDeductionCapsByCouponId[$couponId] = null;
 
-            return null;
+        if ($ratio <= 0 || count($mustHaveProductIds) === 0) {
+            return $this->maximumDeductionCapsByCouponId[$couponId] = null;
         }
 
         $order = $this->getOrderCached();
-        if (! $order) {
-            return 0.0;
-        }
+        if (!$order) return 0.0;
 
         $items = $order->Items();
-        if (! $items || ! $items->exists()) {
-            return 0.0;
-        }
+        if (!$items || !$items->exists()) return 0.0;
 
         $applicableItemIds = $this->applicableProductsArray($coupon);
-        if ($applicableItemIds === []) {
-            return 0.0;
-        }
+        if ($applicableItemIds === []) return 0.0;
 
-        $cap = $this->subTotalForApplicableProductsWithRatio($coupon, $items, $applicableItemIds);
-        $this->maximumDeductionCapsByCouponId[$couponId] = max(0.0, $cap);
-
-        return $this->maximumDeductionCapsByCouponId[$couponId];
+        return $this->maximumDeductionCapsByCouponId[$couponId] = max(
+            0.0,
+            $this->subTotalForApplicableProductsWithRatio($coupon, $items, $applicableItemIds)
+        );
     }
 }

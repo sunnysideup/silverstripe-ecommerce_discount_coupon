@@ -9,6 +9,7 @@ use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\HeaderField;
 use SilverStripe\Forms\ReadonlyField;
 use SilverStripe\Forms\Tab;
+use SilverStripe\Forms\TextField;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Security\Permission;
 use Sunnysideup\CmsEditLinkField\Api\CMSEditLinkAPI;
@@ -75,6 +76,8 @@ class DiscountCouponOption extends DataObject
         'DiscountAbsolute' => 'Currency',
         'DiscountPrice' => 'Currency',
         'DiscountPercentage' => 'Decimal(4,2)',
+        'ComboDiscountedProductDescription' => 'Varchar(255)',
+        'ComboMustHaveProductDescription' => 'Varchar(255)',
     ];
 
     private static array $many_many = [
@@ -514,6 +517,25 @@ class DiscountCouponOption extends DataObject
                 $fields->removeByName('CustomProductListsMustAlsoBePresentIn');
             }
             if ($this->RequiresProductCombinationInOrder) {
+                $fields->addFieldsToTab(
+                    'Root.DiscountedProducts',
+                    [
+                        TextField::create(
+                            'ComboDiscountedProductDescription',
+                            _t('DiscountCouponOption.COMBO_DISCOUNTED_PRODUCT_DESCRIPTION', 'Description of discounted product for combination.'),
+                        ),
+                    ],
+                    'Products'
+                );
+                $fields->addFieldsToTab(
+                    'Root.OrderMustAlsoHave',
+                    [
+                        TextField::create(
+                            'ComboMustHaveProductDescription',
+                            _t('DiscountCouponOption.COMBO_MUST_HAVE_PRODUCT_DESCRIPTION', 'Description of must-have product for combination.'),
+                        ),
+                    ],
+                );
                 $fields->addFieldsToTab('Root.OrderMustAlsoHave', [
                     $fields->dataFieldByName('RequiresProductCombinationInOrder'),
                     new DropdownField(
