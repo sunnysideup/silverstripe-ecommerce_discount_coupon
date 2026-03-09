@@ -74,46 +74,6 @@ class DiscountCouponProductDataExtension extends DataExtension
         return !empty($prices) ? (float) $prices[0]['Price'] : null;
     }
 
-    public function applicableCouponsAndPrice(?float $price): ?array
-    {
-        $owner = $this->getOwner();
-        $id = (int) $owner->ID;
-        if ($id <= 0) return null;
-
-        if (!array_key_exists($id, self::$couponPriceArrayCache)) {
-            self::$couponPriceArrayCache[$id] = null;
-            $effectivePrice = $price ?? (float) $owner->Price;
-            $coupons = $owner->DirectlyApplicableDiscountCoupons();
-
-            if ($coupons?->exists()) {
-                $minAmount = (float) $owner->config()->get('min_discount_amount');
-                $result = [];
-
-                foreach ($coupons as $coupon) {
-                    if (!$coupon->IsValid()) continue;
-
-                    $candidates = array_filter([
-                        $effectivePrice - ($effectivePrice * ((float) $coupon->DiscountPercentage / 100)),
-                        $effectivePrice - (float) $coupon->DiscountAbsolute,
-                        (float) $coupon->DiscountPrice,
-                    ], fn(float $v) => $v > $minAmount);
-
-                    $best = !empty($candidates) ? min($candidates) : null;
-
-                    if ($best !== null && $best < $effectivePrice && $best > 0) {
-                        $result[] = ['Price' => $best, 'Coupon' => $coupon];
-                    }
-                }
-
-                if (!empty($result)) {
-                    usort($result, fn($a, $b) => $a['Price'] <=> $b['Price']);
-                    self::$couponPriceArrayCache[$id] = $result;
-                }
-            }
-        }
-
-        return self::$couponPriceArrayCache[$id];
-    }
 
 
     public function DiscountCouponAmount(): DBMoney
@@ -155,17 +115,31 @@ class DiscountCouponProductDataExtension extends DataExtension
         return self::$discountAvailableUntilCache[$id];
     }
 
-    public function ComboCoupons(): ?array
+    /**
+     * all (potentiallly) applicable coupons - including those that require a combination of products
+     *
+     * @return DataList
+     */
+    public function CurrentApplicableDiscountCoupons(): DataList
     {
-        return $this->cachedCouponList('couponCombos', 'ComboApplicableDiscountCoupons');
+        return $this->filteredCoupons('ApplicableDiscountCoupons');
     }
 
-    public function ComboCouponsInverse(?float $price): ?array
+    /**
+     * All coupons that require a combo with another product
+     *
+     * @return DataList|null
+     */
+    public function ComboCoupons(): ?DataList
     {
-        return $this->cachedCouponList('couponCombosMustHave', 'ComboApplicableDiscountCouponsInverse');
+        return $this->cachedCouponList('couponCombos', 'comboApplicableDiscountCoupons');
     }
 
 
+    public function ComboCouponsInverse(): ?DataList
+    {
+        return $this->cachedCouponList('couponCombosMustHave', 'comboApplicableDiscountCouponsInverse');
+    }
 
 
     public function DirectlyApplicableDiscountCoupons(): DataList
@@ -173,23 +147,17 @@ class DiscountCouponProductDataExtension extends DataExtension
         return $this->CurrentApplicableDiscountCoupons()->filter(['RequiresProductCombinationInOrder' => 0]);
     }
 
-    protected function ComboApplicableDiscountCoupons(): DataList
+    protected function comboApplicableDiscountCoupons(): DataList
     {
         return $this->CurrentApplicableDiscountCoupons()->filter(['RequiresProductCombinationInOrder' => 1]);
     }
 
 
-    protected function ComboApplicableDiscountCouponsInverse(): DataList
+    protected function comboApplicableDiscountCouponsInverse(): DataList
     {
         return $this->filteredCoupons('MustHavesCoupons');
     }
 
-
-
-    protected function CurrentApplicableDiscountCoupons(): DataList
-    {
-        return $this->filteredCoupons('ApplicableDiscountCoupons');
-    }
     protected function filteredCoupons(string $relation): DataList
     {
         $date = date('Y-m-d');
@@ -199,22 +167,58 @@ class DiscountCouponProductDataExtension extends DataExtension
             'ApplyEvenWithoutCode' => 1,
         ]);
     }
-    private function cachedCouponList(string $cacheKey, string $method): ?array
+    private function cachedCouponList(string $cacheKey, string $method): ?DataList
     {
         $id = (int) $this->getOwner()->ID;
         if ($id <= 0) return null;
 
         $cache = &self::$$cacheKey;
         if (!array_key_exists($id, $cache)) {
-            $cache[$id] = null;
-            $coupons = $this->getOwner()->{$method}();
+            $cache[$id] = $this->{$method}();
+        }
+
+        return $cache[$id];
+    }
+
+
+    protected function applicableCouponsAndPrice(?float $price): ?array
+    {
+        $owner = $this->getOwner();
+        $id = (int) $owner->ID;
+        if ($id <= 0) return null;
+
+        if (!array_key_exists($id, self::$couponPriceArrayCache)) {
+            self::$couponPriceArrayCache[$id] = null;
+            $effectivePrice = $price ?? (float) $owner->Price;
+            $coupons = $owner->DirectlyApplicableDiscountCoupons();
+
             if ($coupons?->exists()) {
+                $minAmount = (float) $owner->config()->get('min_discount_amount');
+                $result = [];
+
                 foreach ($coupons as $coupon) {
-                    $cache[$id][] = $coupon;
+                    if (!$coupon->IsValid()) continue;
+
+                    $candidates = array_filter([
+                        $effectivePrice - ($effectivePrice * ((float) $coupon->DiscountPercentage / 100)),
+                        $effectivePrice - (float) $coupon->DiscountAbsolute,
+                        (float) $coupon->DiscountPrice,
+                    ], fn(float $v) => $v > $minAmount);
+
+                    $best = !empty($candidates) ? min($candidates) : null;
+
+                    if ($best !== null && $best < $effectivePrice && $best > 0) {
+                        $result[] = ['Price' => $best, 'Coupon' => $coupon];
+                    }
+                }
+
+                if (!empty($result)) {
+                    usort($result, fn($a, $b) => $a['Price'] <=> $b['Price']);
+                    self::$couponPriceArrayCache[$id] = $result;
                 }
             }
         }
 
-        return $cache[$id];
+        return self::$couponPriceArrayCache[$id];
     }
 }
