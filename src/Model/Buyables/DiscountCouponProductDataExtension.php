@@ -208,6 +208,15 @@ class DiscountCouponProductDataExtension extends DataExtension
                     $best = !empty($candidates) ? min($candidates) : null;
 
                     if ($best !== null && $best < $effectivePrice && $best > 0) {
+                        // Enforce MaximumDiscount: the discount taken cannot exceed the cap
+                        $maxDiscount = (float) $coupon->MaximumDiscount;
+                        if ($maxDiscount > 0) {
+                            $discount = $effectivePrice - $best;
+                            if ($discount > $maxDiscount) {
+                                $best = $effectivePrice - $maxDiscount;
+                            }
+                        }
+
                         $result[] = ['Price' => $best, 'Coupon' => $coupon];
                     }
                 }

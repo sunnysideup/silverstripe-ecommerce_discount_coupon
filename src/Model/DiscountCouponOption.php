@@ -147,7 +147,7 @@ class DiscountCouponOption extends DataObject
         'StartDate' => 'Start Date',
         'EndDate' => 'Last Day',
         'Title' => 'Name',
-        'MaximumDiscount' => 'Maximum deduction',
+        'MaximumDiscount' => 'Maximum deduction - per product (i.e. if you buy four products, you can have four times the minimum discount)',
         'DiscountAbsolute' => 'Absolute Discount',
         'DiscountPercentage' => 'Percentage Discount',
         'ApplyPercentageToApplicableProducts' => 'Applicable products only',
