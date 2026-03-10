@@ -571,10 +571,6 @@ class DiscountCouponModifier extends OrderModifier
                     $perCouponDeductions += $addedPercentage;
                     $this->recordDebug('using percentages for coupon discount: ' . $addedPercentage);
                 }
-
-                if ($perCouponDeductions > 0.0) {
-                    $this->collectDiscountedProductIds($coupon);
-                }
             }
 
             if ($coupon->MaximumDiscount > 0 && $perCouponDeductions > (float) $coupon->MaximumDiscount) {
@@ -586,6 +582,12 @@ class DiscountCouponModifier extends OrderModifier
             if ($ratioCap !== null && $perCouponDeductions > $ratioCap) {
                 $this->recordDebug('actual deductions (' . $perCouponDeductions . ') are greater than ratio-based cap (' . $ratioCap . ')');
                 $perCouponDeductions = $ratioCap;
+            }
+
+            // Only record products as discounted after all caps have been applied,
+            // so DiscountedProducts reflects what was actually discounted.
+            if ($perCouponDeductions > 0.0) {
+                $this->collectDiscountedProductIds($coupon);
             }
 
             $this->actualDeductions += $perCouponDeductions;
