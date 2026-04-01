@@ -129,14 +129,14 @@ class DiscountCouponOption extends DataObject
     ];
 
     private static array $cascade_deletes = [
-        'Products',
-        'ProductGroups',
-        'CustomProductLists',
-        'ProductGroupsMustAlsoBePresentIn',
-        'CustomProductListsMustAlsoBePresentIn',
-        'OtherProductInOrderProducts',
-        'OtherProductInOrderProductGroups',
-        'OtherProductInOrderCustomProductLists',
+        // 'Products', => we want to keep the products, just remove the relation.
+        // 'ProductGroups', => we want to keep the products, just remove the relation.
+        // 'CustomProductLists', => we want to keep the products, just remove the relation.
+        // 'ProductGroupsMustAlsoBePresentIn', => we want to keep the products, just remove the relation.
+        // 'CustomProductListsMustAlsoBePresentIn', => we want to keep the products, just remove the relation.
+        // 'OtherProductInOrderProducts', => we want to keep the products, just remove the relation.
+        // 'OtherProductInOrderProductGroups', => we want to keep the products, just remove the relation.
+        // 'OtherProductInOrderCustomProductLists', => we want to keep the products, just remove the relation.
     ];
 
 
