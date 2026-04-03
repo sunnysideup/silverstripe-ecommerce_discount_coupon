@@ -774,7 +774,7 @@ class DiscountCouponOption extends DataObject
                 $mustAlsoBePresentInProductsArray = array_unique($mustAlsoBePresentInProductsArray);
                 $productsArray = array_intersect($mustAlsoBePresentInProductsArray, $productsArray);
                 if (empty($productsArray)) {
-                    $productsArray = [-1 => 1];
+                    $productsArray = [-1 => -1];
                 }
             }
 
