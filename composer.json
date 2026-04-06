@@ -1,41 +1,41 @@
 {
-    "name": "sunnysideup/ecommerce_discount_coupon",
-    "type": "silverstripe-vendormodule",
-    "description": "adds a discount coupon functionality to your Silverstripe e-commerce application ",
-    "keywords": [
-        "Silverstripe-CMS",
-        "CMS",
-        "Silverstripe",
-        "ecommerce",
-        "e-commerce",
-        "shop",
-        "discount coupon",
-        "discount",
-        "coupon"
-    ],
-    "license": "BSD-3-Clause",
-    "authors": [
-        {
-            "name": "Nicolaas Francken",
-            "email": "modules@sunnysideup.co.nz",
-            "role": "lead developer"
-        }
-    ],
-    "require": {
-        "sunnysideup/ecommerce": "*",
-        "silverstripe/recipe-cms": "^4.0 || ^5.0"
-    },
-    "extra": {
-        "expose": [
-            "client/javascript",
-            "client/images",
-            "client/css"
-        ]
-    },
-    "autoload": {
-        "psr-4": {
-            "Sunnysideup\\EcommerceDiscountCoupon\\": "src/"
-        }
-    },
-    "minimum-stability": "dev"
+  "name": "sunnysideup/ecommerce_discount_coupon",
+  "type": "silverstripe-vendormodule",
+  "description": "adds a discount coupon functionality to your Silverstripe e-commerce application ",
+  "keywords": [
+    "Silverstripe-CMS",
+    "CMS",
+    "Silverstripe",
+    "ecommerce",
+    "e-commerce",
+    "shop",
+    "discount coupon",
+    "discount",
+    "coupon"
+  ],
+  "license": "BSD-3-Clause",
+  "authors": [
+    {
+      "name": "Nicolaas Francken",
+      "email": "modules@sunnysideup.co.nz",
+      "role": "lead developer"
+    }
+  ],
+  "require": {
+    "sunnysideup/ecommerce": "5.x-dev",
+    "silverstripe/recipe-cms": "^4.0 || ^5.0"
+  },
+  "extra": {
+    "expose": [
+      "client/javascript",
+      "client/images",
+      "client/css"
+    ]
+  },
+  "autoload": {
+    "psr-4": {
+      "Sunnysideup\\EcommerceDiscountCoupon\\": "src/"
+    }
+  },
+  "minimum-stability": "dev"
 }
