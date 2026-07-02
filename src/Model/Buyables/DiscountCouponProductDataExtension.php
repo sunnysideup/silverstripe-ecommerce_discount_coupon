@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Sunnysideup\EcommerceDiscountCoupon\Model\Buyables;
 
+use SilverStripe\Core\Extension;
+use Sunnysideup\Ecommerce\Pages\Product;
+use SilverStripe\ORM\ManyManyList;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\GridField\GridFieldConfig_RelationEditor;
-use SilverStripe\ORM\DataExtension;
 use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\FieldType\DBDate;
 use SilverStripe\ORM\FieldType\DBMoney;
@@ -15,19 +17,25 @@ use Sunnysideup\Ecommerce\Model\Money\EcommerceCurrency;
 use Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption;
 
 /**
- * @property \Sunnysideup\Ecommerce\Pages\Product|DiscountCouponProductDataExtension $owner
- * @method \SilverStripe\ORM\ManyManyList|\Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption[] ApplicableDiscountCoupons()
+ * @property Product|DiscountCouponProductDataExtension $owner
+ * @method ManyManyList|DiscountCouponOption[] ApplicableDiscountCoupons()
  */
-class DiscountCouponProductDataExtension extends DataExtension
+class DiscountCouponProductDataExtension extends Extension
 {
     private static float $min_discount_amount = 0.1;
+
     private static string $default_end_date_description = 'now +7 days';
 
     protected static array $buyableToBeExcludedFromDiscounts = [];
+
     protected static array $discountCouponAmount = [];
+
     protected static array $couponPriceArrayCache = [];
+
     protected static array $couponCombos = [];
+
     protected static array $couponCombosMustHave = [];
+
     protected static array $discountAvailableUntilCache = [];
 
     private static $belongs_many_many = [
@@ -57,6 +65,7 @@ class DiscountCouponProductDataExtension extends DataExtension
         if ($id > 0) {
             self::$buyableToBeExcludedFromDiscounts[$id] = $id;
         }
+
         return $this;
     }
 
@@ -70,8 +79,9 @@ class DiscountCouponProductDataExtension extends DataExtension
         if (!$this->getCanBeDiscounted()) {
             return null;
         }
+
         $prices = $this->applicableCouponsAndPrice($price ?? (float) $this->getOwner()->Price);
-        return !empty($prices) ? (float) $prices[0]['Price'] : null;
+        return $prices === null || $prices === [] ? null : (float) $prices[0]['Price'];
     }
 
 
@@ -94,7 +104,9 @@ class DiscountCouponProductDataExtension extends DataExtension
     {
         $owner = $this->getOwner();
         $id = (int) $owner->ID;
-        if ($id <= 0) return null;
+        if ($id <= 0) {
+            return null;
+        }
 
         if (!array_key_exists($id, self::$discountAvailableUntilCache)) {
             self::$discountAvailableUntilCache[$id] = null;
@@ -167,10 +179,13 @@ class DiscountCouponProductDataExtension extends DataExtension
             'ApplyEvenWithoutCode' => 1,
         ]);
     }
+
     private function cachedCouponList(string $cacheKey, string $method): ?DataList
     {
         $id = (int) $this->getOwner()->ID;
-        if ($id <= 0) return null;
+        if ($id <= 0) {
+            return null;
+        }
 
         $cache = &self::$$cacheKey;
         if (!array_key_exists($id, $cache)) {
@@ -185,7 +200,9 @@ class DiscountCouponProductDataExtension extends DataExtension
     {
         $owner = $this->getOwner();
         $id = (int) $owner->ID;
-        if ($id <= 0) return null;
+        if ($id <= 0) {
+            return null;
+        }
 
         if (!array_key_exists($id, self::$couponPriceArrayCache)) {
             self::$couponPriceArrayCache[$id] = null;
@@ -197,7 +214,9 @@ class DiscountCouponProductDataExtension extends DataExtension
                 $result = [];
 
                 foreach ($coupons as $coupon) {
-                    if (!$coupon->IsValid()) continue;
+                    if (!$coupon->IsValid()) {
+                        continue;
+                    }
 
                     $candidates = array_filter([
                         $effectivePrice - ($effectivePrice * ((float) $coupon->DiscountPercentage / 100)),
@@ -205,7 +224,7 @@ class DiscountCouponProductDataExtension extends DataExtension
                         (float) $coupon->DiscountPrice,
                     ], fn(float $v) => $v > $minAmount);
 
-                    $best = !empty($candidates) ? min($candidates) : null;
+                    $best = $candidates === [] ? null : min($candidates);
 
                     if ($best !== null && $best < $effectivePrice && $best > 0) {
                         // Enforce MaximumDiscount: the discount taken cannot exceed the cap
@@ -221,7 +240,7 @@ class DiscountCouponProductDataExtension extends DataExtension
                     }
                 }
 
-                if (!empty($result)) {
+                if ($result !== []) {
                     usort($result, fn($a, $b) => $a['Price'] <=> $b['Price']);
                     self::$couponPriceArrayCache[$id] = $result;
                 }
