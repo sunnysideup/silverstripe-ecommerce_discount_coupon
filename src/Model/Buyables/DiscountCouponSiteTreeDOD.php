@@ -4,21 +4,19 @@ declare(strict_types=1);
 
 namespace Sunnysideup\EcommerceDiscountCoupon\Model\Buyables;
 
+use SilverStripe\Model\List\ArrayList;
+use SilverStripe\Core\Extension;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Forms\FieldList;
-use SilverStripe\ORM\ArrayList;
-use SilverStripe\ORM\DataExtension;
-use Sunnysideup\Ecommerce\Pages\Product;
-use Sunnysideup\Ecommerce\Pages\ProductGroup;
 use Sunnysideup\EcommerceDiscountCoupon\Form\DiscountCouponSiteTreeDODField;
 
 /**
  * Class \Sunnysideup\EcommerceDiscountCoupon\Model\Buyables\DiscountCouponSiteTreeDOD
  *
- * @property \Sunnysideup\EcommerceDiscountCoupon\Model\Buyables\DiscountCouponSiteTreeDOD $owner
+ * @property DiscountCouponSiteTreeDOD $owner
  * @property string $PageIDs
  */
-class DiscountCouponSiteTreeDOD extends DataExtension
+class DiscountCouponSiteTreeDOD extends Extension
 {
     private static $db = [
         'PageIDs' => 'Text',
@@ -33,13 +31,7 @@ class DiscountCouponSiteTreeDOD extends DataExtension
             'DiscountCouponSiteTreeDOD.SELECT_PRODUCTS_AND_SERVICES',
             'Select Product Categories and/or Products (if nothing is selected, the discount coupon will apply to all buyables).'
         );
-        $field = new DiscountCouponSiteTreeDODField(
-            $name = 'PageIDs',
-            $title = $label,
-            $sourceObject = SiteTree::class,
-            $keyField = 'ID',
-            $labelField = 'MenuTitle'
-        );
+        $field = DiscountCouponSiteTreeDODField::create($name = 'PageIDs', $title = $label, $sourceObject = SiteTree::class, $keyField = 'ID', $labelField = 'MenuTitle');
         // $filter = function ($o) use ($obj)  {
         //     return (($obj instanceof ProductGroup || $obj instanceof Product) && ($obj->ParentID != ' . $this->getOwner()->ID . '));
         // };
@@ -64,6 +56,7 @@ class DiscountCouponSiteTreeDOD extends DataExtension
                 if (in_array($page->ID, $allowedPageIDs, true)) {
                     return true;
                 }
+
                 $alreadyCheckedPageIDs[] = $page->ID;
                 $checkPages->remove($page);
 
@@ -73,6 +66,7 @@ class DiscountCouponSiteTreeDOD extends DataExtension
                 } else {
                     $parents = ArrayList::create();
                 }
+
                 $parent = $page->hasMethod('ParentGroup') ? $page->ParentGroup() : $page->getParent();
                 if ($parent && $parent->exists()) {
                     $parents->unshift($parent);
@@ -83,6 +77,7 @@ class DiscountCouponSiteTreeDOD extends DataExtension
                         $checkPages->push($parent);
                     }
                 }
+
                 $checkPages->removeDuplicates();
             }
 

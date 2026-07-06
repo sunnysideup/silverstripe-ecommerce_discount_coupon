@@ -1,4 +1,5 @@
-SilverStripe\ORM\DatabaseAdmin:
+
+SilverStripe\Dev\DbBuild:
   classname_value_remapping:
     DiscountCouponSiteTreeDOD_Field: Sunnysideup\EcommerceDiscountCoupon\Form\DiscountCouponSiteTreeDODField
     DiscountCouponModifier_Form: Sunnysideup\EcommerceDiscountCoupon\Modifiers\DiscountCouponModifierForm
