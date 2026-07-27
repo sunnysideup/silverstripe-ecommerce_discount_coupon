@@ -46,7 +46,6 @@ use Sunnysideup\EcommerceDiscountCoupon\Search\DiscountCouponFilterForDate;
  */
 class DiscountCouponOption extends DataObject
 {
-
     /**
      * @var bool
      */
@@ -78,6 +77,10 @@ class DiscountCouponOption extends DataObject
         'DiscountPercentage' => 'Decimal(4,2)',
         'ComboDiscountedProductDescription' => 'Varchar(255)',
         'ComboMustHaveProductDescription' => 'Varchar(255)',
+        'AndQueryProductGroupSelection' => 'Boolean(0)',
+        'AndQueryCustomProductListSelection' => 'Boolean(0)',
+        'AndQueryOtherProductInOrderProductGroupSelection' => 'Boolean(0)',
+        'AndQueryOtherProductInOrderCustomProductListSelection' => 'Boolean(0)',
     ];
 
     private static array $many_many = [
@@ -167,6 +170,10 @@ class DiscountCouponOption extends DataObject
         'OtherProductInOrderProducts' => 'Other Products in the Order must be in this list of products ... ',
         'OtherProductInOrderProductGroups' => 'Other Products in the Order must be listed in this list of product groups ... ',
         'OtherProductInOrderCustomProductLists' => 'Other Products in the Order must be listed in this list of custom product lists ... ',
+        'AndQueryProductGroupSelection' => 'Products must be listed in ALL selected product groups (rather than ANY of the selected product groups)',
+        'AndQueryCustomProductListSelection' => 'Products must be listed in ALL selected custom product lists (rather than ANY of the selected custom product lists)',
+        'AndQueryOtherProductInOrderCustomProductListSelection' => 'Other Products in the Order must be listed in ALL selected custom product lists (rather than ANY of the selected custom product lists)',
+        'AndQueryOtherProductInOrderProductGroupSelection' => 'Other Products in the Order must be listed in ALL selected product groups (rather than ANY of the selected product groups)',
     ];
 
     /**
@@ -503,14 +510,26 @@ class DiscountCouponOption extends DataObject
                 $gridField4 = $fields->dataFieldByName('ProductGroupsMustAlsoBePresentIn');
                 if ($gridField4) {
                     $gridField4->setConfig(GridFieldConfigForProductGroups::create());
-                    $fields->addFieldToTab('Root.DiscountedProducts', $gridField4);
+                    $fields->addFieldsToTab(
+                        'Root.DiscountedProducts',
+                        [
+                            $this->dataFieldByName('AndQueryProductGroupSelection'),
+                            $gridField4
+                        ]
+                    );
                 }
 
 
                 $gridField5 = $fields->dataFieldByName('CustomProductListsMustAlsoBePresentIn');
                 if ($gridField5) {
                     $gridField5->setConfig(GridFieldConfigForCustomLists::create());
-                    $fields->addFieldToTab('Root.DiscountedProducts', $gridField5);
+                    $fields->addFieldsToTab(
+                        'Root.DiscountedProducts',
+                        [
+                            $this->dataFieldByName('AndQueryCustomProductListSelection'),
+                            $gridField5
+                        ]
+                    );
                 }
             } else {
                 $fields->removeByName('ProductGroupsMustAlsoBePresentIn');
@@ -563,12 +582,24 @@ class DiscountCouponOption extends DataObject
                 $gridField7 = $fields->dataFieldByName('OtherProductInOrderProductGroups');
                 if ($gridField7) {
                     $gridField7->setConfig(GridFieldConfigForProductGroups::create());
-                    $fields->addFieldToTab('Root.OrderMustAlsoHave', $gridField7);
+                    $fields->addFieldsToTab(
+                        'Root.OrderMustAlsoHave',
+                        [
+                            $fields->dataFieldByName('AndQueryOtherProductInOrderProductGroupSelection'),
+                            $gridField7
+                        ]
+                    );
                 }
 
                 $gridField8 = $fields->dataFieldByName('OtherProductInOrderCustomProductLists');
                 if ($gridField8) {
-                    $fields->addFieldToTab('Root.OrderMustAlsoHave', $gridField8);
+                    $fields->addFieldsToTab(
+                        'Root.OrderMustAlsoHave',
+                        [
+                            $fields->dataFieldByName('AndQueryOtherProductInOrderCustomProductListSelection'),
+                            $gridField8
+                        ]
+                    );
                 }
             } else {
                 $fields->addFieldsToTab('Root.OrderMustAlsoHave', [
@@ -729,7 +760,11 @@ class DiscountCouponOption extends DataObject
                 foreach ($productGroups as $productGroup) {
                     $productsShowable = $productGroup->getProducts();
                     if ($productsShowable->exists()) {
-                        $productsArray += array_merge($productsArray, $productsShowable->columnUnique() ?? []);
+                        if ($this->AndQueryProductGroupSelection) {
+                            $productsArray = array_intersect($productsArray, $productsShowable->columnUnique() ?? []);
+                        } else {
+                            $productsArray += array_merge($productsArray, $productsShowable->columnUnique() ?? []);
+                        }
                     }
                 }
             }
@@ -741,7 +776,11 @@ class DiscountCouponOption extends DataObject
                 foreach ($customLists as $customProductList) {
                     $productsShowable = $customProductList->Products();
                     if ($productsShowable->exists()) {
-                        $productsArray += array_merge($productsArray, $productsShowable->columnUnique() ?? []);
+                        if ($this->AndQueryCustomProductListSelection) {
+                            $productsArray = array_intersect($productsArray, $productsShowable->columnUnique() ?? []);
+                        } else {
+                            $productsArray += array_merge($productsArray, $productsShowable->columnUnique() ?? []);
+                        }
                     }
                 }
             }
@@ -791,7 +830,11 @@ class DiscountCouponOption extends DataObject
                 foreach ($productGroups as $productGroup) {
                     $otherProductsRequired = $productGroup->getProducts();
                     if ($otherProductsRequired->exists()) {
-                        $otherProductsArray += array_merge($otherProductsArray, $otherProductsRequired->columnUnique() ?? []);
+                        if ($this->AndQueryOtherProductInOrderProductGroupSelection) {
+                            $otherProductsArray = array_intersect($otherProductsArray, $otherProductsRequired->columnUnique() ?? []);
+                        } else {
+                            $otherProductsArray += array_merge($otherProductsArray, $otherProductsRequired->columnUnique() ?? []);
+                        }
                     }
                 }
             }
@@ -803,7 +846,11 @@ class DiscountCouponOption extends DataObject
                 foreach ($customLists as $customProductList) {
                     $otherProductsRequired = $customProductList->Products();
                     if ($otherProductsRequired->exists()) {
-                        $otherProductsArray += array_merge($otherProductsArray, $otherProductsRequired->columnUnique() ?? []);
+                        if ($this->AndQueryOtherProductInOrderCustomProductListSelection) {
+                            $otherProductsArray = array_intersect($otherProductsArray, $otherProductsRequired->columnUnique() ?? []);
+                        } else {
+                            $otherProductsArray += array_merge($otherProductsArray, $otherProductsRequired->columnUnique() ?? []);
+                        }
                     }
                 }
             }

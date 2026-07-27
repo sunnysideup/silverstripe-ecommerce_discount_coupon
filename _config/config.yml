@@ -1,8 +1,8 @@
 ---
 Name: ecommerce_discount_coupon
-Before: 
+Before:
   - '#app'
-After: 
+After:
   - '#coreconfig'
   - '#cmsextensions'
   - '#ecommerce'
@@ -16,6 +16,12 @@ Sunnysideup\Ecommerce\Control\OrderModifierFormController:
 Sunnysideup\Ecommerce\Pages\Product:
   extensions:
     - Sunnysideup\EcommerceDiscountCoupon\Model\Buyables\DiscountCouponProductDataExtension
+
+Sunnysideup\EcommerceCustomProductLists\Model\CustomProductList:
+  belongs_many_many:
+    'DiscountCouponOptionsDiscountedProducts': Sunnysideup\EcommerceCustomProductLists\Model\CustomProductList
+    'DiscountCouponOptionsMustAlsoBePresentIn': Sunnysideup\EcommerceCustomProductLists\Model\CustomProductList
+    'DiscountCouponOptionCustomProductLists': Sunnysideup\EcommerceCustomProductLists\Model\CustomProductList
 ---
 Only:
   classexists: 'DataObjectSorterDOD'
