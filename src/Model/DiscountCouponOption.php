@@ -650,6 +650,12 @@ class DiscountCouponOption extends DataObject
                     $fields->dataFieldByName('RequiresProductCombinationInOrder'),
                 ]);
                 $fields->removeByName('ProductCombinationRatio');
+                $fields->removeByName('ProductCombinationRatio');
+                $fields->removeByName('OtherProductInOrderProducts');
+                $fields->removeByName('OtherProductInOrderProductGroups');
+                $fields->removeByName('OtherProductInOrderCustomProductLists');
+                $fields->removeByName('AndQueryOtherProductInOrderProductGroupSelection');
+                $fields->removeByName('AndQueryOtherProductInOrderCustomProductListSelection');
             }
             if ($this->exists()) {
                 $fields->insertBefore(
