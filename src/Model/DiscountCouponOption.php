@@ -483,6 +483,10 @@ class DiscountCouponOption extends DataObject
             ]
         );
         if ($this->ApplyPercentageToApplicableProducts) {
+            $fields->insertAfter(
+                'Main',
+                new Tab('DiscountedProducts', 'DiscountedProducts'),
+            );
             $fields->removeByName('MinimumOrderSubTotalValue');
 
             $gridField1 = $fields->dataFieldByName('Products');
