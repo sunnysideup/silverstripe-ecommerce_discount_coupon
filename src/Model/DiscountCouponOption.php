@@ -485,12 +485,13 @@ class DiscountCouponOption extends DataObject
         if ($this->ApplyPercentageToApplicableProducts) {
             $fields->insertAfter(
                 'Main',
-                new Tab('DiscountedProducts', 'DiscountedProducts'),
+                new Tab('DiscountedProducts', 'Discounted Products'),
             );
             $fields->removeByName('MinimumOrderSubTotalValue');
 
             $gridField1 = $fields->dataFieldByName('Products');
             if ($gridField1) {
+                $fields->removeFieldFromTab('Root', 'Products');
                 if ($this->ProductsAddedThroughLists()) {
                     $gridField1->setConfig(GridFieldBasicPageRelationConfigNoAddExisting::create());
                     $gridField1->setReadonly(true);
@@ -504,14 +505,22 @@ class DiscountCouponOption extends DataObject
                         $gridField1
                     ]
                 );
+            } else {
+                die('no gridfield for products');
             }
 
             $gridField2 = $fields->dataFieldByName('ProductGroups');
             if ($gridField2) {
+                $fields->removeFieldFromTab('Root', 'ProductGroups');
                 $gridField2->setConfig(GridFieldConfigForProductGroups::create());
                 $fields->addFieldsToTab(
                     'Root.DiscountedProducts',
                     [
+                        HeaderField::create(
+                            'Product Groups Header',
+                            _t('DiscountCouponOption.PRODUCT_GROUPS', 'Select Using Product Groups'),
+                            1
+                        ),
                         $fields->dataFieldByName('AndQueryProductGroupSelection'),
                         $gridField2,
                     ]
@@ -519,10 +528,16 @@ class DiscountCouponOption extends DataObject
             }
             $gridField3 = $fields->dataFieldByName('CustomProductLists');
             if ($gridField3) {
+                $fields->removeFieldFromTab('Root', 'CustomProductLists');
                 $gridField3->setConfig(GridFieldConfigForCustomLists::create());
                 $fields->addFieldsToTab(
                     'Root.DiscountedProducts',
                     [
+                        HeaderField::create(
+                            'Custom Product Lists Header',
+                            _t('DiscountCouponOption.CUSTOM_PRODUCT_LISTS', 'Select Using Custom Product Lists'),
+                            1
+                        ),
                         $fields->dataFieldByName('AndQueryCustomProductListSelection'),
                         $gridField3
                     ]
@@ -535,23 +550,19 @@ class DiscountCouponOption extends DataObject
                         $fields->dataFieldByName('LimitProductListThroughCrossReferencing'),
                     ]
                 );
-                if($this->LimitProductListThroughCrossReferencing) {
-                    $fields->addFieldsToTab(
-                        'Root.LimitDiscountedProducts',
-                        [
-                            HeaderField::create(
-                                'Limit Product Selection',
-                                _t('DiscountCouponOption.LIMIT_PRODUCT_SELECTION', 'Limit Product Selection'),
-                                1
-                            )
-                        ]
-                    );
+                if ($this->LimitProductListThroughCrossReferencing) {
                     $gridField4 = $fields->dataFieldByName('ProductGroupsMustAlsoBePresentIn');
                     if ($gridField4) {
+                        $fields->removeFieldFromTab('Root', 'ProductGroupsMustAlsoBePresentIn');
                         $gridField4->setConfig(GridFieldConfigForProductGroups::create());
                         $fields->addFieldsToTab(
                             'Root.LimitDiscountedProducts',
                             [
+                                HeaderField::create(
+                                    'Limit Product Selection by Product Groups Header',
+                                    _t('DiscountCouponOption.LIMIT_PRODUCT_SELECTION_BY_GROUPS', 'Limit Product Selection by Product Groups'),
+                                    1
+                                ),
                                 $fields->dataFieldByName('AndQueryMustAlsoBePresentInProductGroupSelection'),
                                 $gridField4
                             ]
@@ -561,10 +572,16 @@ class DiscountCouponOption extends DataObject
 
                     $gridField5 = $fields->dataFieldByName('CustomProductListsMustAlsoBePresentIn');
                     if ($gridField5) {
+                        $fields->removeFieldFromTab('Root', 'CustomProductListsMustAlsoBePresentIn');
                         $gridField5->setConfig(GridFieldConfigForCustomLists::create());
                         $fields->addFieldsToTab(
                             'Root.LimitDiscountedProducts',
                             [
+                                HeaderField::create(
+                                    'Limit Product Selection by Custom Product Lists Header',
+                                    _t('DiscountCouponOption.LIMIT_PRODUCT_SELECTION_BY_CUSTOM_PRODUCT_LISTS', 'Limit Product Selection by Custom Product Lists'),
+                                    1
+                                ),
                                 $fields->dataFieldByName('AndQueryMustAlsoBePresentInCustomProductListSelection'),
                                 $gridField5
                             ]
@@ -690,14 +707,14 @@ class DiscountCouponOption extends DataObject
             $fields->removeFieldFromTab('Root.Main', 'ApplyEvenWithoutCode');
         }
 
-        $fields->removeFieldFromTab('Root', 'Products');
-        $fields->removeFieldFromTab('Root', 'ProductGroups');
-        $fields->removeFieldFromTab('Root', 'CustomProductLists');
-        $fields->removeFieldFromTab('Root', 'ProductGroupsMustAlsoBePresentIn');
-        $fields->removeFieldFromTab('Root', 'CustomProductListsMustAlsoBePresentIn');
-        $fields->removeFieldFromTab('Root', 'OtherProductInOrderProducts');
-        $fields->removeFieldFromTab('Root', 'OtherProductInOrderProductGroups');
-        $fields->removeFieldFromTab('Root', 'OtherProductInOrderCustomProductLists');
+        // $fields->removeFieldFromTab('Root', 'Products');
+        // $fields->removeFieldFromTab('Root', 'ProductGroups');
+        // $fields->removeFieldFromTab('Root', 'CustomProductLists');
+        // $fields->removeFieldFromTab('Root', 'ProductGroupsMustAlsoBePresentIn');
+        // $fields->removeFieldFromTab('Root', 'CustomProductListsMustAlsoBePresentIn');
+        // $fields->removeFieldFromTab('Root', 'OtherProductInOrderProducts');
+        // $fields->removeFieldFromTab('Root', 'OtherProductInOrderProductGroups');
+        // $fields->removeFieldFromTab('Root', 'OtherProductInOrderCustomProductLists');
 
 
         $fields->addFieldsToTab(
@@ -874,7 +891,7 @@ class DiscountCouponOption extends DataObject
                     $isLimited = true;
                     $mustAlsoBePresentInProducts = $mustAlsoBePresentInCustomProductList->Products();
                     if ($mustAlsoBePresentInProducts->exists()) {
-                        if($this->AndQueryMustAlsoBePresentInCustomProductListSelection) {
+                        if ($this->AndQueryMustAlsoBePresentInCustomProductListSelection) {
                             $mustAlsoBePresentInProductsArray = array_intersect($mustAlsoBePresentInProductsArray, $mustAlsoBePresentInProducts->columnUnique() ?? []);
                         } else {
                             $mustAlsoBePresentInProductsArray += array_merge($mustAlsoBePresentInProductsArray, $mustAlsoBePresentInProducts->columnUnique() ?? []);
