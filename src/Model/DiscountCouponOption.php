@@ -11,6 +11,7 @@ use SilverStripe\Forms\ReadonlyField;
 use SilverStripe\Forms\Tab;
 use SilverStripe\Forms\TextField;
 use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\FieldType\DBHTMLText;
 use SilverStripe\Security\Permission;
 use Sunnysideup\CmsEditLinkField\Api\CMSEditLinkAPI;
 use Sunnysideup\Ecommerce\Forms\Gridfield\Configs\GridFieldBasicPageRelationConfigNoAddExisting;
@@ -24,6 +25,7 @@ use Sunnysideup\Ecommerce\Pages\ProductGroup;
 use Sunnysideup\EcommerceCustomProductLists\Model\CustomProductList;
 use Sunnysideup\EcommerceCustomProductLists\Model\CustomProductLists;
 use Sunnysideup\EcommerceDiscountCoupon\Modifiers\DiscountCouponModifier;
+use Sunnysideup\EcommerceDiscountCoupon\Pages\DiscountCouponOptionPage;
 use Sunnysideup\EcommerceDiscountCoupon\Search\DiscountCouponFilterForDate;
 
 /**
@@ -77,7 +79,9 @@ class DiscountCouponOption extends DataObject
         'DiscountPrice' => 'Currency',
         'DiscountPercentage' => 'Decimal(4,2)',
         'ComboDiscountedProductDescription' => 'Varchar(255)',
-        'ComboMustHaveProductDescription' => 'Varchar(255)',
+        'ComboDiscountedProductListDescription' => 'Varchar(255)',
+        'ComboOtherProductInOrderDescription' => 'Varchar(255)',
+        'ComboOtherProductInOrderListDescription' => 'Varchar(255)',
         // or or and query selection main selection
         'AndQueryProductGroupSelection' => 'Boolean(0)',
         'AndQueryCustomProductListSelection' => 'Boolean(0)',
@@ -108,7 +112,10 @@ class DiscountCouponOption extends DataObject
      */
     private static array $indexes = [
         'Title' => true,
-        'Code' => true,
+        'CodeIndex' => array(
+            'type' => 'unique',
+            'columns' => ['Code'],
+        ),
         'StartDate' => true,
         'EndDate' => true,
     ];
@@ -121,7 +128,35 @@ class DiscountCouponOption extends DataObject
         'UseCount' => 'Int',
         'IsValid' => 'Boolean',
         'IsValidNice' => 'Varchar',
+        'ComboDiscountedProductDescriptionLink' => 'Varchar',
+        'ComboOtherProductInOrderDescriptionLink' => 'Varchar',
     ];
+
+    public function getComboDiscountedProductDescriptionLink(): string
+    {
+        $page = $this->myDisplayPage();
+        if ($page) {
+            $page->setCustomList($this);
+            return $page->Link();
+        }
+        return '';
+    }
+
+    public function getComboOtherProductInOrderDescriptionLink(): string
+    {
+        $page = $this->myDisplayPage();
+        if ($page) {
+            $page->setCustomList($this);
+            $page->setIsOtherProductsInOrder(true);
+            return $page->Link();
+        }
+        return '';
+    }
+
+    protected function myDisplayPage()
+    {
+        return DiscountCouponOptionPage::get()->first();
+    }
 
     /**
      * standard SS variable.
@@ -154,69 +189,104 @@ class DiscountCouponOption extends DataObject
 
     /**
      * standard SS variable.
+     *
+     * Short, plain-language TITLES only.
+     * All longer explanations live in $field_labels_right (used as field descriptions).
      */
     private static array $field_labels = [
+        // basics
+        'Title' => 'Name',
+        'Code' => 'Code',
         'StartDate' => 'Start Date',
         'EndDate' => 'Last Day',
-        'Title' => 'Name',
-        'MaximumDiscount' => 'Maximum deduction - per product (i.e. if you buy four products, you can have four times the minimum discount)',
-        'DiscountAbsolute' => 'Absolute Discount',
-        'DiscountPercentage' => 'Percentage Discount',
-        'ApplyPercentageToApplicableProducts' => 'Applicable products only',
-        'RequiresProductCombinationInOrder' => 'Only applies if a combination of products is in the order',
-        'NumberOfTimesCouponCanBeUsed' => 'Availability count',
-        'UseCount' => 'Count of usage thus far',
-        'IsValidNice' => 'Current validity',
-        'ApplyEvenWithoutCode' => 'Automatically applied',
-        'Products' => 'Applicable products',
+        'NumberOfTimesCouponCanBeUsed' => 'Times Available',
+        'UseCount' => 'Times Used',
+        'IsValidNice' => 'Currently Valid',
+        // behaviour
+        'ApplyEvenWithoutCode' => 'Apply Automatically',
+        'ApplyPercentageToApplicableProducts' => 'Discount Specific Products',
+        'RequiresProductCombinationInOrder' => 'Require Product Combination',
+        'ProductCombinationRatio' => 'Product Ratio',
+        // price
+        'DiscountPrice' => 'Fixed Price',
+        'DiscountAbsolute' => 'Amount Off',
+        'DiscountPercentage' => 'Percentage Off',
+        'MaximumDiscount' => 'Maximum Deduction',
+        'MinimumOrderSubTotalValue' => 'Minimum Order Value',
+        // discounted product selection
+        'Products' => 'Applicable Products',
         'ProductGroups' => 'Applicable Categories',
-        'CustomProductLists' => 'Applicable Custom Product Lists',
-        // also in ...
-        'ProductGroupsMustAlsoBePresentIn' => 'Products must also be listed in this list of product groups ... ',
-        'CustomProductListsMustAlsoBePresentIn' => 'Products must also be listed in this list of custom product lists ... ',
-        // another product in Order in ...
-        'ProductCombinationRatio' => 'Ratio between the discounted and required product.',
-        'OtherProductInOrderProducts' => 'Other Products in the Order must be in this list of products ... ',
-        'OtherProductInOrderProductGroups' => 'Other Products in the Order must be listed in this list of product groups ... ',
-        'OtherProductInOrderCustomProductLists' => 'Other Products in the Order must be listed in this list of custom product lists ... ',
-        'AndQueryProductGroupSelection' => 'Products must be listed in ALL selected product groups (rather than ANY of the selected product groups)',
-        'AndQueryCustomProductListSelection' => 'Products must be listed in ALL selected custom product lists (rather than ANY of the selected custom product lists)',
-        'AndQueryOtherProductInOrderCustomProductListSelection' => 'Other Products in the Order must be listed in ALL selected custom product lists (rather than ANY of the selected custom product lists)',
-        'AndQueryOtherProductInOrderProductGroupSelection' => 'Other Products in the Order must be listed in ALL selected product groups (rather than ANY of the selected product groups)',
+        'CustomProductLists' => 'Applicable Custom Lists',
+        'AndQueryProductGroupSelection' => 'Match ALL Categories',
+        'AndQueryCustomProductListSelection' => 'Match ALL Custom Lists',
+        // cross-referencing ("must also be present in ...")
+        'LimitProductListThroughCrossReferencing' => 'Cross-reference Products',
+        'ProductGroupsMustAlsoBePresentIn' => 'Must Also Be In Categories',
+        'CustomProductListsMustAlsoBePresentIn' => 'Must Also Be In Custom Lists',
+        'AndQueryMustAlsoBePresentInProductGroupSelection' => 'Match ALL Categories',
+        'AndQueryMustAlsoBePresentInCustomProductListSelection' => 'Match ALL Custom Lists',
+        // required "other products in the order"
+        'OtherProductInOrderProducts' => 'Required Products',
+        'OtherProductInOrderProductGroups' => 'Required Categories',
+        'OtherProductInOrderCustomProductLists' => 'Required Custom Lists',
+        'AndQueryOtherProductInOrderProductGroupSelection' => 'Match ALL Categories',
+        'AndQueryOtherProductInOrderCustomProductListSelection' => 'Match ALL Custom Lists',
+        // combo public descriptions
+        'ComboDiscountedProductDescription' => 'Discounted Product Text',
+        'ComboOtherProductInOrderDescription' => 'Required Product Text',
+        'ComboDiscountedProductListDescription' => 'Heading for Discounted Product List',
+        'ComboOtherProductInOrderListDescription' => 'Heading for Required Product List',
     ];
 
     /**
      * standard SS variable.
+     *
+     * Longer, helpful DESCRIPTIONS shown under each field (see getCMSFields()).
+     * These add extra information - they never simply repeat the title above.
      */
     private static array $field_labels_right = [
-        'ApplyEvenWithoutCode' => 'Discount is automatically applied: the user does not have to enter the coupon at all. ',
-        'ApplyPercentageToApplicableProducts' => 'Rather than applying it to the order, the discount is directly applied to selected products (you must select products).',
-        'RequiresProductCombinationInOrder' => 'E.g. Customer much have a product from category A and a product from category B in the order to get the discount.   ',
-        'Title' => 'The name of the coupon is for internal use only.  This name is not exposed to the customer but can be used to find a particular coupon.',
-        'Code' => 'The code that the customer enters to get their discount.',
-        'StartDate' => 'First date the coupon can be used.',
-        'EndDate' => 'Last day the coupon can be used.',
-        'MaximumDiscount' => 'This is the total amount of discount that can ever be applied - no matter what. Set to zero to ignore.',
-        'DiscountPrice' => 'New (discounted) price of the product. Set to zero to ignore.',
-        'DiscountAbsolute' => 'Absolute reduction. For example, 10 = -$10.00 off. Set this value to zero to ignore.',
-        'DiscountPercentage' => 'Percentage Discount.  For example, 10 = -10% discount Set this value to zero to ignore.',
-        'MinimumOrderSubTotalValue' => 'Minimum sub-total of total order to make coupon applicable. For example, order must be at least $100 before the customer gets a discount. This only applies if the discount is for the whole order (i.e. not for specific products). Set this value to zero to ignore.',
-        'NumberOfTimesCouponCanBeUsed' => 'Set to zero to disallow usage, set to 999,999 to allow unlimited usage.',
-        'UseCount' => 'number of times this coupon has been used',
-        'IsValidNice' => 'coupon is currently valid',
-        // product selection
-        'Products' => "This is the final list of products to which the coupon applies. To edit this list directly, please remove all selections below.",
-        'ProductGroups' => 'Adding product categories helps you to select a large number of products at once. Please select categories above.  The products in each category selected will be added to the list.',
-        'CustomProductLists' => 'Adding custom lists helps you to select a large number of products at once. Please select custom lists above.  The products in each list selected will be added to the list.',
-        // cross reference selection
-        'LimitProductListThroughCrossReferencing' => 'Tick this box to cross-reference the product list: in order for a product to be discounted it must be in the lists below as well.',
-        'ProductGroupsMustAlsoBePresentIn' => 'Select cross-reference listing products (listed in both categories) - e.g. products that are in the Large Items category and Expensive Items category will have a discount.',
-        'CustomProductListsMustAlsoBePresentIn' => 'Select cross-reference listing custom product lists - e.g. products that are in the Large Items category and Expensive Items category will have a discount.',
-        // another product in Order in ...
-        'ProductCombinationRatio' => 'For example, if the ratio is 2, then for every 2 products in the Discounted Products list, there must be 1 product in the "Other Products in Order" list. If the ratio is 1, then for every 1 product in the "Products" list, there must be 1 product in the "Other Products in Order" list. If the ratio is 0, then the ratio is unlimited. ',
-        'OtherProductInOrderProducts' => 'Other Products in the Order must be in this list of products. To edit this list directly, please remove all product groups and custom list selections in the \'Other Products in Order\' tab.',
-        'OtherProductInOrderProductGroups' => 'Other Products in the Order must be listed in this list of product groups. ',
-        'OtherProductInOrderCustomProductLists' => 'Other Products in the Order must be listed in this list of custom product lists. ',
+        // basics
+        'Title' => 'A clear, concise name. This may also be shown to customers.',
+        'Code' => 'The code the customer enters at checkout to claim the discount.',
+        'StartDate' => 'The first day the coupon can be used.',
+        'EndDate' => 'The last day the coupon can be used (this day is included).',
+        'NumberOfTimesCouponCanBeUsed' => 'How many times this coupon may be used in total. Set to 0 to disable it, or to 999,999 for effectively unlimited use.',
+        'UseCount' => 'How many times this coupon has been used so far.',
+        'IsValidNice' => 'Whether the coupon can be used right now, based on its dates and remaining uses.',
+        // behaviour
+        'ApplyEvenWithoutCode' => 'Apply the discount automatically, without the customer having to enter a code.',
+        'ApplyPercentageToApplicableProducts' => 'Apply the discount straight to selected products instead of to the order total. You must select products below.',
+        'RequiresProductCombinationInOrder' => 'Only apply the discount when a required combination of products is in the order (e.g. a product from category A together with a product from category B).',
+        'ProductCombinationRatio' => 'The ratio of discounted products to required products. For example, 2:1 means one required product is needed for every two discounted products. Choose "unlimited" to ignore the ratio.',
+        // price
+        'DiscountPrice' => 'Override the product price with this fixed amount. Set to zero to ignore.',
+        'DiscountAbsolute' => 'A flat amount taken off. For example, 10 = 10.00 off. Set to zero to ignore.',
+        'DiscountPercentage' => 'A percentage taken off. For example, 10 = 10% off. Must be between 0 and 99.999. Set to zero to ignore.',
+        'MaximumDiscount' => 'The largest deduction that can ever be applied per product, no matter what. Set to zero for no limit.',
+        'MinimumOrderSubTotalValue' => 'The order sub-total required before the coupon applies (e.g. the order must reach 100 first). Only used for whole-order discounts. Set to zero to ignore.',
+        // discounted product selection
+        'Products' => 'The final list of products the coupon applies to. To edit this list directly, first remove all category and custom-list selections below.',
+        'ProductGroups' => 'Add whole categories at once - every product in each selected category is added to the list.',
+        'CustomProductLists' => 'Add whole custom lists at once - every product in each selected list is added to the list.',
+        'AndQueryProductGroupSelection' => 'When ticked, a product must appear in ALL selected categories. When unticked, appearing in ANY one is enough.',
+        'AndQueryCustomProductListSelection' => 'When ticked, a product must appear in ALL selected custom lists. When unticked, appearing in ANY one is enough.',
+        // cross-referencing
+        'LimitProductListThroughCrossReferencing' => 'Only discount a product if it also appears in the cross-reference lists below.',
+        'ProductGroupsMustAlsoBePresentIn' => 'A discounted product must also appear in these categories (e.g. it is in both "Large Items" and "Expensive Items").',
+        'CustomProductListsMustAlsoBePresentIn' => 'A discounted product must also appear in these custom lists.',
+        'AndQueryMustAlsoBePresentInProductGroupSelection' => 'When ticked, the product must also appear in ALL selected categories. When unticked, appearing in ANY one is enough.',
+        'AndQueryMustAlsoBePresentInCustomProductListSelection' => 'When ticked, the product must also appear in ALL selected custom lists. When unticked, appearing in ANY one is enough.',
+        // required "other products in the order"
+        'OtherProductInOrderProducts' => 'Other products that must also be in the order for the discount to apply. To edit this list directly, first remove all category and custom-list selections in this tab.',
+        'OtherProductInOrderProductGroups' => 'Choose the required products via whole categories.',
+        'OtherProductInOrderCustomProductLists' => 'Choose the required products via whole custom lists.',
+        'AndQueryOtherProductInOrderProductGroupSelection' => 'When ticked, a required product must appear in ALL selected categories. When unticked, appearing in ANY one is enough.',
+        'AndQueryOtherProductInOrderCustomProductListSelection' => 'When ticked, a required product must appear in ALL selected custom lists. When unticked, appearing in ANY one is enough.',
+        // combo public descriptions
+        'ComboDiscountedProductDescription' => 'Publicly shown text describing the discounted product in the combination (e.g. "Buy this accessory with a large item and get 10% off the accessory").',
+        'ComboOtherProductInOrderDescription' => 'Publicly shown text describing the required product in the combination (e.g. "Buy this large item to get 10% off the accessory").',
+        'ComboDiscountedProductListDescription' => 'This shows above the list of discounted products in the combination. For example, "Discounted Accessories".',
+        'ComboOtherProductInOrderListDescription' => 'This shows above the list of required products in the combination. For example, "Required Large Items that offer discounted accessories if purchased together.".',
     ];
 
     /**
@@ -459,13 +529,6 @@ class DiscountCouponOption extends DataObject
     public function getCMSFields()
     {
         $fields = parent::getCMSFields();
-        $fieldLabels = $this->Config()->get('field_labels_right');
-        foreach ($fields->dataFields() as $field) {
-            $name = $field->getName();
-            if (isset($fieldLabels[$name])) {
-                $field->setDescription($fieldLabels[$name]);
-            }
-        }
         if ($this->ApplyEvenWithoutCode) {
             $fields->removeFieldsFromTab(
                 'Root.Main',
@@ -478,16 +541,16 @@ class DiscountCouponOption extends DataObject
         $fields->addFieldsToTab(
             'Root.Main',
             [
-                new ReadonlyField('UseCount', self::$field_labels['UseCount']),
-                new ReadonlyField('IsValidNice', self::$field_labels['IsValidNice'])
+                new ReadonlyField('UseCount', $this->fieldLabel('UseCount')),
+                new ReadonlyField('IsValidNice', $this->fieldLabel('IsValidNice')),
             ]
         );
         if ($this->ApplyPercentageToApplicableProducts) {
+            $fields->removeByName('MinimumOrderSubTotalValue');
             $fields->insertAfter(
                 'Main',
                 new Tab('DiscountedProducts', 'Discounted Products'),
             );
-            $fields->removeByName('MinimumOrderSubTotalValue');
 
             $gridField1 = $fields->dataFieldByName('Products');
             if ($gridField1) {
@@ -498,6 +561,7 @@ class DiscountCouponOption extends DataObject
                 } else {
                     $gridField1->setConfig(GridFieldConfigForProducts::create());
                 }
+
                 $fields->addFieldsToTab(
                     'Root.DiscountedProducts',
                     [
@@ -505,8 +569,6 @@ class DiscountCouponOption extends DataObject
                         $gridField1
                     ]
                 );
-            } else {
-                die('no gridfield for products');
             }
 
             $gridField2 = $fields->dataFieldByName('ProductGroups');
@@ -606,25 +668,44 @@ class DiscountCouponOption extends DataObject
                     [
                         TextField::create(
                             'ComboDiscountedProductDescription',
-                            _t('DiscountCouponOption.COMBO_DISCOUNTED_PRODUCT_DESCRIPTION', 'Description of discounted product for combination.'),
+                            $this->fieldLabel('ComboDiscountedProductDescription'),
+                        ),
+                        TextField::create(
+                            'ComboDiscountedProductListDescription',
+                            $this->fieldLabel('ComboDiscountedProductListDescription'),
+                        ),
+
+                        ReadonlyField::create(
+                            'ComboDiscountedProductDescriptionLinkNice',
+                            'View List of Discounted Products',
+                            DBHTMLText::create()->setValue(
+                                '<a href="' . $this->getComboDiscountedProductDescriptionLink() . '" target="_blank">' . $this->getComboDiscountedProductDescriptionLink() . '</a>'
+                            )
                         ),
                     ],
                     'Products'
                 );
-                $fields->addFieldsToTab(
-                    'Root.OrderMustAlsoHave',
-                    [
-                        TextField::create(
-                            'ComboMustHaveProductDescription',
-                            _t('DiscountCouponOption.COMBO_MUST_HAVE_PRODUCT_DESCRIPTION', 'Description of must-have product for combination.'),
-                        ),
-                    ],
-                );
                 $fields->addFieldsToTab('Root.OrderMustAlsoHave', [
                     $fields->dataFieldByName('RequiresProductCombinationInOrder'),
+                    TextField::create(
+                        'ComboOtherProductInOrderDescription',
+                        $this->fieldLabel('ComboOtherProductInOrderDescription'),
+                    ),
+                    TextField::create(
+                        'ComboOtherProductInOrderListDescription',
+                        $this->fieldLabel('ComboOtherProductInOrderListDescription'),
+                    ),
+
+                    ReadonlyField::create(
+                        'ComboOtherProductInOrderDescriptionLinkNice',
+                        'View list of Products that must also be present in the order',
+                        DBHTMLText::create()->setValue(
+                            '<a href="' . $this->getComboOtherProductInOrderDescriptionLink() . '" target="_blank">' . $this->getComboOtherProductInOrderDescriptionLink() . '</a>'
+                        )
+                    ),
                     new DropdownField(
                         'ProductCombinationRatio',
-                        $this->config()->get('field_labels')['ProductCombinationRatio'],
+                        $this->fieldLabel('ProductCombinationRatio'),
                         [
                             0 => 'unlimited',
                             1 => '1:1',
@@ -674,12 +755,13 @@ class DiscountCouponOption extends DataObject
                     $fields->dataFieldByName('RequiresProductCombinationInOrder'),
                 ]);
                 $fields->removeByName('ProductCombinationRatio');
-                $fields->removeByName('ProductCombinationRatio');
                 $fields->removeByName('OtherProductInOrderProducts');
                 $fields->removeByName('OtherProductInOrderProductGroups');
                 $fields->removeByName('OtherProductInOrderCustomProductLists');
                 $fields->removeByName('AndQueryOtherProductInOrderProductGroupSelection');
                 $fields->removeByName('AndQueryOtherProductInOrderCustomProductListSelection');
+                $fields->removeByName('ComboDiscountedProductListDescription');
+                $fields->removeByName('ComboOtherProductInOrderListDescription');
             }
             if ($this->exists()) {
                 $fields->insertBefore(
@@ -707,6 +789,8 @@ class DiscountCouponOption extends DataObject
             $fields->removeByName('OtherProductInOrderCustomProductLists');
             $fields->removeByName('AndQueryOtherProductInOrderProductGroupSelection');
             $fields->removeByName('AndQueryOtherProductInOrderCustomProductListSelection');
+            $fields->removeByName('ComboDiscountedProductListDescription');
+            $fields->removeByName('ComboOtherProductInOrderListDescription');
             $fields->removeFieldFromTab('Root.Main', 'ApplyEvenWithoutCode');
         }
 
@@ -720,15 +804,39 @@ class DiscountCouponOption extends DataObject
         // $fields->removeFieldFromTab('Root', 'OtherProductInOrderCustomProductLists');
 
 
+        // Titles come from $field_labels (the standard scaffolding), so we only
+        // set the currency-based one here where a value is derived at runtime.
         $fields->addFieldsToTab(
             'Root.Price',
             [
-                $fields->dataFieldByName('DiscountPrice')->setTitle('Discounted Price'),
-                $fields->dataFieldByName('DiscountAbsolute')->setTitle('Amount Deducted in '. EcommerceCurrency::default_currency_code()),
-                $fields->dataFieldByName('DiscountPercentage')->setTitle('Percentage Deducted'),
+                $fields->dataFieldByName('DiscountPrice'),
+                $fields->dataFieldByName('DiscountAbsolute'),
+                $fields->dataFieldByName('DiscountPercentage'),
                 $fields->dataFieldByName('MaximumDiscount'),
             ]
         );
+
+        // Apply the "right-hand" descriptions from $field_labels_right to every
+        // field. Done last so it also reaches fields rebuilt above (combo/ratio).
+        $fieldDescriptions = (array) $this->Config()->get('field_labels_right');
+        foreach ($fields->dataFields() as $field) {
+            $name = $field->getName();
+            if (isset($fieldDescriptions[$name])) {
+                $field->setDescription($fieldDescriptions[$name]);
+            }
+        }
+
+        // The absolute-discount description references the shop's currency,
+        // so it is set dynamically after the static descriptions above.
+        $absoluteField = $fields->dataFieldByName('DiscountAbsolute');
+        if ($absoluteField) {
+            $currencyCode = EcommerceCurrency::default_currency_code();
+            $absoluteField->setDescription(
+                'A flat amount taken off, in ' . $currencyCode
+                . '. For example, 10 = ' . $currencyCode . ' 10.00 off. Set to zero to ignore.'
+            );
+        }
+
         return $fields;
     }
 
