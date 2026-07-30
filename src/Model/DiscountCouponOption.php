@@ -637,6 +637,7 @@ class DiscountCouponOption extends DataObject
                 ]);
                 $gridField6 = $fields->dataFieldByName('OtherProductInOrderProducts');
                 if ($gridField6) {
+                    $fields->removeFieldFromTab('Root', 'OtherProductInOrderProducts');
                     if ($this->OtherProductsAddedThroughLists()) {
                         $gridField6->setConfig(GridFieldBasicPageRelationConfigNoAddExisting::create());
                     } else {
@@ -646,6 +647,7 @@ class DiscountCouponOption extends DataObject
                 }
                 $gridField7 = $fields->dataFieldByName('OtherProductInOrderProductGroups');
                 if ($gridField7) {
+                    $fields->removeFieldFromTab('Root', 'OtherProductInOrderProductGroups');
                     $gridField7->setConfig(GridFieldConfigForProductGroups::create());
                     $fields->addFieldsToTab(
                         'Root.OrderMustAlsoHave',
@@ -658,6 +660,7 @@ class DiscountCouponOption extends DataObject
 
                 $gridField8 = $fields->dataFieldByName('OtherProductInOrderCustomProductLists');
                 if ($gridField8) {
+                    $fields->removeFieldFromTab('Root', 'OtherProductInOrderCustomProductLists');
                     $fields->addFieldsToTab(
                         'Root.OrderMustAlsoHave',
                         [
