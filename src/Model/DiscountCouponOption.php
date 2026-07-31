@@ -174,9 +174,6 @@ class DiscountCouponOption extends DataObject
         'ApplyPercentageToApplicableProducts' => 'ExactMatchFilter',
         'RequiresProductCombinationInOrder' => 'ExactMatchFilter',
         'ApplyEvenWithoutCode' => 'ExactMatchFilter',
-        'DiscountAbsolute' => 'ExactMatchFilter',
-        'DiscountPercentage' => 'ExactMatchFilter',
-        'DiscountPrice' => 'ExactMatchFilter',
     ];
 
     private static array $cascade_deletes = [
