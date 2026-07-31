@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Sunnysideup\EcommerceDiscountCoupon\Model;
 
 use SilverStripe\Core\Config\Config;
+use SilverStripe\Forms\CheckboxSetField;
 use SilverStripe\Forms\DropdownField;
+use SilverStripe\Forms\GridField\GridFieldDeleteAction;
+use SilverStripe\Forms\GridField\GridFieldEditButton;
 use SilverStripe\Forms\HeaderField;
 use SilverStripe\Forms\ReadonlyField;
 use SilverStripe\Forms\Tab;
@@ -13,6 +16,7 @@ use SilverStripe\Forms\TextField;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBHTMLText;
 use SilverStripe\Security\Permission;
+use SilverStripe\Versioned\GridFieldArchiveAction;
 use Sunnysideup\CmsEditLinkField\Api\CMSEditLinkAPI;
 use Sunnysideup\Ecommerce\Forms\Gridfield\Configs\GridFieldBasicPageRelationConfigNoAddExisting;
 use Sunnysideup\Ecommerce\Forms\Gridfield\Configs\GridFieldConfigForCustomLists;
@@ -556,7 +560,10 @@ class DiscountCouponOption extends DataObject
             if ($gridField1) {
                 $fields->removeFieldFromTab('Root', 'Products');
                 if ($this->ProductsAddedThroughLists()) {
-                    $gridField1->setConfig(GridFieldBasicPageRelationConfigNoAddExisting::create());
+                    $gridField1->setConfig(
+                        GridFieldBasicPageRelationConfigNoAddExisting::create()
+                            ->removeComponentsByType(GridFieldEditButton::class)
+                    );
                     $gridField1->setReadonly(true);
                 } else {
                     $gridField1->setConfig(GridFieldConfigForProducts::create());
@@ -574,7 +581,11 @@ class DiscountCouponOption extends DataObject
             $gridField2 = $fields->dataFieldByName('ProductGroups');
             if ($gridField2) {
                 $fields->removeFieldFromTab('Root', 'ProductGroups');
-                $gridField2->setConfig(GridFieldConfigForProductGroups::create());
+                $gridField2->setConfig(
+                    GridFieldConfigForProductGroups::create()
+                        ->removeComponentsByType(GridFieldArchiveAction::class)
+                        ->removeComponentsByType(GridFieldEditButton::class)
+                );
                 $fields->addFieldsToTab(
                     'Root.DiscountedProducts',
                     [
@@ -616,7 +627,11 @@ class DiscountCouponOption extends DataObject
                     $gridField4 = $fields->dataFieldByName('ProductGroupsMustAlsoBePresentIn');
                     if ($gridField4) {
                         $fields->removeFieldFromTab('Root', 'ProductGroupsMustAlsoBePresentIn');
-                        $gridField4->setConfig(GridFieldConfigForProductGroups::create());
+                        $gridField4->setConfig(
+                            GridFieldConfigForProductGroups::create()
+                                ->removeComponentsByType(GridFieldArchiveAction::class)
+                                ->removeComponentsByType(GridFieldEditButton::class)
+                        );
                         $fields->addFieldsToTab(
                             'Root.LimitDiscountedProducts',
                             [
@@ -635,7 +650,11 @@ class DiscountCouponOption extends DataObject
                     $gridField5 = $fields->dataFieldByName('CustomProductListsMustAlsoBePresentIn');
                     if ($gridField5) {
                         $fields->removeFieldFromTab('Root', 'CustomProductListsMustAlsoBePresentIn');
-                        $gridField5->setConfig(GridFieldConfigForCustomLists::create());
+                        $gridField5->setConfig(
+                            GridFieldConfigForCustomLists::create()
+                                ->removeComponentsByType(GridFieldArchiveAction::class)
+                                ->removeComponentsByType(GridFieldEditButton::class)
+                        );
                         $fields->addFieldsToTab(
                             'Root.LimitDiscountedProducts',
                             [
@@ -746,7 +765,11 @@ class DiscountCouponOption extends DataObject
                         'Root.OrderMustAlsoHave',
                         [
                             $fields->dataFieldByName('AndQueryOtherProductInOrderCustomProductListSelection'),
-                            $gridField8
+                            CheckboxSetField::create(
+                                'OtherProductInOrderCustomProductLists',
+                                $this->fieldLabel('OtherProductInOrderCustomProductLists'),
+                                CustomProductList::get()->map('ID', 'Title')->toArray()
+                            )
                         ]
                     );
                 }
@@ -762,6 +785,8 @@ class DiscountCouponOption extends DataObject
                 $fields->removeByName('AndQueryOtherProductInOrderCustomProductListSelection');
                 $fields->removeByName('ComboDiscountedProductListDescription');
                 $fields->removeByName('ComboOtherProductInOrderListDescription');
+                $fields->removeByName('ComboDiscountedProductDescription');
+                $fields->removeByName('ComboOtherProductInOrderDescription');
             }
             if ($this->exists()) {
                 $fields->insertBefore(
@@ -790,6 +815,8 @@ class DiscountCouponOption extends DataObject
             $fields->removeByName('AndQueryOtherProductInOrderProductGroupSelection');
             $fields->removeByName('AndQueryOtherProductInOrderCustomProductListSelection');
             $fields->removeByName('ComboDiscountedProductListDescription');
+            $fields->removeByName('ComboDiscountedProductDescription');
+            $fields->removeByName('ComboOtherProductInOrderDescription');
             $fields->removeByName('ComboOtherProductInOrderListDescription');
             $fields->removeFieldFromTab('Root.Main', 'ApplyEvenWithoutCode');
         }

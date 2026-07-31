@@ -19,9 +19,9 @@ Sunnysideup\Ecommerce\Pages\Product:
 
 Sunnysideup\EcommerceCustomProductLists\Model\CustomProductList:
   belongs_many_many:
-    'DiscountCouponOptionsDiscountedProducts': Sunnysideup\EcommerceCustomProductLists\Model\CustomProductList
-    'DiscountCouponOptionsMustAlsoBePresentIn': Sunnysideup\EcommerceCustomProductLists\Model\CustomProductList
-    'DiscountCouponOptionCustomProductLists': Sunnysideup\EcommerceCustomProductLists\Model\CustomProductList
+    'DiscountCouponOptionsDiscountedProducts': Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption.CustomProductLists
+    'DiscountCouponOptionsMustAlsoBePresentIn': Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption.CustomProductListsMustAlsoBePresentIn
+    'DiscountCouponOptionCustomProductLists': Sunnysideup\EcommerceDiscountCoupon\Model\DiscountCouponOption.OtherProductInOrderCustomProductLists
 ---
 Only:
   classexists: 'DataObjectSorterDOD'
