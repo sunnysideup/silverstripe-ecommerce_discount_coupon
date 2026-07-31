@@ -752,6 +752,11 @@ class DiscountCouponOption extends DataObject
                     $fields->addFieldsToTab(
                         'Root.OrderMustAlsoHave',
                         [
+                            HeaderField::create(
+                                'Product Category Header OTHER PRODUCTS IN ORDER',
+                                _t('DiscountCouponOption.SELECT_USING_HEADER', 'Select Using Categories'),
+                                1
+                            ),
                             $fields->dataFieldByName('AndQueryOtherProductInOrderProductGroupSelection'),
                             $gridField7
                         ]
@@ -764,6 +769,11 @@ class DiscountCouponOption extends DataObject
                     $fields->addFieldsToTab(
                         'Root.OrderMustAlsoHave',
                         [
+                            HeaderField::create(
+                                'Custom Product Lists Header OTHER PRODUCTS IN ORDER',
+                                _t('DiscountCouponOption.CUSTOM_PRODUCT_LISTS', 'Select Using Custom Product Lists'),
+                                1
+                            ),
                             $fields->dataFieldByName('AndQueryOtherProductInOrderCustomProductListSelection'),
                             CheckboxSetField::create(
                                 'OtherProductInOrderCustomProductLists',
