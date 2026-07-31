@@ -196,7 +196,7 @@ class DiscountCouponOption extends DataObject
      */
     private static array $field_labels = [
         // basics
-        'Title' => 'Name',
+        'Title' => 'Name (PUBLIC! - e.g. "10% off Red Accessories")',
         'Code' => 'Code',
         'StartDate' => 'Start Date',
         'EndDate' => 'Last Day',

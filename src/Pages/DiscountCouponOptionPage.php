@@ -21,7 +21,7 @@ class DiscountCouponOptionPage extends ProductGroup
     private static $table_name = 'DiscountCouponOptionPage';
 
     private static $description = 'This page provides a holder to show discounted products.';
-    private static $icon = 'sunnysideup/ecommerce:client/images/icons/productgroupsearchpage-file.gif';
+    private static $icon = 'sunnysideup/ecommerce_discount_coupon:client/images/DiscountCouponOptionPage-file.svg';
     private static $singular_name = 'Discount Coupon Option Page';
 
     private static $plural_name = 'Discount Coupon Option Pages';
@@ -103,7 +103,7 @@ class DiscountCouponOptionPage extends ProductGroup
         if ($action) {
             return parent::Link($action);
         } elseif ($this->customList) {
-            if($this->isOtherProductsInOrder) {
+            if ($this->isOtherProductsInOrder) {
                 $action = 'otherproductsinorder';
             } else {
                 $action = 'show';
