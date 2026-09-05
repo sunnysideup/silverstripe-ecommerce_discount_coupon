@@ -912,7 +912,11 @@ class DiscountCouponOption extends DataObject
                 );
             }
             if (strtotime((string) $this->EndDate) < strtotime((string) $this->StartDate)) {
-                $validator->addError(_t('DiscountCouponOption.ENDDATETOOEARLY', 'The end date should be after the start date'));
+                $newStartDate = $this->EndDate;
+                $newEndDate = $this->StartDate;
+                $this->StartDate = $newStartDate;
+                $this->EndDate = $newEndDate;
+                // $validator->addError(_t('DiscountCouponOption.ENDDATETOOEARLY', 'The end date should be after the start date'));
             }
             if ($this->DiscountPercentage < 0 || $this->DiscountPercentage > 99.999) {
                 $validator->addFieldError(
