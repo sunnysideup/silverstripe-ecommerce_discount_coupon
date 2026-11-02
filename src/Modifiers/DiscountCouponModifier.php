@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sunnysideup\EcommerceDiscountCoupon\Modifiers;
 
+use SilverStripe\Core\Convert;
 use SilverStripe\Control\Controller;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\FormAction;
@@ -467,16 +468,18 @@ class DiscountCouponModifier extends OrderModifier
         $code    = trim((string) $this->LiveCouponCodeEntered());
         $coupons = $this->myDiscountCouponOptions();
 
+        // NB: the name of a modifier is HTML (it is shown as it is in the cart, emails, invoices and the CMS).
+        // The code is typed in by the customer, so anything that is not fixed text has to be escaped.
         if (count($coupons) > 0) {
             $messages = array_map(
-                fn($c) => _t('DiscountCouponModifier.COUPON', 'Coupon') . ' ' . $c->Title . ' ' . _t('DiscountCouponModifier.APPLIED', 'applied.'),
+                fn($c) => _t('DiscountCouponModifier.COUPON', 'Coupon') . ' ' . Convert::raw2xml((string) $c->Title) . ' ' . _t('DiscountCouponModifier.APPLIED', 'applied.'),
                 $coupons
             );
             return implode('<br />', $messages);
         }
 
         if ($code !== '') {
-            return _t('DiscountCouponModifier.COUPON', 'Coupon') . " '$code' " . _t('DiscountCouponModifier.COULDNOTBEAPPLIED', 'could not be applied.');
+            return _t('DiscountCouponModifier.COUPON', 'Coupon') . " '" . Convert::raw2xml($code) . "' " . _t('DiscountCouponModifier.COULDNOTBEAPPLIED', 'could not be applied.');
         }
 
         return _t('DiscountCouponModifier.NOCOUPONENTERED', 'No (valid) coupon entered');

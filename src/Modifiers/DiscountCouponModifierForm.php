@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Sunnysideup\EcommerceDiscountCoupon\Modifiers;
 
-use SilverStripe\Core\Convert;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
 use SilverStripe\View\Requirements;
@@ -38,13 +37,14 @@ class DiscountCouponModifierForm extends OrderModifierForm
 
     public function submit(array $data, Form $form, $message = 'Order updated', $status = 'good')
     {
-        if (isset($data['DiscountCouponCode'])) {
+        // the code must be a single value (not e.g. an array)
+        if (isset($data['DiscountCouponCode']) && is_string($data['DiscountCouponCode'])) {
             $order = ShoppingCart::current_order();
             if ($order) {
                 $modifiers = $order->Modifiers(DiscountCouponModifier::class);
                 $modifier = $modifiers->First();
                 if ($modifier) {
-                    $result = $modifier->updateCouponCodeEntered(Convert::raw2sql($data['DiscountCouponCode']));
+                    $result = $modifier->updateCouponCodeEntered(mb_substr(trim($data['DiscountCouponCode']), 0, 25));
                     $message = $result['message'] ?? '';
                     $type = $result['type'] ?? 'bad';
                     $form->sessionMessage($message, $type);
