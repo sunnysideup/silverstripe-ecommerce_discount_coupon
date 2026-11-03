@@ -1113,23 +1113,30 @@ class DiscountCouponOption extends DataObject
 
     /**
      * returns a random string.
+     * The length can be set using the random_code_length config (default: 8).
+     * The characters exclude look-alikes (0, O, 1, I, L) and are upper case only,
+     * because codes are not case sensitive.
      *
-     * @param int    $length - number of characters
-     * @param string $chars  - input characters
+     * @param int|null $length - number of characters
+     * @param string   $chars  - input characters
      */
-    protected function createRandomCode($length = 5, $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890'): string
+    protected function createRandomCode($length = null, $chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'): string
     {
-        $chars_length = strlen((string) $chars) - 1;
-        $string = $chars[rand(0, $chars_length)];
-        for ($i = 1; $i < $length; $i = strlen((string) $string)) {
-            $r = $chars[rand(0, $chars_length)];
-            if ($r !== $string[$i - 1]) {
-                $string .= $r;
-            }
+        if (! $length) {
+            $length = (int) $this->config()->get('random_code_length');
+        }
+        if ($length < 1) {
+            $length = 8;
+        }
+        $maxIndex = strlen((string) $chars) - 1;
+        $string = '';
+        for ($i = 0; $i < $length; ++$i) {
+            $string .= $chars[random_int(0, $maxIndex)];
         }
 
         return $string;
     }
+
     public function CMSEditLink($action = null): string
     {
         return CMSEditLinkAPI::find_edit_link_for_object($this, $action);
